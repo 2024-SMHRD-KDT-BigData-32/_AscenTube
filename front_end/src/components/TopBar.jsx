@@ -5,6 +5,19 @@ import ProfileDropdown from './ProfileDropdown'; // 드롭다운 컴포넌트 �
 
 const logoPath = process.env.PUBLIC_URL + '/logo.png';
 
+<<<<<<< HEAD
+=======
+// 가상 사용자 정보 (실제로는 로그인 시 API 등에서 받아와야 함)
+const dummyUser = {
+  name: 'AscenTube 유저', // 표시될 이름
+  channelId: '@ascen_tube_user', // 표시될 채널 ID
+  // 실제 유튜브 채널 썸네일 URL을 사용하거나, 없다면 플레이스홀더 사용
+  thumbnailUrl: 'https://yt3.googleusercontent.com/ytc/AIdro_kX0_f6L2t4N2yL0xV9N3n9G3qX8kjE8Z8Z9Y9Z9w=s176-c-k-c0x00ffffff-no-rj', // 예시 썸네일 (실제 유효한 URL로 교체 필요)
+  // thumbnailUrl: '', // 비워두면 ProfileDropdown에서 플레이스홀더 사용
+};
+
+
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 const TopBar = ({ onToggleSidebar }) => {
   const [user, setUser] = useState(null); // 사용자 정보 상태
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -14,6 +27,7 @@ const TopBar = ({ onToggleSidebar }) => {
 
   // 컴포넌트 마운트 시 사용자 정보 설정 (가상) 및 토큰 확인
   useEffect(() => {
+<<<<<<< HEAD
     const token = localStorage.getItem('access_token');
     const userName = localStorage.getItem('user_name');
     const userThumbnail = localStorage.getItem('user_thumbnail');
@@ -29,6 +43,15 @@ const TopBar = ({ onToggleSidebar }) => {
       });
     } else {
       setUser(null);
+=======
+    // 실제 앱에서는 로그인 상태를 확인하고 사용자 정보를 가져옵니다.
+    // 여기서는 localStorage의 'access_token' 유무로 로그인 상태를 간주하고 더미 사용자 설정
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      setUser(dummyUser);
+    } else {
+      setUser(null); // 로그인 안 된 상태
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
     }
   }, []);
 
@@ -52,12 +75,16 @@ const TopBar = ({ onToggleSidebar }) => {
   }, []);
 
   const handleLogout = () => {
+<<<<<<< HEAD
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_google_id');
     localStorage.removeItem('user_name'); 
     localStorage.removeItem('user_thumbnail'); 
     localStorage.removeItem('user_email'); 
     localStorage.removeItem('user_channel_name'); 
+=======
+    localStorage.removeItem('access_token'); // 토큰 제거
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
     setUser(null); // 사용자 상태 null로
     setIsDropdownOpen(false); // 드롭다운 닫기
     navigate('/login'); // 로그인 페이지로 이동
