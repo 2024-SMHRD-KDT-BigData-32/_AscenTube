@@ -1,0 +1,62 @@
+/* src/layouts/MainLayout.css */
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column; /* TopBar와 app-body를 수직으로 */
+  overflow: hidden; /* 전체 스크롤 방지 */
+  background-color: #f9f9f9; /* 페이지 배경색 */
+}
+
+.app-body {
+  display: flex;
+  flex-grow: 1; /* TopBar를 제외한 나머지 공간 */
+  position: relative; /* Sidebar의 fixed 포지셔닝 기준 */
+  overflow: hidden; /* 내부 스크롤은 app-content에서 */
+}
+
+.app-content {
+  flex-grow: 1;
+  /* Sidebar 너비만큼 왼쪽 마진 */
+  padding-top: 0; /* TopBar가 fixed이므로, 콘텐츠는 그 아래부터 시작 */
+  overflow-y: auto; /* 콘텐츠가 길어지면 스크롤 */
+  transition: margin-left 0.2s ease-in-out;
+  background-color: #f9f9f9; /* 콘텐츠 영역 배경 */
+}
+
+.app-container.sidebar-expanded .app-content {
+  margin-left: 256px; /* Sidebar 열렸을 때 너비 (기존 16rem) */
+}
+
+.app-container.sidebar-collapsed .app-content {
+  margin-left: 72px; /* Sidebar 닫혔을 때 너비 */
+}
+
+.content-wrapper {
+  /* 기존 MainLayout의 콘텐츠 div 스타일 적용 */
+  flex: 1; /* 이 부분은 app-content가 flex-grow를 가지므로 불필요할 수 있음 */
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-top-left-radius: 1.5rem; /* 24px */
+  /* overflow: hidden; */ /* app-content에서 overflow-y: auto로 처리 */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05); /* 기존 그림자에서 약간 조정 */
+  margin: 24px; /* 콘텐츠 영역과 주변 여백 */
+  padding: 24px; /* 콘텐츠 내부 패딩 */
+  min-height: calc(100vh - 56px - 48px); /* TopBar 높이와 상하 마진 제외한 최소 높이 */
+}
+
+/* 반응형 처리 예시 */
+@media (max-width: 768px) {
+  .app-container.sidebar-collapsed .app-content {
+    margin-left: 0; /* 모바일에서는 닫히면 콘텐츠가 전체 너비 차지 */
+  }
+  .app-container.sidebar-expanded .app-content {
+    margin-left: 0; /* 모바일에서는 열려도 콘텐츠 위에 사이드바가 오버레이되도록 */
+  }
+
+  .sidebar.open {
+    /* 모바일에서 사이드바가 열렸을 때 콘텐츠 위에 오버레이되도록 z-index 조정 */
+    z-index: 1040; /* TopBar보다 높게 */
+    box-shadow: 0 0 15px rgba(0,0,0,0.2); /* 오버레이 시 그림자 강조 */
+  }
+}

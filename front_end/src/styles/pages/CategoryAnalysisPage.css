@@ -1,0 +1,112 @@
+/* src/pages/CategoryAnalysisPage.css */
+.category-analysis-page {
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #eef2f9; /* 페이지 배경색 변경 */
+  min-height: 100vh;
+}
+
+.page-title {
+  color: #263238; /* 기본 텍스트 색상 */
+  border-bottom: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
+  padding-bottom: 12px;
+  margin-bottom: 30px;
+  font-size: 1.8em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.category-selector-container {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #ffffff; /* 카드 배경색 */
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* 기존 그림자 유지 또는 조정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-selector-label {
+  margin-right: 10px;
+  font-weight: 500;
+  color: #546e7a; /* 보조 텍스트 색상 */
+}
+
+.category-selector-select {
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
+  font-size: 1em;
+  min-width: 260px;
+  background-color: #ffffff; /* 카드 배경색 */
+  color: #263238; /* 기본 텍스트 색상 */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.category-selector-select:hover {
+  border-color: #b0bec5; /* 약간 더 어두운 블루 그레이 */
+}
+
+.category-selector-select:focus {
+  border-color: #0277bd; /* 강조 색상 */
+  box-shadow: 0 0 0 1px #0277bd;
+  outline: none;
+}
+
+.analysis-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+.video-analysis-section { /* 각 VideoAnalytics 컴포넌트의 카드 */
+  background: #ffffff; /* 카드 배경색 */
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* 그림자 통일 */
+}
+
+.section-subtitle { /* VideoAnalytics 컴포넌트의 제목 (예: 오늘의 인기 동영상 분석) */
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 1.3em;
+  color: #263238; /* 기본 텍스트 색상 */
+  border-bottom: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
+  padding-bottom: 12px;
+  font-weight: 500;
+}
+
+.video-analysis-section p {
+  line-height: 1.6;
+  color: #546e7a; /* 보조 텍스트 색상 */
+}
+
+.video-analysis-section p i {
+  color: #546e7a; /* 보조 텍스트 색상 */
+  font-size: 0.95em;
+}
+
+.loading-message,
+.info-message,
+.no-data-message,
+.initial-message {
+  padding: 16px;
+  text-align: center;
+  color: #546e7a;     /* 보조 텍스트 색상 */
+  background-color: #f4f8fb; /* 페이지 배경보다 약간 밝거나 다른 톤의 배경 */
+  border: 1px solid #cfd8dc;   /* 테두리/구분선 색상 */
+  border-radius: 8px;
+  margin-top: 20px;
+  font-size: 0.95em;
+}
+
+.initial-message {
+  font-size: 1.05em;
+}
+
+@media (min-width: 1200px) {
+  .analysis-content-grid {
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  }
+}

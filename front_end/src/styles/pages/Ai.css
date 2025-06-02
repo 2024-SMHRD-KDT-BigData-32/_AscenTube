@@ -1,0 +1,290 @@
+/* ===============================
+   🔧 기본 초기화 및 설정
+=============================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: sans-serif;
+  background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
+  color: #2d3748;
+  min-height: 100vh;
+}
+
+/* ===============================
+   🧱 공통 유틸리티 클래스
+=============================== */
+
+.flex {
+  display: flex;
+}
+
+/* ===============================
+   🧭 사이드바 (aside)
+=============================== */
+
+aside {
+  width: 16rem;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 로고 스타일 */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.logo img {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.logo span {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: black;
+  letter-spacing: 0.05em;
+}
+
+/* 내비게이션 링크 */
+nav a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+nav a:hover {
+  background-color: #eef2ff;
+}
+
+nav a.active {
+  background-color: #e0e7ff;
+}
+
+/* ===============================
+   📦 메인 콘텐츠 래퍼
+=============================== */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-top-left-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ===============================
+   🔝 헤더 (내부 메인)
+=============================== */
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+}
+
+header input {
+  width: 24rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: box-shadow 0.3s;
+}
+
+header input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c7d2fe;
+}
+
+/* ===============================
+   📑 메인 콘텐츠
+=============================== */
+
+main {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ===============================
+   📦 콘텐츠 섹션
+=============================== */
+
+section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+section:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+section h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #3730a3;
+  margin-bottom: 1rem;
+}
+
+/* ===============================
+   📊 그리드 레이아웃
+=============================== */
+
+.insight-grid,
+.strategy-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* 반응형 설정 */
+@media (min-width: 640px) {
+  .insight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .insight-grid,
+  .strategy-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===============================
+   📌 인사이트 & 전략 박스
+=============================== */
+
+.insight-box,
+.strategy-box {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.strategy-box {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.insight-box h3,
+.strategy-box h3 {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #1e3a8a;
+}
+
+.insight-box ul,
+.strategy-box ul {
+  list-style-type: disc;
+  padding-left: 1rem;
+  color: #1e40af;
+}
+
+.insight-box ul li,
+.strategy-box ul li {
+  margin-bottom: 0.25rem;
+}
+
+/* ===============================
+   📝 요약 박스
+=============================== */
+
+.summary-box {
+  margin-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+  color: #1e40af;
+  line-height: 1.6;
+}
+
+.summary-box strong {
+  font-weight: bold;
+}
+
+.summary-box span {
+  font-weight: 600;
+}
+
+.summary-box .highlight {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+/* ===============================
+   📎 부가 텍스트 및 노트
+=============================== */
+
+.note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+/* ===============================
+   📶 진행률 바
+=============================== */
+
+.progress-bar-container {
+  background-color: #e5e7eb;
+  height: 0.75rem;
+  border-radius: 9999px;
+  margin-top: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0;
+  transition: width 1.5s ease-out;
+  background-color: #6366f1;
+  border-radius: 9999px;
+}
+
+/* ===============================
+   🤖 AI 콘텐츠 전용 컨테이너
+=============================== */
+
+.ai-container {
+  min-height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
