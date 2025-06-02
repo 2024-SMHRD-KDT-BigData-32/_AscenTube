@@ -2,6 +2,7 @@
 <section name="Workbench">
 	<section name="MavenProjectImportWizardPage">
 		<list key="rootDirectory">
+			<item value="C:\Users\smhrd\Desktop\line_proj\AscenTube"/>
 			<item value="C:\Users\smhrd\Desktop\line_proj\AscenTube\back_end"/>
 		</list>
 		<list key="projectNameTemplate">
