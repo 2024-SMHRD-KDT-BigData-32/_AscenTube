@@ -69,28 +69,9 @@ public class OAuthService {
 				.setRedirectUri(googleApiConfig.getRedirectUri())
 				.execute();
 		System.out.println("Full GoogleTokenResponse: " + response.toPrettyString());
-		
-		String idTokenStr = response.getIdToken();
-		String userId = "currentLoggedInUser"; 
-		GoogleIdToken idToken = null;
-		
-		if (idTokenStr != null) {
-			GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
-					.setAudience(Collections.singletonList(googleApiConfig.getClientId()))
-					.build();
-			
-			idToken = verifier.verify(idTokenStr);
-			
-			if(idToken != null) {
-				userId = idToken.getPayload().getSubject();
-				System.out.println("Extracted Google User ID (sub): " + userId);
-			} else {
-				System.err.println("ID Token verification failed in OAuthService for code: " + code);
-			}
-		} else {
-			System.err.println("ID Token string is null in OAuthService for code: " + code + ". Cannot extract user ID from ID Token.");
-		}
-		
+		String idToken = response.getIdToken();
+	
+		String userId = "currentLoggedInUser"; // TODO: 실제 사용자 ID로 변경 (Google ID: payload.getSubject() 등)
         Credential credential = flowWithAllScopes.createAndStoreCredential(response, userId);
         
         Map<String, Object> result = new HashMap<>();

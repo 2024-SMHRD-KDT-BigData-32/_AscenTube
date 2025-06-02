@@ -53,6 +53,7 @@ desktop.ini             # Windows system files
 # ==============================
 
 # Build output directories
+/back_end/.metadata/
 /back_end/target/
 /back_end/build/        # For Gradle projects
 
@@ -144,3 +145,4 @@ desktop.ini             # Windows system files
 
 # Logs not covered by backend/frontend specific
 *.log
+/.metadata/
