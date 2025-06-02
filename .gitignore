@@ -41,6 +41,7 @@ desktop.ini             # Windows system files
 .sts4-cache/
 /.metadata/             # Workspace metadata (if created at project root)
 **/.metadata/           # Any .metadata/ created in subdirectories
+.metadata/
 
 # VS Code
 # .vscode/ (already covered by global if at root, but explicitly include for sub-projects)
@@ -53,8 +54,10 @@ desktop.ini             # Windows system files
 # ==============================
 
 # Build output directories
+/back_end/.metadata/
 /back_end/target/
 /back_end/build/        # For Gradle projects
+/back_end/bin/
 
 # Compiled class files
 /back_end/**/*.class
