@@ -45,12 +45,10 @@ public class GoogleApiConfig {
 	public NetHttpTransport httpTransport() throws GeneralSecurityException, IOException {
 		return GoogleNetHttpTransport.newTrustedTransport();
 	}
-
 	@Bean
 	public GsonFactory jsonFactory() {
 		return GsonFactory.getDefaultInstance();
 	}
-
 	@Bean
 	public FileDataStoreFactory fileDataStoreFactory() throws IOException {
 		return new FileDataStoreFactory(new File(tokensDirectoryPath));
@@ -122,5 +120,4 @@ public class GoogleApiConfig {
 	public String getTokensDirectoryPath() {
 		return tokensDirectoryPath;
 	}
-
 }

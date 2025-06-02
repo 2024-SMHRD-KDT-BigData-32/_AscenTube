@@ -101,7 +101,11 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error fetching channel info: " + e.getMessage());
 		}
 	}
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 	@GetMapping("/channel-info-by-handle")
 	public ResponseEntity<?> getChannelInfoByHandle(@RequestParam String handleId){
 		try {
@@ -115,7 +119,11 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error fetching channel info by handle: " + e.getMessage());
 		}
 	}
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 	@GetMapping("/latest-videos")
 	public ResponseEntity<?> getLatestVideos(@RequestParam(defaultValue = "UC_x5XG1OV2P6uZZ5FSM9Ttw") String channelId,
 											@RequestParam(defaultValue = "5") long maxResults){
@@ -137,9 +145,15 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error searching videos : " + e.getMessage());
 		}
 	}
+<<<<<<< HEAD
 
 	@GetMapping("/search-videos")
 	public ResponseEntity<?> searchVideos(@RequestParam String query,
+=======
+	
+	@GetMapping("/search-videos")
+	public ResponseEntity<?> searchVideos(@RequestParam String query, 
+>>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 										@RequestParam(defaultValue = "10") long maxResults){
 		try {
 			List<String> videoTitles = youtubeDataApiService.searchVideos(query, maxResults);

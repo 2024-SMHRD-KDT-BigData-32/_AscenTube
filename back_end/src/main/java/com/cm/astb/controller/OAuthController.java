@@ -161,6 +161,5 @@ public class OAuthController {
 					.body("OAuth 상태 확인 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
-
 }
 

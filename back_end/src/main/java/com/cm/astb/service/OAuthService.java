@@ -62,7 +62,6 @@ public class OAuthService {
 				.setApprovalPrompt("force")
 				.build();
 	}
-
 	public String getAuthorizationUrl(Collection<String> scopes) throws IOException {
 		GoogleAuthorizationCodeRequestUrl url = buildFlow(scopes).newAuthorizationUrl()
 				.setRedirectUri(googleApiConfig.getRedirectUri());
@@ -155,11 +154,9 @@ public class OAuthService {
 				.setApplicationName(googleApiConfig.getApplicationName())
 				.build();
 	}
-
 	public YouTube getYouTubeService(Credential credential) throws IOException {
 		return new YouTube.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(googleApiConfig.getApplicationName())
 				.build();
 	}
-
 }
