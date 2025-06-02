@@ -1,0 +1,128 @@
+/* ===============================
+   🔤 키워드 분석 페이지 레이아웃
+=============================== */
+
+.keyword-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
+  font-family: sans-serif;
+  color: #2d3748;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===============================
+   🔝 헤더 영역
+=============================== */
+
+.keyword-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.keyword-header h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #4f46e5;
+}
+
+.keyword-header input {
+  width: 24rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.keyword-header input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #c7d2fe;
+}
+
+/* ===============================
+   🧩 메인 콘텐츠 영역
+=============================== */
+
+.keyword-main {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  animation: fadeIn 1s ease-out; /* 등장 시 페이드 인 효과 */
+}
+
+/* ===============================
+   📦 키워드 섹션 박스
+=============================== */
+
+.keyword-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  animation: slideUp 0.8s ease-out; /* 등장 시 아래에서 위로 이동 */
+}
+
+.keyword-section:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.keyword-section h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #3730a3;
+  margin-bottom: 0.5rem;
+}
+
+.keyword-section p {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 1rem;
+}
+
+/* ===============================
+   ☁️ 키워드 클라우드 박스
+=============================== */
+
+.cloud-box {
+  width: 100%;
+  height: 16rem;
+  background-color: #e0e7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6366f1;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+/* ===============================
+   🎞️ 키워드 페이지 전용 애니메이션
+=============================== */
+
+/* 페이드 인: 투명 → 불투명 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 슬라이드 업: 아래 → 위로 이동 */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

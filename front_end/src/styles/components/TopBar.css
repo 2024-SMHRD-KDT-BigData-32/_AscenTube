@@ -1,0 +1,139 @@
+/* src/components/TopBar.css */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px; /* 좌우 패딩 */
+  height: 56px; /* 헤더 높이 (유튜브 스튜디오와 유사) */
+  background-color: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* 유튜브 스타일 구분선 */
+  position: fixed; /* 상단 고정 */
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030; /* 다른 요소들보다 위에 오도록 */
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  /* 로고와 햄버거 버튼을 포함하는 왼쪽 영역 */
+}
+
+.sidebar-toggle-button {
+  background: none;
+  border: none;
+  padding: 8px; /* 클릭 영역 확보 */
+  margin-right: 16px; /* 로고와의 간격 */
+  cursor: pointer;
+  color: #606060; /* 아이콘 색상 */
+  display: inline-flex; /* SVG 아이콘 정렬 */
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar-toggle-button:hover {
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 50%; /* 원형 배경 효과 */
+}
+
+.topbar-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* 로고 이미지와 텍스트 사이 간격 */
+  text-decoration: none; /* 로고에 링크를 걸 경우 밑줄 제거 */
+  color: inherit; /* 부모 요소의 색상 상속 */
+}
+
+.topbar-logo-img {
+  height: 28px; /* 로고 이미지 높이 조정 */
+  width: auto; /* 이미지 비율 유지 */
+  display: block; /* 이미지 하단 불필요한 공백 제거 */
+}
+
+.topbar-logo-text {
+  font-size: 1.15rem; /* 로고 텍스트 크기 */
+  font-weight: 700; /* 굵기 */
+  color: #0f0f0f; /* 유튜브 로고 텍스트 색상과 유사하게 */
+  white-space: nowrap; /* 줄바꿈 방지 */
+  line-height: 1; /* 텍스트 세로 정렬 미세 조정 */
+}
+
+.topbar-center {
+  flex-grow: 1; /* 중앙 영역이 남은 공간 차지 */
+  display: flex;
+  justify-content: center; /* 검색창 중앙 정렬 */
+  margin: 0 40px; /* 검색창과 양옆 요소들 간의 최소 간격 */
+}
+
+.topbar-search-input {
+  width: 100%;
+  max-width: 580px; /* 검색창 최대 너비 */
+  height: 40px; /* 검색창 높이 */
+  padding: 0 12px; /* 내부 좌우 패딩 */
+  border: 1px solid #cccccc; /* 테두리 */
+  border-radius: 2px; /* 유튜브 스타일과 유사한 약간의 둥근 모서리 */
+  font-size: 1rem; /* 글자 크기 */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.075); /* 내부 그림자 효과 */
+}
+/* 검색 버튼을 추가한다면 여기에 스타일 정의 */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-action-icon {
+  background: none;
+  border: none;
+  padding: 8px; /* 클릭 영역 */
+  margin-left: 8px; /* 아이콘 버튼 간 간격 */
+  cursor: pointer;
+  color: #606060; /* 아이콘 색상 */
+  display: inline-flex; /* SVG 아이콘 정렬 */
+  align-items: center;
+  justify-content: center;
+}
+
+.topbar-action-icon svg { /* SVG 아이콘 크기 */
+  width: 24px;
+  height: 24px;
+}
+
+.topbar-action-icon:hover {
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 50%; /* 원형 배경 효과 */
+}
+
+/* ▼▼▼ 프로필 드롭다운 관련 스타일 ▼▼▼ */
+.profile-section {
+  position: relative; /* 드롭다운의 기준점 */
+  margin-left: 16px; /* 기존 .topbar-profile-avatar의 margin-left와 동일하게 */
+}
+
+.topbar-profile-avatar-button {
+  background: none;
+  border: none;
+  padding: 0; /* 내부 이미지 크기에 맞춤 */
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; /* 내부 이미지 정렬 */
+  align-items: center;
+  justify-content: center;
+  width: 32px; /* 아바타 크기 (기존 .topbar-profile-avatar와 동일하게) */
+  height: 32px;
+  overflow: hidden; /* 이미지가 원 밖으로 나가지 않도록 */
+}
+
+.topbar-profile-avatar-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 이미지가 비율을 유지하며 꽉 차도록 */
+  border-radius: 50%; /* 이미지가 원형을 벗어나지 않도록 */
+}
+/* ▲▲▲ 프로필 드롭다운 관련 스타일 ▲▲▲ */

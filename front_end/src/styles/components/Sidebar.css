@@ -1,0 +1,89 @@
+/* src/components/Sidebar.css */
+.sidebar {
+  background-color: #ffffff; /* 유튜브 스튜디오 사이드바 배경색 */
+  border-right: 1px solid var(--yt-spec-10-percent-layer, rgba(0,0,0,0.1));
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0; /* TopBar 아래부터 시작하도록 padding-top으로 조절 */
+  padding-top: 56px; /* TopBar 높이 */
+  z-index: 1020; /* TopBar 보다는 낮게, 콘텐츠보다는 높게 */
+  overflow-x: hidden;
+  overflow-y: auto; /* 내용이 길 경우 스크롤 */
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* 부드러운 전환 */
+  box-sizing: border-box;
+}
+
+.sidebar.open {
+  width: 240px;
+}
+
+.sidebar.closed {
+  width: 72px; /* 유튜브 스튜디오 축소 너비 */
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 12px 0; /* 상하 패딩 */
+  margin: 0;
+}
+
+.sidebar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 24px; /* 좌우 패딩 (아이콘 기준) */
+  color: #0f0f0f; /* 유튜브 기본 텍스트 색상 */
+  text-decoration: none;
+  white-space: nowrap; /* 라벨이 한 줄로 표시되도록 */
+  overflow: hidden; /* 라벨이 넘칠 경우 숨김 */
+  text-overflow: ellipsis; /* 넘치는 텍스트 ... 처리 */
+  border-radius: 0; /* 유튜브 스타일 */
+}
+
+.sidebar.closed .nav-item {
+  padding: 0; /* 축소 시 패딩 제거하고 아이콘 중앙 정렬 */
+  justify-content: center;
+}
+
+.sidebar-nav .nav-item:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* 호버 시 배경색 */
+}
+
+.sidebar-nav .nav-item.active {
+  background-color: rgba(0, 0, 0, 0.1); /* 활성 탭 배경색 */
+  font-weight: 500; /* 유튜브 활성 탭 글꼴 두께 */
+}
+
+.sidebar-nav .nav-icon {
+  font-size: 1.3rem; /* 아이콘 크기 */
+  min-width: 24px; /* 아이콘 최소 너비 */
+  margin-right: 24px; /* 아이콘과 라벨 사이 간격 (열렸을 때) */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #606060; /* 아이콘 기본 색상 */
+}
+
+.sidebar.closed .nav-icon {
+  margin-right: 0; /* 축소 시 아이콘 오른쪽 여백 제거 */
+}
+
+.sidebar-nav .nav-item.active .nav-icon {
+  color: #0f0f0f; /* 활성 탭 아이콘 색상 */
+}
+
+
+.sidebar-nav .nav-label {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.25rem; /* 20px */
+  letter-spacing: 0.007em;
+  opacity: 1;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.sidebar.closed .nav-label {
+  opacity: 0;
+  width: 0; /* 공간 차지 안 하도록 */
+  display: none; /* 확실히 숨김 */
+}

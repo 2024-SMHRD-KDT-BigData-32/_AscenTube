@@ -1,0 +1,64 @@
+package com.cm.astb.service;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cm.astb.entity.User;
+import com.cm.astb.repository.UserRepository;
+
+@Service
+public class UserService {
+
+	
+	private final UserRepository userRepository;
+	
+	
+	public UserService(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
+	@Transactional
+	public User findOrCreateUser(String googleId, String email, String nickname, String profileImg) {
+		Optional<User> optionalUser = userRepository.findByGoogleId(googleId);
+		
+		User user;
+		
+		if (optionalUser.isEmpty()) {
+			
+			 user = new User();
+			 user.setGoogleId(googleId);
+			 user.setEmail(email);
+			 user.setNickname(nickname);
+			 user.setProfileImg(profileImg);
+			 
+			 user = userRepository.save(user);
+			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );
+		} else {
+			user = optionalUser.get();
+			
+			boolean isChanged = false;
+			
+			if (nickname != null && !nickname.equals(user.getNickname())) {
+				user.setNickname(nickname);
+				isChanged = true;
+			}
+			if (email != null && !email.equals(user.getEmail())) {
+				user.setEmail(email);
+				isChanged = true;
+			}
+			if (profileImg != null && !profileImg.equals(user.getProfileImg())) {
+				user.setProfileImg(profileImg);
+				isChanged = true;
+			}
+			
+			if(isChanged) {
+				user = userRepository.save(user);
+				System.out.println("기존 사용자 정보 업데이트: " + user.getNickname() + " (" + user.getEmail() + ")");
+			}
+		}
+		return user;
+	}
+}
