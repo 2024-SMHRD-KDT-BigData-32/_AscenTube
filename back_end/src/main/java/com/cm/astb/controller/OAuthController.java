@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.cm.astb.config.GoogleApiConfig;
 import com.cm.astb.entity.User;
+import com.cm.astb.security.JwtTokenProvider;
 import com.cm.astb.service.OAuthService;
 import com.cm.astb.service.UserService;
 import com.google.api.client.auth.oauth2.Credential;
@@ -27,6 +30,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.youtube.YouTube;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -40,21 +44,27 @@ public class OAuthController {
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
 	private final UserService userService;
+	private final JwtTokenProvider jwtTokenProvider;
 	
 	public OAuthController(OAuthService oAuthService, GoogleApiConfig googleApiConfig,
 			NetHttpTransport httpTransport, GsonFactory jsonFactory, 
-			YoutubeAnalyticsController youtubeAnalyticsController, UserService userService) {
+			YoutubeAnalyticsController youtubeAnalyticsController, UserService userService,
+			JwtTokenProvider jwtTokenProvider) {
 		this.oAuthService = oAuthService;
 		this.googleApiConfig = googleApiConfig;
 		this.httpTransport = httpTransport;
 		this.jsonFactory = jsonFactory;
 		this.youtubeAnalyticsController = youtubeAnalyticsController;
 		this.userService = userService;
+		this.jwtTokenProvider = jwtTokenProvider;
 	}
 	
 	@GetMapping("/google/login")
 	public RedirectView googleLoginAuthorize() throws IOException {
-		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.USER_LOGIN_SCOPES);
+		Collection<String> allScopes = new ArrayList<>();
+		allScopes.addAll(GoogleApiConfig.ANALYTICS_SCOPES);
+		allScopes.addAll(GoogleApiConfig.USER_LOGIN_SCOPES);
+		String authorizationUrl = oAuthService.getAuthorizationUrl(allScopes);
 		return new RedirectView(authorizationUrl);
 	}
 	
@@ -84,11 +94,7 @@ public class OAuthController {
 				email = payload.getEmail();
 				nickname = (String) payload.get("name");
 				profileImg = (String) payload.get("picture");
-				
-				System.out.println("Google ID: " + googleId);
-				System.out.println("Email: " + email);
-				System.out.println("Name: " + nickname);
-				System.out.println("Profile Image URL: " + profileImg);
+			
 			} else {
 				System.out.println("Invalid ID Token.");
 				throw new IllegalArgumentException("Invalid ID Token received from Google callback.");
@@ -98,9 +104,11 @@ public class OAuthController {
 			if (googleId == null || email == null) {
 				throw new IllegalStateException("Critical user information (Google ID or Email) is missing after ID Token parsing");
 			}
+			
+			
 			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg);
 			
-			String jwtToken = UUID.randomUUID().toString();
+			String jwtToken = jwtTokenProvider.generateToken(user);
 			
 			String redirectUrl = String.format("%s?jwtToken=%s&userName=%s&userEmail=%s&userThumbnailUrl=%s",
 					googleApiConfig.getFrontendRedirectUrl(),
@@ -127,6 +135,12 @@ public class OAuthController {
 		}
 	}
 	
+	@GetMapping("/google/analytics/authorize")
+	public RedirectView googleAnalyticsAuthorize() throws IOException {
+		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.ANALYTICS_SCOPES);
+		return new RedirectView(authorizationUrl);	// return "redirect:/" + authorizationUrl와 같은 맥락.
+	}
+	
 	@GetMapping("/status")
 	public ResponseEntity<String> getOAuthStatus(@RequestParam String userId) {
 		try {
@@ -143,10 +157,5 @@ public class OAuthController {
 		}
 	}
 	
-	@GetMapping("/google/analytics/authorize")
-	public RedirectView googleAnalyticsAuthorize() throws IOException {
-		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.ANALYTICS_SCOPES);
-		return new RedirectView(authorizationUrl);	// return "redirect:/" + authorizationUrl와 같은 맥락.
-	}
 }
 

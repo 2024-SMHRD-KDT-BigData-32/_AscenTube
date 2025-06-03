@@ -39,7 +39,7 @@ public class GoogleApiConfig {
 	@Value("${spring.application.name}")
 	private String applicationName;
 	
-	@Value("${google.tokens.directory.path")
+	@Value("${google.tokens.directory.path}")
 	private String tokensDirectoryPath;
 	
 	@Bean
