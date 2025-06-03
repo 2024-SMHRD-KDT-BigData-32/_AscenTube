@@ -84,7 +84,6 @@ public class OAuthController {
 				email = payload.getEmail();
 				nickname = (String) payload.get("name");
 				profileImg = (String) payload.get("picture");
-
 			} else {
 				System.out.println("Invalid ID Token.");
 				throw new IllegalArgumentException("Invalid ID Token received from Google callback.");
@@ -139,13 +138,11 @@ public class OAuthController {
 
 		}
 	}
-
 	@GetMapping("/google/analytics/authorize")
 	public RedirectView googleAnalyticsAuthorize() throws IOException {
 		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.ANALYTICS_SCOPES);
 		return new RedirectView(authorizationUrl);	// return "redirect:/" + authorizationUrl와 같은 맥락.
 	}
-
 	@GetMapping("/status")
 	public ResponseEntity<String> getOAuthStatus(@RequestParam String userId) {
 		try {
