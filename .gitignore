@@ -13,17 +13,17 @@
 /common-libs/node_modules/ # 만약 common-libs 폴더가 있고 node_modules가 있다면 추가
 
 # Spring Boot build artifacts & generated files
-/back_end/target/     # Spring Boot 빌드 결과물 (jar, war 포함)
-*.jar                 # 혹시 모를 다른 위치의 jar 파일
-*.war                 # 혹시 모를 다른 위치의 war 파일
-/back_end/bin/        # IDE가 생성하는 컴파일된 클래스
-/back_end/.gradle/    # Gradle 빌드 캐시
+/back_end/target/
+*.jar
+*.war
+/back_end/bin/        
+/back_end/.gradle/    
 /back_end/.factorypath
 /back_end/.sts4-cache/
 /back_end/.classpath
 /back_end/.project
 /back_end/.settings/
-/back_end/tokens/     # Google OAuth 토큰 등 민감 정보가 저장되는 폴더
+/back_end/tokens/     
 
 # Maven Wrapper 파일 (필요시 추가, 권한 문제나 LF/CRLF 경고가 계속되면)
 # /back_end/mvnw
@@ -31,3 +31,4 @@
 
 # 로그 파일
 *.log
+/.metadata/
