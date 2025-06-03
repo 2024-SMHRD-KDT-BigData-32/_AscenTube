@@ -18,6 +18,21 @@ desktop.ini             # Windows system files
 .idea/                  # IntelliJ IDEA project files (root level if accidentally created)
 .vscode/                # VS Code project files (root level if accidentally created)
 
+<<<<<<< HEAD
+=======
+# Spring Boot build artifacts & generated files
+/back_end/target/
+*.jar
+*.war
+/back_end/bin/        
+/back_end/.gradle/    
+/back_end/.factorypath
+/back_end/.sts4-cache/
+/back_end/.classpath
+/back_end/.project
+/back_end/.settings/
+/back_end/tokens/     
+>>>>>>> 5a577b8 (Feat: 회원 정보 localStorage에 저장 구현)
 
 # ==============================
 # 2. IDE Specific Files & Directories
@@ -90,6 +105,7 @@ desktop.ini             # Windows system files
 # /back_end/mvnw.cmd
 # /back_end/.mvn/wrapper/maven-wrapper.jar
 
+<<<<<<< HEAD
 # Gradle Wrapper files (usually committed, but can ignore if issues)
 # /back_end/gradlew
 # /back_end/gradlew.bat
@@ -147,3 +163,8 @@ desktop.ini             # Windows system files
 # Logs not covered by backend/frontend specific
 *.log
 /.metadata/
+=======
+# 로그 파일
+*.log
+/.metadata/
+>>>>>>> 5a577b8 (Feat: 회원 정보 localStorage에 저장 구현)
