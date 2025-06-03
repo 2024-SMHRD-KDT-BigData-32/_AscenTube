@@ -12,6 +12,7 @@ const LoginCallback = () => {
         const userName = params.get('userName');
         const userEmail = params.get('userEmail');
         const userThumbnailUrl = params.get('userThumbnailUrl');
+        const userChannelName = params.get('userChannelName');
         const error = params.get('error');  // 백엔드에서 오류 발생 시 전달될 파라미터
 
         if (error) {
@@ -25,6 +26,7 @@ const LoginCallback = () => {
             localStorage.setItem('user_name', userName);
             localStorage.setItem('user_email', userEmail);
             localStorage.setItem('user_thumbnail', userThumbnailUrl);
+            localStorage.setItem('user_channel_name', userChannelName);
 
             navigate('/index');
         } else {
