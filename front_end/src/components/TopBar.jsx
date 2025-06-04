@@ -6,6 +6,7 @@ import ProfileDropdown from './ProfileDropdown'; // 드롭다운 컴포넌트 �
 const logoPath = process.env.PUBLIC_URL + '/logo.png';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 // 가상 사용자 정보 (실제로는 로그인 시 API 등에서 받아와야 함)
 const dummyUser = {
@@ -18,6 +19,8 @@ const dummyUser = {
 
 
 >>>>>>> bc3df9f (Initial commit: clean monorepo commit)
+=======
+>>>>>>> afb7b88 (Feat: Refresh token 저장 기능 구현)
 const TopBar = ({ onToggleSidebar }) => {
   const [user, setUser] = useState(null); // 사용자 정보 상태
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -58,9 +61,9 @@ const TopBar = ({ onToggleSidebar }) => {
     if (token) {
       setUser({
         name: userName,
-        channelId: userChannelName, // 필요에 따라 동적으로 설정
+        channelId: '@' + userChannelName, 
         thumbnailUrl: userThumbnail,
-        email: userEmail // 이메일도 user 객체에 포함
+        email: userEmail
       });
     } else {
 <<<<<<< HEAD
@@ -93,12 +96,16 @@ const TopBar = ({ onToggleSidebar }) => {
 
   const handleLogout = () => {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> afb7b88 (Feat: Refresh token 저장 기능 구현)
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_google_id');
     localStorage.removeItem('user_name'); 
     localStorage.removeItem('user_thumbnail'); 
     localStorage.removeItem('user_email'); 
     localStorage.removeItem('user_channel_name'); 
+<<<<<<< HEAD
 =======
     localStorage.removeItem('access_token'); // 토큰 제거
 <<<<<<< HEAD
@@ -108,6 +115,8 @@ const TopBar = ({ onToggleSidebar }) => {
     localStorage.removeItem('user_thumbnail'); 
     localStorage.removeItem('user_email'); 
 >>>>>>> 5a577b8 (Feat: 회원 정보 localStorage에 저장 구현)
+=======
+>>>>>>> afb7b88 (Feat: Refresh token 저장 기능 구현)
     setUser(null); // 사용자 상태 null로
     setIsDropdownOpen(false); // 드롭다운 닫기
     navigate('/login'); // 로그인 페이지로 이동

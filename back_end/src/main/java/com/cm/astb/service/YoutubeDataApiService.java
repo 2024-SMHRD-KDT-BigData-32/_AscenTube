@@ -31,7 +31,6 @@ import com.google.api.services.youtube.model.VideoListResponse;
 @Service
 public class YoutubeDataApiService {
 
-	private final AscenTubeApplication ascenTubeApplication;
 	private final YouTube youTube;
 	private final String youtubeApiKey;
 	private final OAuthService oAuthService;
@@ -46,7 +45,7 @@ public class YoutubeDataApiService {
     // 여기서는 기존 코드의 생성자 시그니처를 최대한 따르되, YouTube 객체를 직접 주입받는 것으로 변경.
 	@Autowired // 의존성 주입 명시
 	public YoutubeDataApiService(YouTube youTube, GoogleApiConfig googleApiConfig,
-			AscenTubeApplication ascenTubeApplication) {
+			OAuthService oAuthService) {
 		this.youTube = youTube;
 		this.youtubeApiKey = googleApiConfig.getYoutubeApiKey();
 		this.oAuthService = oAuthService;
