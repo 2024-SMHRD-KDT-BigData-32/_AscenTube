@@ -55,7 +55,6 @@ public class GoogleApiConfig {
 	}
 
 	// YouTube Data API 서비스를 초기화하는 Bean을 정의.
-
 	@Bean
 	@Primary public YouTube youtubeDataApi() { return new YouTube.Builder(new
 	NetHttpTransport(), new GsonFactory(), request -> {})

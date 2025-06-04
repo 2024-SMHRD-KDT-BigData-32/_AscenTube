@@ -34,7 +34,6 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 @RestController
 @RequestMapping("/oauth")
 public class OAuthController {
-
 	private final OAuthService oAuthService;
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
@@ -93,13 +92,11 @@ public class OAuthController {
 			if (googleId == null || email == null) {
 				throw new IllegalStateException("Critical user information (Google ID or Email) is missing after ID Token parsing");
 			}
-
 			YouTube youTube = new YouTube.Builder(httpTransport, jsonFactory, credential)
 					.build();
 			ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("snippet"))
 					.setMine(true)
 					.execute();
-
 			List<Channel> channels = channelListResponse.getItems();
 			if (channels != null && !channels.isEmpty()) {
 				channelName = channels.get(0).getSnippet().getTitle();
@@ -120,7 +117,6 @@ public class OAuthController {
 					URLEncoder.encode(user.getProfileImg() != null ? user.getProfileImg() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(channelName != null ? channelName : "", StandardCharsets.UTF_8)
 					);
-
 			return new RedirectView(redirectUrl);
 
 		} catch (IOException | GeneralSecurityException | IllegalArgumentException e) {
