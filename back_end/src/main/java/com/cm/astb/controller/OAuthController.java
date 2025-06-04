@@ -5,12 +5,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,13 +31,12 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.Channel;
+import com.google.api.services.youtube.model.ChannelListResponse;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/oauth")
 public class OAuthController {
-
-    private final YoutubeAnalyticsController youtubeAnalyticsController;
 	
 	private final OAuthService oAuthService;
 	private final GoogleApiConfig googleApiConfig;
@@ -48,13 +47,11 @@ public class OAuthController {
 	
 	public OAuthController(OAuthService oAuthService, GoogleApiConfig googleApiConfig,
 			NetHttpTransport httpTransport, GsonFactory jsonFactory, 
-			YoutubeAnalyticsController youtubeAnalyticsController, UserService userService,
-			JwtTokenProvider jwtTokenProvider) {
+			UserService userService, JwtTokenProvider jwtTokenProvider) {
 		this.oAuthService = oAuthService;
 		this.googleApiConfig = googleApiConfig;
 		this.httpTransport = httpTransport;
 		this.jsonFactory = jsonFactory;
-		this.youtubeAnalyticsController = youtubeAnalyticsController;
 		this.userService = userService;
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
@@ -75,22 +72,18 @@ public class OAuthController {
 		String email = null;
 		String nickname = null;
 		String profileImg = null;
+		String channelName = null;
 		
 		try {
-			GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
-					.setAudience(Collections.singletonList(googleApiConfig.getClientId()))
-					.build();
-			
 			Map<String, Object> googleTokenResponse = oAuthService.exchangeCodeForTokens(code);
 			Credential credential = (Credential) googleTokenResponse.get("credential"); 
-			String idTokenStr = (String) googleTokenResponse.get("idToken");
-			
-			GoogleIdToken idToken = verifier.verify(idTokenStr);
+			GoogleIdToken idToken = (GoogleIdToken) googleTokenResponse.get("idToken");
 			
 			if (idToken != null) {
 				GoogleIdToken.Payload payload = idToken.getPayload();	// payload(사용자 정보)
 				
-				googleId = payload.getSubject();	// Google 사용자 고유 식별 ID
+				googleId = payload.getSubject();
+				System.out.println("Google ID: " + googleId);
 				email = payload.getEmail();
 				nickname = (String) payload.get("name");
 				profileImg = (String) payload.get("picture");
@@ -105,17 +98,32 @@ public class OAuthController {
 				throw new IllegalStateException("Critical user information (Google ID or Email) is missing after ID Token parsing");
 			}
 			
+			YouTube youTube = new YouTube.Builder(httpTransport, jsonFactory, credential)
+					.build();
+			ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("snippet"))
+					.setMine(true)
+					.execute();
 			
-			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg);
+			List<Channel> channels = channelListResponse.getItems();
+			if (channels != null && !channels.isEmpty()) {
+				channelName = channels.get(0).getSnippet().getTitle();
+			} else {
+				System.out.println("No YouTube Channel found for this user");
+			}
+			
+			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, credential.getRefreshToken());
 			
 			String jwtToken = jwtTokenProvider.generateToken(user);
 			
-			String redirectUrl = String.format("%s?jwtToken=%s&userName=%s&userEmail=%s&userThumbnailUrl=%s",
+			String redirectUrl = String.format("%s?jwtToken=%s&userGoogleId=%s&userName=%s&userEmail=%s&userThumbnailUrl=%s&userChannelName=%s",
 					googleApiConfig.getFrontendRedirectUrl(),
 					URLEncoder.encode(jwtToken, StandardCharsets.UTF_8),
+					URLEncoder.encode(user.getGoogleId() != null ? user.getGoogleId() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getNickname() != null ? user.getNickname() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getEmail() != null ? user.getEmail() : "", StandardCharsets.UTF_8),
-					URLEncoder.encode(user.getProfileImg() != null ? user.getProfileImg() : "", StandardCharsets.UTF_8));
+					URLEncoder.encode(user.getProfileImg() != null ? user.getProfileImg() : "", StandardCharsets.UTF_8),
+					URLEncoder.encode(channelName != null ? channelName : "", StandardCharsets.UTF_8)
+					);
 			
 			return new RedirectView(redirectUrl);
 			

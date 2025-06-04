@@ -9,6 +9,7 @@ const LoginCallback = () => {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const jwtToken = params.get('jwtToken');
+        const userGoogleId = params.get('userGoogleId');
         const userName = params.get('userName');
         const userEmail = params.get('userEmail');
         const userThumbnailUrl = params.get('userThumbnailUrl');
@@ -23,6 +24,7 @@ const LoginCallback = () => {
 
         if (jwtToken && userName && userEmail) {
             localStorage.setItem('access_token', jwtToken);
+            localStorage.setItem('user_google_id', userGoogleId);
             localStorage.setItem('user_name', userName);
             localStorage.setItem('user_email', userEmail);
             localStorage.setItem('user_thumbnail', userThumbnailUrl);

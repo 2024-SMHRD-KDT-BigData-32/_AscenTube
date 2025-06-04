@@ -5,16 +5,6 @@ import ProfileDropdown from './ProfileDropdown'; // 드롭다운 컴포넌트 �
 
 const logoPath = process.env.PUBLIC_URL + '/logo.png';
 
-// 가상 사용자 정보 (실제로는 로그인 시 API 등에서 받아와야 함)
-const dummyUser = {
-  name: localStorage.getItem('user_name'), // 표시될 이름
-  channelId: '@ascen_tube_user', // 표시될 채널 ID
-  // 실제 유튜브 채널 썸네일 URL을 사용하거나, 없다면 플레이스홀더 사용
-  thumbnailUrl: localStorage.getItem('user_thumbnail')
-  // thumbnailUrl: '', // 비워두면 ProfileDropdown에서 플레이스홀더 사용
-};
-
-
 const TopBar = ({ onToggleSidebar }) => {
   const [user, setUser] = useState(null); // 사용자 정보 상태
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -33,9 +23,9 @@ const TopBar = ({ onToggleSidebar }) => {
     if (token) {
       setUser({
         name: userName,
-        channelId: userChannelName, // 필요에 따라 동적으로 설정
+        channelId: '@' + userChannelName, 
         thumbnailUrl: userThumbnail,
-        email: userEmail // 이메일도 user 객체에 포함
+        email: userEmail
       });
     } else {
       setUser(null);
@@ -62,10 +52,12 @@ const TopBar = ({ onToggleSidebar }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token'); // 토큰 제거
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_google_id');
     localStorage.removeItem('user_name'); 
     localStorage.removeItem('user_thumbnail'); 
     localStorage.removeItem('user_email'); 
+    localStorage.removeItem('user_channel_name'); 
     setUser(null); // 사용자 상태 null로
     setIsDropdownOpen(false); // 드롭다운 닫기
     navigate('/login'); // 로그인 페이지로 이동

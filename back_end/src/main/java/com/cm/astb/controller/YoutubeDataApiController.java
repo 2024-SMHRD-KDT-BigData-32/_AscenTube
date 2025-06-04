@@ -1,5 +1,7 @@
 package com.cm.astb.controller;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +13,58 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cm.astb.service.YoutubeDataApiService;
 import com.google.api.services.youtube.model.ChannelListResponse;
+import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.Video;
 
 @RestController
-@RequestMapping("/youtube")
+@RequestMapping("/data")
 public class YoutubeDataApiController {
 	
 	@Autowired
 	private YoutubeDataApiService youtubeDataApiService;
 	
+	@GetMapping("/trending")
+	public ResponseEntity<List<Video>> getTrendingVideos(
+			@RequestParam String userId,
+			@RequestParam(defaultValue = "0") String categoryId,
+			@RequestParam(defaultValue = "KR") String regionCode,
+			@RequestParam(defaultValue = "10") long maxResults) {
+		
+		try {
+			List<Video> trendingVideos =  youtubeDataApiService.getTrendingVideosByCategory(userId, categoryId, regionCode, maxResults);
+			return ResponseEntity.ok(trendingVideos);
+		} catch (GeneralSecurityException e) {
+			return ResponseEntity.status(401).body(null);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(null);
+		}
+	}
+	
+	@GetMapping("/trending-by-period")
+	public ResponseEntity<List<SearchResult>> getTrendingVideosByPeriod(
+			@RequestParam String userId,
+			@RequestParam(defaultValue = "0") String categoryId,
+			@RequestParam(defaultValue = "KR") String regionCode,
+			@RequestParam(defaultValue = "daily") String period,
+			@RequestParam(defaultValue = "10") long maxResults) {
+		
+		try {
+			List<SearchResult> trendingVideos =  youtubeDataApiService.getTrendingVideosByPeriod(userId, categoryId, regionCode, period, maxResults);
+			return ResponseEntity.ok(trendingVideos);
+		} catch (GeneralSecurityException e) {
+			return ResponseEntity.status(401).body(null);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).body(null);
+		}
+	}
 	
 	@GetMapping("/channel-info")
 	public ResponseEntity<?> getChannelInfo(@RequestParam String channelId){
