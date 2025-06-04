@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,13 +11,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-=======
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
->>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
