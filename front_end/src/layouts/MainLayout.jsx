@@ -34,12 +34,12 @@ const MainLayout = () => {
         <TopBar onToggleSidebar={toggleSidebar} />
         <div className="app-body">
           <Sidebar isOpen={isSidebarOpen} />
-          <main className="app-content">
+          <div className="app-content">
             {/* 기존 MainLayout의 콘텐츠 영역 스타일을 여기에 적용할 수 있습니다. */}
             <div className="content-wrapper">
               <Outlet /> {/* 중첩된 자식 라우트가 여기서 렌더링됩니다 */}
             </div>
-          </main>
+          </div>
         </div>
       </div>
     </CategoryProvider>

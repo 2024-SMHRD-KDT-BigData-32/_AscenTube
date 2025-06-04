@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column; /* TopBar와 app-body를 수직으로 */
   overflow: hidden; /* 전체 스크롤 방지 */
-  background-color: #f9f9f9; /* 페이지 배경색 */
+  background-color: #ffffff; /* 페이지 배경색 */
 }
 
 .app-body {
@@ -12,6 +12,7 @@
   flex-grow: 1; /* TopBar를 제외한 나머지 공간 */
   position: relative; /* Sidebar의 fixed 포지셔닝 기준 */
   overflow: hidden; /* 내부 스크롤은 app-content에서 */
+  background-color: #ffffff /* 페이지 배경색 */
 }
 
 .app-content {
@@ -20,7 +21,7 @@
   padding-top: 0; /* TopBar가 fixed이므로, 콘텐츠는 그 아래부터 시작 */
   overflow-y: auto; /* 콘텐츠가 길어지면 스크롤 */
   transition: margin-left 0.2s ease-in-out;
-  background-color: #f9f9f9; /* 콘텐츠 영역 배경 */
+  background-color: #ffffff; /* 콘텐츠 영역 배경 */
 }
 
 .app-container.sidebar-expanded .app-content {
