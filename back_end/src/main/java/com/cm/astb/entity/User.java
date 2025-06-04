@@ -46,4 +46,7 @@ public class User {
     @Column(name = "UPDATED_AT")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    
+    @Column(name = "GOOGLE_REFRESH_TOKEN", length = 1000)
+    private String googleRefreshToekn;
 }
