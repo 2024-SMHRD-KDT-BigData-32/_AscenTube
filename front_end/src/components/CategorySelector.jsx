@@ -1,11 +1,5 @@
-<<<<<<< HEAD
 import React from 'react';
 
-=======
-// src/components/CategorySelector.js
-import React from 'react';
-// import './CategorySelector.css'; // 페이지 CSS에서 관리하거나, 필요시 이 파일 생성
->>>>>>> bc3df9f (Initial commit: clean monorepo commit)
 
 const CategorySelector = ({ categories, selectedCategoryId, onCategoryChange }) => {
   return (

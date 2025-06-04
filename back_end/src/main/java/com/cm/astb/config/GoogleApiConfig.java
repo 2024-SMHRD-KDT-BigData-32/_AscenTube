@@ -57,14 +57,13 @@ public class GoogleApiConfig {
 	}
 	
 	// YouTube Data API 서비스를 초기화하는 Bean을 정의.
+	
 	@Bean
-	@Primary
-	public YouTube youtubeDataApi() {
-		return new YouTube.Builder(new NetHttpTransport(), new GsonFactory(), request -> {})
-				.setApplicationName(applicationName)
-				.build();
-	}
-
+	@Primary public YouTube youtubeDataApi() { return new YouTube.Builder(new
+	NetHttpTransport(), new GsonFactory(), request -> {})
+	.setApplicationName(applicationName) .build(); }
+	
+	
 	// OAuth 2.0 인증 흐름을 위한 GoogleClientSecrets Bean
 	@Bean
 	public GoogleClientSecrets googleClientSecrets() {
