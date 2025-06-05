@@ -1,6 +1,5 @@
 package com.cm.astb.service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -33,7 +32,7 @@ public class UserService {
 			 user.setEmail(email);
 			 user.setNickname(nickname);
 			 user.setProfileImg(profileImg);
-			 user.setGoogleRefreshToekn(googleRefreshToken);
+			 user.setGoogleRefreshToken(googleRefreshToken);
 			 
 			 user = userRepository.save(user);
 			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );
@@ -54,8 +53,8 @@ public class UserService {
 				user.setProfileImg(profileImg);
 				isChanged = true;
 			}
-			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToekn())) {
-				user.setGoogleRefreshToekn(googleRefreshToken);
+			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToken())) {
+				user.setGoogleRefreshToken(googleRefreshToken);
 				isChanged = true;
 			}
 			

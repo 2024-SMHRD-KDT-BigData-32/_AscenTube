@@ -3,14 +3,19 @@ package com.cm.astb.controller;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.YoutubeDataApiService;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.SearchResult;
@@ -25,12 +30,30 @@ public class YoutubeDataApiController {
 	
 	@GetMapping("/trending")
 	public ResponseEntity<List<Video>> getTrendingVideos(
-			@RequestParam String userId,
 			@RequestParam(defaultValue = "0") String categoryId,
 			@RequestParam(defaultValue = "KR") String regionCode,
 			@RequestParam(defaultValue = "10") long maxResults) {
 		
 		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			
+			if (authentication == null || !authentication.isAuthenticated()) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body(null);
+			}
+			
+			Object principal = authentication.getPrincipal();
+			if(!(principal instanceof CustomUserDetails)) {
+				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+			}
+			
+			CustomUserDetails userDetails = (CustomUserDetails) principal;
+			String userId = userDetails.getUsername();
+			
+			if(userId == null || userId.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+			}
+			
 			List<Video> trendingVideos =  youtubeDataApiService.getTrendingVideosByCategory(userId, categoryId, regionCode, maxResults);
 			return ResponseEntity.ok(trendingVideos);
 		} catch (GeneralSecurityException e) {
