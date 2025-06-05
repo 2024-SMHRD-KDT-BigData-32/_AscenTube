@@ -10,6 +10,7 @@ const LoginCallback = () => {
 
         const params = new URLSearchParams(location.search);
         const jwtToken = params.get('jwtToken');
+        const userGoogleId = params.get('userGoogleId');
         const userName = params.get('userName');
         const userEmail = params.get('userEmail');
         const googleId = params.get('googleId'); // 백엔드에서 googleId도 보내고 있으므로 추가
@@ -36,6 +37,7 @@ const LoginCallback = () => {
         // 필수 값들 (jwtToken, userName, userEmail)이 모두 유효한지 확인
         if (jwtToken && userName && userEmail) {
             localStorage.setItem('access_token', jwtToken);
+            localStorage.setItem('user_google_id', userGoogleId);
             localStorage.setItem('user_name', userName);
             localStorage.setItem('user_email', userEmail);
             localStorage.setItem('google_id', googleId || '');
