@@ -165,7 +165,7 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
 	}
 
 	public List<String> searchVideos(String query, long maxResults) throws IOException {
-		YouTube.Search.List search = youTube.search().list(Arrays.asList("id", "snippet"));
+		YouTube.Search.List search = youTubeService.search().list(Arrays.asList("id", "snippet"));
 		search.setKey(youtubeApiKey);
 		search.setQ(query);
 		search.setType(Arrays.asList("video"));
