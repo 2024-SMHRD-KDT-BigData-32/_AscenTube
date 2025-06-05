@@ -1,12 +1,11 @@
-// src/components/VideoAnalytics.jsx (그래프 높이 및 여백 조정)
+// src/components/VideoAnalytics.jsx
+
 import React, { useState, useEffect } from 'react';
 import '../styles/components/VideoAnalytics.css';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Link 컴포넌트를 사용합니다.
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 
 // formatDuration, formatFullDateTime, generateDummyVideoData 함수는 이전과 동일하게 유지합니다.
-// (generateDummyVideoData 함수는 이전 답변의 최종 버전을 사용한다고 가정합니다)
-// ... (formatDuration, formatFullDateTime, generateDummyVideoData 함수 코드 생략) ...
 const formatDuration = (isoDuration) => {
   if (!isoDuration) return 'N/A';
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -57,11 +56,11 @@ const generateDummyVideoData = (categoryId, categoryName, timePeriod, videoCount
 
     const dummyChannelId = `UC-dummy-${timePeriod}-${categoryId}-${String.fromCharCode(65 + i)}`;
     const channelName = `채널 ${String.fromCharCode(65 + i)} (${timePeriod})`;
-    
+
     const randomDaysAgo = Math.floor(Math.random() * (timePeriod === '일간' ? 2 : timePeriod === '주간' ? 7 : 30));
     const randomHour = Math.floor(Math.random() * 24);
     const randomMinute = Math.floor(Math.random() * 60);
-    
+
     const publishedDate = new Date(now);
     publishedDate.setDate(now.getDate() - randomDaysAgo);
     publishedDate.setHours(randomHour, randomMinute, 0, 0);
@@ -73,7 +72,7 @@ const generateDummyVideoData = (categoryId, categoryName, timePeriod, videoCount
     const negativePercent = 100 - positivePercent;
 
     videos.push({
-      id: `vid-${timePeriod}-${categoryId}-${i}`,
+      id: `vid-${timePeriod}-${categoryId}-${i}`, // 고유 ID 유지
       channelId: dummyChannelId,
       title: `${categoryName} ${timePeriod} 인기 동영상 ${i} - 매우 흥미로운 제목`,
       thumbnailUrl: `https://i.ytimg.com/vi/3JZ_D3ELwOQ/hqdefault.jpg`,
@@ -107,7 +106,6 @@ const generateDummyVideoData = (categoryId, categoryName, timePeriod, videoCount
 
 
 const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
-  // ... (useState, useEffect, toggleSummary, CustomTooltip 로직은 이전과 동일) ...
   const [loading, setLoading] = useState(true);
   const [videoData, setVideoData] = useState({
     videos: [],
@@ -168,7 +166,6 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
     <div className="video-analysis-section">
       <h2 className="section-subtitle">{title}</h2>
       <div className="section-meta-info">
-        {/* ... 메타 정보 표시 ... */}
         <span>평균 재생 시간: <strong>{videoData.averageDuration}</strong></span>
         <span>
           평균 영상 업로드 시간:
@@ -206,7 +203,6 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
           return (
             <div key={video.id} className="video-item-detail">
               <div className="video-info-header">
-                {/* ... 비디오 정보 헤더 ... */}
                 <img src={video.thumbnailUrl} alt={video.title} className="video-thumbnail-small" />
                 <div className="video-text-info">
                   <h4 className="video-title-small">{video.title}</h4>
@@ -220,10 +216,13 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
               </div>
               
               <div className="more-button-container">
-                {/* ... 버튼들 ... */}
                 <button onClick={() => toggleSummary(video.id)} className="more-button">
                   {video.isSummaryVisible ? '숨기기' : '상세분석'}
                 </button>
+                {/* 새로운 영상분석 버튼 추가 */}
+                <Link to={`/video/${video.id}`} className="more-button video-specific-analysis-link">
+                  영상분석
+                </Link>
                 <Link to={`/channel/${video.channelId}`} className="more-button channel-analysis-link">
                   채널분석
                 </Link>
@@ -234,41 +233,38 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                   <div className="comment-analysis-section">
                     <h5>댓글 분석 (영상: {video.title.substring(0,15)}...)</h5>
                     <div className="sentiment-chart-container">
-                      {/* 🚀 ResponsiveContainer 높이 조정 */}
-                      <ResponsiveContainer width="100%" height={40}> 
+                      <ResponsiveContainer width="100%" height={40}>
                         <BarChart
                           layout="vertical"
                           data={sentimentChartData}
                           stackOffset="expand"
-                          // 🚀 BarChart 내부 마진 조정 (선택 사항, 더 타이트하게)
-                          margin={{ top: 2, right: 5, left: 5, bottom: 2 }} 
+                          margin={{ top: 2, right: 5, left: 5, bottom: 2 }}
                         >
                           <XAxis type="number" hide domain={[0, 1]} />
                           <YAxis type="category" dataKey="name" hide />
                           <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
                           
-                          {/* 🚀 Bar 크기(높이) 조정 */}
                           <Bar dataKey="positive" stackId="sentiment" fill="#FFC107" barSize={30} animationDuration={800} radius={positiveRadius}>
                             {video.positivePercent > 15 && (
-                              <LabelList 
-                                dataKey="positive" 
-                                position="center" 
-                                fill="#ffffff" 
-                                fontSize={10} 
+                              <LabelList
+                                dataKey="positive"
+                                position="center"
+                                fill="#ffffff"
+                                fontSize={10}
                                 fontWeight="500"
-                                formatter={(value) => `긍정 ${value}%`} 
+                                formatter={(value) => `긍정 ${value}%`}
                               />
                             )}
                           </Bar>
                           <Bar dataKey="negative" stackId="sentiment" fill="#F44336" barSize={30} animationDuration={800} radius={negativeRadius}>
                             {video.negativePercent > 15 && (
-                              <LabelList 
-                                dataKey="negative" 
-                                position="center" 
-                                fill="#ffffff" 
-                                fontSize={10} 
+                              <LabelList
+                                dataKey="negative"
+                                position="center"
+                                fill="#ffffff"
+                                fontSize={10}
                                 fontWeight="500"
-                                formatter={(value) => `부정 ${value}%`} 
+                                formatter={(value) => `부정 ${value}%`}
                               />
                             )}
                           </Bar>
@@ -276,13 +272,11 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                       </ResponsiveContainer>
                     </div>
                     <div className="representative-comments">
-                       {/* ... 대표 댓글 ... */}
                       <p className="positive-comment"><strong>대표 긍정 댓글:</strong> {video.positiveComment}</p>
                       <p className="negative-comment"><strong>대표 부정 댓글:</strong> {video.negativeComment}</p>
                     </div>
                   </div>
                   <div className="video-summary">
-                     {/* ... 영상 요약 ... */}
                     <h5>영상 요약</h5>
                     <p>{video.summaryText}</p>
                   </div>

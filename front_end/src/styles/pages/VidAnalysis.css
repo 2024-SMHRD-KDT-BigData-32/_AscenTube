@@ -1,0 +1,673 @@
+/* src/styles/pages/VidAnalysis.css */
+.video-analysis-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 25px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  min-height: 100vh;
+}
+
+.page-title {
+  font-size: 2em;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.url-input-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.url-label {
+  font-weight: 500;
+  color: #34495e;
+  white-space: nowrap;
+  font-size: 0.95em;
+}
+
+.url-input-field {
+  flex-grow: 1;
+  padding: 10px 12px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  font-size: 1em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.url-input-field:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.url-submit-button {
+  padding: 10px 18px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.url-submit-button:hover {
+  background-color: #2980b9;
+}
+
+.url-submit-button:active {
+  transform: translateY(1px);
+}
+
+.url-submit-button:disabled {
+  background-color: #a5c9e3;
+  cursor: not-allowed;
+}
+
+.global-error-message {
+  color: #e74c3c;
+  margin-bottom: 20px;
+  padding: 12px;
+  background-color: #fdedec;
+  border: 1px solid #f5b7b1;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.results-section {}
+
+.analysis-results-content {
+  padding: 25px;
+  border: 1px solid #dfe4ea;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+}
+
+/* --- 상단 AI 요약 및 영상 주요 정보 섹션 --- */
+.top-content-wrapper {
+  display: flex;
+  flex-wrap: wrap; /* 작은 화면 대응 */
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.top-content-wrapper.reversed {
+  flex-direction: row-reverse; /* 좌우 반전 */
+}
+
+.ai-summary-panel {
+  flex: 2.5;
+  min-width: 320px;
+  background-color: #eaf2f8;
+  padding: 20px 25px;
+  border-radius: 8px;
+  border: 1px solid #d4e6f1;
+}
+
+.ai-summary-panel h5 {
+  font-size: 1.25em;
+  color: #2980b9;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.ai-summary-panel p {
+  font-size: 0.95em;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  max-height: none; /* AI 요약은 중요하므로 일단 전체 표시 */
+  overflow-y: auto;
+  color: #34495e;
+}
+
+.video-main-info-col {
+  flex: 1.5;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* 내부 요소 간 간격 */
+}
+
+.video-title-main {
+  font-size: 1.6em;
+  color: #2c3e50;
+  margin: 0 0 5px 0; /* 위, 아래 여백 조정 */
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* 썸네일과 텍스트 메타 정보를 묶는 컨테이너 */
+.video-meta-details {
+  display: flex;
+  align-items: flex-start; /* 상단 정렬 */
+  gap: 15px; /* 썸네일과 텍스트 정보 사이 간격 */
+  background-color: #fdfdfd;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.thumbnail-container-compact {
+  flex-shrink: 0; /* 썸네일 크기 유지 */
+  width: 160px; /* 썸네일 너비 고정 (예시) */
+}
+
+.analysis-thumbnail.main-thumbnail { /* 클래스 추가하여 구체적으로 스타일링 */
+  width: 100%; /* 부모 너비에 맞춤 */
+  height: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: block;
+}
+
+.text-meta-info {
+  flex-grow: 1;
+  font-size: 0.9em;
+}
+
+.text-meta-info .result-item {
+  margin-bottom: 6px; /* 메타 정보 항목 간 간격 줄임 */
+  line-height: 1.5;
+}
+
+/* 통계 및 상태 정보를 묶는 컨테이너 */
+.inline-stats-status-section {
+  display: flex;
+  flex-wrap: wrap; /* 작은 화면에서 쌓이도록 */
+  gap: 15px; /* 통계 박스와 상태 박스 사이 간격 */
+}
+
+.inline-box { /* 통계 및 상태 정보 박스 공통 스타일 */
+  flex: 1; /* 가능한 공간 균등 분배 */
+  min-width: 200px; /* 최소 너비 */
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+}
+
+.inline-box h6 { /* 인라인 박스 내부 제목 */
+  font-size: 1em;
+  color: #34495e;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dfe4ea;
+  font-weight: 600;
+}
+
+.inline-box .result-item {
+  font-size: 0.85em;
+  margin-bottom: 5px;
+}
+
+/* --- 하단 추가 세부 정보 섹션 --- */
+.additional-details-section {
+  margin-top: 30px; /* 상단 섹션과의 구분 */
+  padding-top: 20px;
+  border-top: 1px solid #e0e6ed;
+}
+
+.result-category.content-extended-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 컬럼 레이아웃 */
+  gap: 15px;
+  padding: 20px;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+  background-color: #fdfdfd;
+}
+
+.result-category.content-extended-details h5 {
+  grid-column: 1 / -1; /* 제목은 전체 너비 */
+  font-size: 1.2em;
+  color: #34495e;
+  margin-top: 0;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eaecee;
+  font-weight: 600;
+}
+
+.description-wrapper {
+  grid-column: 1; /* 설명은 첫 번째 컬럼 */
+}
+
+.details-wrapper {
+  grid-column: 1; /* 기존 상세 정보는 첫 번째 컬럼 아래로 이동 */
+}
+
+.result-item.description pre.description-condensed {
+  background-color: #f8f9fa;
+  padding: 10px;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 1.3em;
+  line-height: 1.5;
+  max-height: 150px;
+  overflow-y: auto;
+  color: #495057;
+}
+
+.toggle-description-button {
+  background: none;
+  border: none;
+  color: #3498db;
+  cursor: pointer;
+  padding: 5px 0;
+  font-size: 0.85em;
+  margin-top: 5px;
+  text-decoration: underline;
+}
+
+.toggle-description-button:hover {
+  color: #2980b9;
+}
+
+.result-item {
+  margin-bottom: 10px;
+  line-height: 1.6;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.result-item strong {
+  color: #2c3e50;
+  margin-right: 8px;
+  font-weight: 600;
+}
+
+.api-info-wrapper {
+  grid-column: 2; /* API 정보는 두 번째 컬럼 */
+  grid-row: 2 / span 2; /* 설명 아래부터 차지하도록 */
+  padding: 15px;
+  background-color: #f0f5ff;
+  border: 1px solid #c9ddff;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* 하단 정렬 */
+  font-size: 0.9em;
+  color: #495057;
+}
+
+.api-info-wrapper h6 {
+  font-size: 1em;
+  color: #2980b9;
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.api-info-text {
+  line-height: 1.5;
+}
+
+
+/* 로딩 및 초기 메시지 (기존 유지) */
+.status-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #555;
+  font-size: 1.1em;
+  width: 100%;
+  background-color: #fff;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.status-message.initial-message-prompt {
+  font-style: italic;
+  color: #6c757d;
+}
+
+/* 반응형 */
+@media (max-width: 992px) {
+  .top-content-wrapper {
+    flex-direction: column; /* AI 요약이 위, 영상 정보 컬럼이 아래로 */
+  }
+  .ai-summary-panel,
+  .video-main-info-col {
+    flex-basis: 100%; /* 전체 너비 사용 */
+  }
+  .video-main-info-col {
+    margin-top: 20px; /* AI 요약과 간격 */
+  }
+  .top-content-wrapper.reversed {
+    flex-direction: column-reverse; /* 작은 화면에서는 순서 유지 */
+  }
+  .result-category.content-extended-details {
+    grid-template-columns: 1fr; /* 작은 화면에서는 1 컬럼 */
+  }
+  .description-wrapper,
+  .details-wrapper,
+  .api-info-wrapper {
+    grid-column: 1; /* 모두 첫 번째 컬럼 사용 */
+  }
+  .api-info-wrapper {
+    margin-top: 20px; /* 다른 정보들과 간격 */
+    justify-content: flex-start; /* 위쪽 정렬 */
+  }
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.8em;
+    margin-bottom: 20px;
+  }
+  .url-input-action-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+  }
+  .url-label {
+    margin-bottom: 8px;
+    text-align: left;
+  }
+  .url-input-field {
+    margin-bottom: 10px;
+  }
+  .url-submit-button {
+    width: 100%;
+  }
+
+  .video-meta-details {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .thumbnail-container-compact {
+    width: auto;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .analysis-thumbnail.main-thumbnail {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .text-meta-info {
+    text-align: center;
+  }
+
+  .inline-stats-status-section {
+    flex-direction: column;
+  }
+
+  .inline-box {
+    min-width: unset;
+  }
+}
+
+/* src/styles/pages/VidAnalysis.css */
+/* ... (이전 CSS 내용 중 변하지 않는 부분은 유지) ... */
+.video-analysis-container { display: flex; flex-direction: column; padding: 20px 25px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f8; min-height: 100vh; }
+.page-title { font-size: 2em; color: #2c3e50; margin-bottom: 25px; font-weight: 600; text-align: left; }
+.url-input-action-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background-color: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.url-label { font-weight: 500; color: #34495e; white-space: nowrap; font-size: 0.95em; }
+.url-input-field { flex-grow: 1; padding: 10px 12px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 1em; transition: border-color 0.2s, box-shadow 0.2s; }
+.url-input-field:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15); }
+.url-submit-button { padding: 10px 18px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; font-weight: 500; transition: background-color 0.2s, transform 0.1s; white-space: nowrap; }
+.url-submit-button:hover { background-color: #2980b9; }
+.url-submit-button:active { transform: translateY(1px); }
+.url-submit-button:disabled { background-color: #a5c9e3; cursor: not-allowed; }
+.global-error-message { color: #e74c3c; margin-bottom: 20px; padding: 12px; background-color: #fdedec; border: 1px solid #f5b7b1; border-radius: 6px; text-align: center; }
+.analysis-results-content { padding: 25px; border: 1px solid #dfe4ea; border-radius: 8px; background-color: #ffffff; box-shadow: 0 3px 10px rgba(0,0,0,0.07); }
+.top-content-wrapper { display: flex; flex-wrap: wrap; gap: 25px; margin-bottom: 30px; }
+.top-content-wrapper.reversed { flex-direction: row-reverse; }
+.ai-summary-panel { flex: 2.5; min-width: 320px; background-color: #eaf2f8; padding: 20px 25px; border-radius: 8px; border: 1px solid #d4e6f1; }
+.ai-summary-panel h5 { font-size: 1.25em; color: #2980b9; margin-top: 0; margin-bottom: 15px; font-weight: 600; }
+.ai-summary-panel p { font-size: 0.95em; line-height: 1.7; white-space: pre-wrap; max-height: none; overflow-y: auto; color: #34495e; }
+.video-main-info-col { flex: 1.5; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+.video-title-main { font-size: 1.6em; color: #2c3e50; margin:0 0 5px 0; font-weight: 600; line-height: 1.3; }
+.video-meta-details { display: flex; align-items: flex-start; gap: 15px; background-color: #fdfdfd; padding: 15px; border-radius: 6px; border: 1px solid #f0f0f0; }
+.thumbnail-container-compact { flex-shrink: 0; width: 160px; }
+.analysis-thumbnail.main-thumbnail { width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; display: block; }
+.text-meta-info { flex-grow: 1; font-size: 0.9em; }
+.text-meta-info .result-item { margin-bottom: 6px; line-height: 1.5; }
+.inline-stats-status-section { display: flex; flex-wrap: wrap; gap: 15px; }
+.inline-box { flex: 1; min-width: 200px; padding: 15px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; }
+.inline-box.compact-box .result-item { font-size: 0.8em; margin-bottom: 4px; }
+.inline-box h6 { font-size: 1em; color: #34495e; margin: 0 0 12px 0; padding-bottom: 8px; border-bottom: 1px solid #dfe4ea; font-weight: 600; }
+/* .inline-box .result-item { font-size: 0.85em; margin-bottom: 5px; } 불필요한 중복 제거 */
+
+
+/* --- 하단 영상 세부 정보 (설명, API 그래프 패널 등) --- */
+.additional-details-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e6ed;
+}
+
+.result-category.content-extended-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* 반응형 그리드, 최소 너비 증가 */
+  gap: 25px;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  box-shadow: none;
+}
+.result-category.content-extended-details > .description-and-details-wrapper > h5 { /* '영상 세부 정보' 제목 */
+  /* grid-column: 1 / -1; wrapper로 옮겨짐 */
+  font-size: 1.2em; color: #34495e; margin-top: 0; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid #eaecee; font-weight: 600;
+}
+
+.description-and-details-wrapper {
+  /* grid 아이템으로 자연스럽게 배치됨 */
+  background-color: #fdfdfd;
+  padding: 20px;
+  border: 1px solid #e7e7e7;
+  border-radius: 8px;
+}
+
+.result-item.description pre.description-condensed {
+  background-color: #f8f9fa; padding: 10px; border: 1px solid #e9ecef; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; font-size: 0.9em; line-height: 1.5; max-height: 150px; overflow-y: auto; color: #495057;
+}
+.toggle-description-button {
+  background: none; border: none; color: #3498db; cursor: pointer; padding: 5px 0; font-size: 0.85em; margin-top: 5px; text-decoration: underline;
+}
+.toggle-description-button:hover { color: #2980b9; }
+
+.result-item { margin-bottom: 10px; line-height: 1.6; font-size: 0.9em; color: #555; }
+.result-item strong { color: #2c3e50; margin-right: 8px; font-weight: 600; }
+
+
+/* src/styles/pages/VidAnalysis.css */
+/* ... (이전 CSS 내용 중 변경 없는 부분은 그대로 사용) ... */
+
+/* src/styles/pages/VidAnalysis.css */
+/* ... (이전 CSS 내용 중 변하지 않는 부분은 그대로 사용) ... */
+
+/* --- API 그래프 패널 스타일 --- */
+.api-graph-panel-wrapper {
+  background-color: #f0f8ff;
+  border: 1px solid #cce4f7;
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 450px; /* 이전과 동일 또는 필요시 조정 */
+}
+
+.graph-header-controls { /* 이전과 동일 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap; 
+  gap: 10px;
+}
+.graph-header-controls h6 { /* 이전과 동일 */
+  font-size: 1.1em; color: #0056b3; margin: 0; font-weight: 600; white-space: nowrap;
+}
+.selectors-container { /* 이전과 동일 */
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.metric-selector-dropdown { position: relative; }
+.dropdown-toggle-button { /* 이전과 동일 */
+  background-color: #fff; border: 1px solid #ced4da; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; min-width: 150px; justify-content: space-between;
+}
+.dropdown-toggle-button svg { margin-left: 8px; }
+.dropdown-menu-list { /* 이전과 동일 */
+  position: absolute; top: 100%; right: 0; background-color: #fff; border: 1px solid #ced4da; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); list-style: none; padding: 5px 0; margin: 2px 0 0 0; z-index: 10; min-width: 150px;
+}
+.dropdown-menu-list li { /* 이전과 동일 */
+  padding: 8px 15px; cursor: pointer; font-size: 0.9em;
+}
+.dropdown-menu-list li:hover { background-color: #f0f0f0; }
+.dropdown-menu-list li.active { background-color: #007bff; color: white; font-weight: bold; }
+
+.line-graph-render-area { /* 이전과 동일 */
+  flex-grow: 1; display: flex; align-items: center; justify-content: center; min-height: 300px; background-color: #fff; border-radius: 4px; border: 1px solid #e0e0e0; overflow: hidden;
+}
+.graph-no-data { color: #888; font-style: italic; }
+
+/* --- SVG 그래프 내 요소 스타일 --- */
+.line-graph-svg .graph-data-point {
+  cursor: pointer; /* 마우스 오버 가능 표시 */
+  transition: r 0.2s ease-in-out, fill 0.2s ease-in-out; /* 부드러운 효과 */
+}
+.line-graph-svg .graph-data-point:hover {
+  r: 6; /* 호버 시 포인트 크기 증가 */
+  fill: #ff4500; /* 호버 시 포인트 색상 변경 (예: 주황색) */
+}
+
+/* --- 그래프 툴팁 스타일 --- */
+.graph-tooltip-rect {
+  fill: rgba(0, 0, 0, 0.75); /* 어두운 반투명 배경 */
+  stroke: rgba(255, 255, 255, 0.5); /* 연한 테두리 */
+  stroke-width: 0.5;
+  rx: 4px; /* 둥근 모서리 */
+  ry: 4px;
+  pointer-events: none; /* 툴팁 자체가 마우스 이벤트 방해하지 않도록 */
+}
+
+.graph-tooltip-text {
+  fill: #ffffff; /* 흰색 글자 */
+  font-size: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  pointer-events: none;
+}
+.graph-tooltip-text.value { /* 값 텍스트는 좀 더 강조 */
+  font-size: 11px;
+  font-weight: bold;
+}
+
+
+/* 나머지 CSS는 이전과 동일하게 유지됩니다. */
+/* 예: .video-analysis-container, .page-title 등 */
+/* ... (생략된 이전 CSS 코드) ... */
+/* 반응형 스타일은 이전 코드를 참고하여 유지합니다. */
+@media (max-width: 992px) {
+  .top-content-wrapper { flex-direction: column; }
+  .top-content-wrapper.reversed { flex-direction: column-reverse; }
+  .ai-summary-panel, .video-main-info-col { flex-basis: 100%; }
+  .video-main-info-col { margin-top: 20px; }
+  .result-category.content-extended-details { grid-template-columns: 1fr; }
+  .api-graph-panel-wrapper { margin-top: 20px; }
+}
+@media (max-width: 768px) {
+  .page-title { font-size: 1.8em; margin-bottom: 20px; }
+  .url-input-action-row { flex-direction: column; align-items: stretch; padding: 15px; }
+  .url-label { margin-bottom: 8px; text-align: left; }
+  .url-input-field { margin-bottom: 10px; }
+  .url-submit-button { width: 100%; }
+  .video-meta-details { flex-direction: column; align-items: stretch; }
+  .thumbnail-container-compact { width: auto; margin-bottom: 10px; text-align: center; }
+  .analysis-thumbnail.main-thumbnail { max-width: 280px; margin: 0 auto; }
+  .text-meta-info { text-align: center; }
+  .inline-stats-status-section { flex-direction: column; }
+  .inline-box { min-width: unset; }
+  .graph-header-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+  .selectors-container { flex-direction: column; width: 100%; }
+  .dropdown-toggle-button, .dropdown-menu-list { width: 100%; min-width: unset; }
+  .dropdown-menu-list { left:0; }
+  .line-graph-render-area { min-height: 220px; }
+}
+
+.result-item.channel-name-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.channel-analysis-link.text-link { /* 텍스트 링크 스타일 */
+  color: #007bff; /* 기본 링크 색상 */
+  text-decoration: none; /* 밑줄 없음 (선택 사항) */
+  font-size: 0.85em; /* 텍스트 크기 */
+  font-weight: 500;
+  padding: 2px 4px; /* 약간의 패딩 */
+  border-radius: 3px; /* 부드러운 모서리 */
+  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.channel-analysis-link.text-link:hover {
+  color: #0056b3; /* 호버 시 색상 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 */
+  background-color: #f0f0f0; /* 호버 시 연한 배경색 (선택 사항) */
+}
+
+
+/* 기존 text-meta-info 내부 result-item 스타일은 유지됩니다. */
+.text-meta-info {
+  flex-grow: 1;
+  font-size: 0.9em;
+}
+
+.text-meta-info .result-item {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  /* channel-name-item이 아닌 다른 result-item에 flex가 필요하다면 추가 */
+}
+
+
+/* ... (나머지 CSS는 이전과 동일) ... */
+/* 예를 들어, .video-analysis-container, .page-title 등은 동일합니다. */
+/* SVG 그래프 및 툴팁 관련 CSS도 이전 답변의 내용을 그대로 사용합니다. */
+
+/* 그래프 툴팁 스타일 (이전 답변에서 가져옴) */
+.line-graph-svg .graph-data-point {
+  cursor: pointer;
+  transition: r 0.2s ease-in-out, fill 0.2s ease-in-out;
+}
+.line-graph-svg .graph-data-point:hover {
+  r: 6;
+  fill: #ff4500; 
+}
+.graph-tooltip { /* 툴팁 <g> 그룹에 직접 클래스 적용 (JSX에서) */
+    pointer-events: none; /* 툴팁 자체가 마우스 이벤트 방해하지 않도록 */
+}
+.graph-tooltip-rect {
+  fill: rgba(0, 0, 0, 0.75);
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 0.5;
+  rx: 4px;
+  ry: 4px;
+}
+.graph-tooltip-text {
+  fill: #ffffff;
+  font-size: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.graph-tooltip-text.value {
+  font-size: 11px;
+  font-weight: bold;
+}
