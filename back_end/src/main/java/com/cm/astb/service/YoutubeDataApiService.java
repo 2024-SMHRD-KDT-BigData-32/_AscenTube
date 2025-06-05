@@ -8,12 +8,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import com.cm.astb.AscenTubeApplication;
 import com.cm.astb.config.GoogleApiConfig;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -24,172 +28,156 @@ import com.google.api.services.youtube.model.VideoListResponse;
 @Service
 public class YoutubeDataApiService {
 
-	private final YouTube youTube;
-	private final String youtubeApiKey;
-	private final OAuthService oAuthService;
+    private final AscenTubeApplication ascenTubeApplication;
+    private final YouTube youTubeService;
+    private final String youtubeApiKey;
+    private final GoogleApiConfig googleApiConfig;
+    private final OAuthService oAuthService;
 
-	// GoogleApiConfig에서 초기화된 YouTube 객체와 API 키를 주입.
-	public YoutubeDataApiService(YouTube youTube, GoogleApiConfig googleApiConfig,
-			OAuthService oAuthService) {
-		this.youTube = youTube;
-		this.youtubeApiKey = googleApiConfig.getYoutubeApiKey();
-		this.oAuthService = oAuthService;
-	}
-	
-public List<SearchResult> getTrendingVideosByPeriod(String userId, String categoryId, String regionCode, String period, long maxResults) throws IOException, GeneralSecurityException{
-		
-		Credential credential = oAuthService.getCredential(userId);
-		if (credential == null || credential.getAccessToken() == null) {
-			throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
-		}
-		
-		YouTube oAuthYouTube = oAuthService.getYouTubeService(credential);
-		YouTube.Search.List search = oAuthYouTube.search().list(Arrays.asList("id", "snippet"));
-		search.setType(Arrays.asList("video"));
-		search.setRegionCode(regionCode);
-		search.setVideoCategoryId(categoryId);
-		search.setMaxResults(maxResults);
-		search.setOrder("viewCount");
-		
-		Instant now  = Instant.now();
-		Instant publishedAfterInstant = null;
-		
-		switch (period.toLowerCase()) {
-		case "daily":
-			publishedAfterInstant = now.minus(1, ChronoUnit.DAYS);
-			break;
-		case "weekly":
-			publishedAfterInstant = now.minus(7, ChronoUnit.DAYS);
-			break;
-		case "monthly":
-			publishedAfterInstant = now.minus(30, ChronoUnit.DAYS);
-			break;
-		default:
-			throw new IllegalArgumentException("Invalid period specified. Please use 'daily', 'weekly', or 'monthly'.");
-		}
-		
-		if (publishedAfterInstant != null) {
-			search.setPublishedAfter(new DateTime(publishedAfterInstant.toEpochMilli()).toStringRfc3339());
-		}
-		
-		SearchListResponse response = search.execute();
-		if(response.getItems() != null) {
-			return response.getItems();
-		}
-		return List.of();
-	}
-	
-	public List<Video> getTrendingVideosByCategory(String userId, String categoryId, String regionCode, long maxResults) throws IOException, GeneralSecurityException{
-		
-		Credential credential = oAuthService.getCredential(userId);
-		if (credential == null || credential.getAccessToken() == null) {
-			throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
-		}
-		
-		YouTube oauthYouTube = oAuthService.getYouTubeService(credential);
-		YouTube.Videos.List request = oauthYouTube.videos().list(Arrays.asList("snippet", "statistics"));
-		request.setChart("mostPopular");
-		request.setRegionCode(regionCode);
-		request.setVideoCategoryId(categoryId);
-		request.setMaxResults(maxResults);
-		
-		VideoListResponse response = request.execute();
-		if(response.getItems() != null) {
-			return response.getItems();
-		}
-		return List.of();
-	}
+    @Autowired
+    public YoutubeDataApiService(YouTube youTube, GoogleApiConfig googleApiConfig,
+                                  OAuthService oAuthService, AscenTubeApplication ascenTubeApplication) {
+        this.youTubeService = youTube;
+        this.googleApiConfig = googleApiConfig;
+        this.youtubeApiKey = googleApiConfig.getYoutubeApiKey();
+        this.oAuthService = oAuthService;
+        this.ascenTubeApplication = ascenTubeApplication;
+    }
 
-	public ChannelListResponse getChannelInfo(String channelId) throws IOException {
-		YouTube.Channels.List request = youTube.channels()
-				.list(Arrays.asList("snippet", "contentDetails", "statistics")) // 가져올 정보
-				.setKey(youtubeApiKey).setId(Arrays.asList(channelId));
+    public List<SearchResult> getTrendingVideosByPeriod(String userId, String categoryId, String regionCode, String period, long maxResults) throws IOException, GeneralSecurityException {
+        Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
 
-		return request.execute();
-	}
+        YouTube oAuthYouTube = oAuthService.getYouTubeService(credential);
+        YouTube.Search.List search = oAuthYouTube.search().list(Arrays.asList("id", "snippet"));
+        search.setType(Arrays.asList("video"));
+        search.setRegionCode(regionCode);
+        search.setVideoCategoryId(categoryId);
+        search.setMaxResults(maxResults);
+        search.setOrder("viewCount");
 
-	public ChannelListResponse getChannelInfoByHandle(String handelId) throws IOException {
-		YouTube.Channels.List request = youTube.channels()
-				.list(Arrays.asList("snippet", "contentDetails", "statistics")).setKey(youtubeApiKey)
-				.setForHandle(handelId);
+        Instant now = Instant.now();
+        Instant publishedAfterInstant;
 
-		return request.execute();
-	}
+        switch (period.toLowerCase()) {
+            case "daily" -> publishedAfterInstant = now.minus(1, ChronoUnit.DAYS);
+            case "weekly" -> publishedAfterInstant = now.minus(7, ChronoUnit.DAYS);
+            case "monthly" -> publishedAfterInstant = now.minus(30, ChronoUnit.DAYS);
+            default -> throw new IllegalArgumentException("Invalid period specified. Please use 'daily', 'weekly', or 'monthly'.");
+        }
 
-	public List<String> getLatestVideosByChannel(String channelId, long maxResults) throws IOException {
-		// 채널의 업로드 플레이리스트 ID를 가져옵니다.
-		// YouTube Data API는 채널에 업로드된 동영상들을 "업로드" 플레이리스트에 자동으로 추가합니다.
-		ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("contentDetails"))
-				.setKey(youtubeApiKey).setId(Arrays.asList(channelId)).execute();
+        search.setPublishedAfter(new DateTime(publishedAfterInstant.toEpochMilli()).toStringRfc3339());
 
-		String uploadsPlaylistId = null;
-		if (channelListResponse.getItems() != null && !channelListResponse.getItems().isEmpty()) {
-			uploadsPlaylistId = channelListResponse.getItems().get(0).getContentDetails().getRelatedPlaylists()
-					.getUploads();
-		}
+        SearchListResponse response = search.execute();
+        return response.getItems() != null ? response.getItems() : List.of();
+    }
 
-		if (uploadsPlaylistId == null) {
-			throw new IOException("채널의 업로드 플레이리스트를 찾을 수 없습니다");
-		}
+    public List<Video> getTrendingVideosByCategory(String userId, String categoryId, String regionCode, long maxResults) throws IOException, GeneralSecurityException {
+        Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
 
-		// 업로드 플레이리스트에서 동영상 목록을 가져옵니다.
-		PlaylistItemListResponse playlistItemListResponse = youTube.playlistItems()
-				.list(Arrays.asList("snippet"))
-				.setKey(youtubeApiKey)
-				.setPlaylistId(uploadsPlaylistId)
-				.setMaxResults(maxResults)
-				.execute();
+        YouTube oauthYouTube = oAuthService.getYouTubeService(credential);
+        YouTube.Videos.List request = oauthYouTube.videos().list(Arrays.asList("snippet", "statistics"));
+        request.setChart("mostPopular");
+        request.setRegionCode(regionCode);
+        request.setVideoCategoryId(categoryId);
+        request.setMaxResults(maxResults);
 
-		// 동영상 제목만 추출하여 리스트로 반환합니다.
-		return playlistItemListResponse.getItems().stream().map(item -> item.getSnippet().getTitle())
-				.collect(Collectors.toList());
-	}
+        VideoListResponse response = request.execute();
+        return response.getItems() != null ? response.getItems() : List.of();
+    }
 
-	public List<String> getLatestVideosByHandle(String handleId, long maxResults) throws IOException {
-		ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("contentDetails"))
-				.setKey(youtubeApiKey)
-				.setForHandle(handleId)
-				.execute();
+    public ChannelListResponse getChannelInfo(String channelId) throws IOException {
+        return youTubeService.channels()
+                .list(Arrays.asList("snippet", "contentDetails", "statistics"))
+                .setKey(youtubeApiKey)
+                .setId(List.of(channelId))
+                .execute();
+    }
 
-		String uploadsPlaylistId = null;
-		if (channelListResponse.getItems() != null && !channelListResponse.getItems().isEmpty()) {
-			uploadsPlaylistId = channelListResponse.getItems().get(0).getContentDetails().getRelatedPlaylists()
-					.getUploads();
-		}
+    public ChannelListResponse getChannelInfoByHandle(String handleId) throws IOException {
+        String username = handleId.startsWith("@") ? handleId.substring(1) : handleId;
+        return youTubeService.channels()
+                .list(Arrays.asList("snippet", "contentDetails", "statistics"))
+                .setKey(youtubeApiKey)
+                .setForUsername(username)
+                .execute();
+    }
 
-		if (uploadsPlaylistId == null) {
-			throw new IOException("채널의 업로드 플레이리스트를 찾을 수 없습니다");
-		}
+    public List<String> getLatestVideosByChannel(String channelId, long maxResults) throws IOException {
+        ChannelListResponse channelListResponse = youTubeService.channels()
+                .list(Arrays.asList("contentDetails"))
+                .setKey(youtubeApiKey)
+                .setId(List.of(channelId))
+                .execute();
 
-		// 업로드 플레이리스트에서 동영상 목록을 가져옵니다.
-		PlaylistItemListResponse playlistItemListResponse = youTube.playlistItems()
-				.list(Arrays.asList("snippet"))
-				.setKey(youtubeApiKey)
-				.setPlaylistId(uploadsPlaylistId)
-				.setMaxResults(maxResults)
-				.execute();
+        String uploadsPlaylistId = channelListResponse.getItems()
+                .get(0)
+                .getContentDetails()
+                .getRelatedPlaylists()
+                .getUploads();
 
-		// 동영상 제목만 추출하여 리스트로 반환합니다.
-		return playlistItemListResponse.getItems().stream().map(item -> item.getSnippet().getTitle())
-				.collect(Collectors.toList());
-	}
+        PlaylistItemListResponse playlistItemListResponse = youTubeService.playlistItems()
+                .list(Arrays.asList("snippet"))
+                .setKey(youtubeApiKey)
+                .setPlaylistId(uploadsPlaylistId)
+                .setMaxResults(maxResults)
+                .execute();
 
-	public List<String> searchVideos(String query, long maxResults) throws IOException {
-		YouTube.Search.List search = youTube.search().list(Arrays.asList("id", "snippet"));
-		search.setKey(youtubeApiKey);
-		search.setQ(query);
-		search.setType(Arrays.asList("video")); // 동영상만 검색
+        return playlistItemListResponse.getItems().stream()
+                .map(item -> item.getSnippet().getTitle())
+                .collect(Collectors.toList());
+    }
 
-		search.setFields("items(id/videoId,snippet/title)"); // 필요한 필드만 지정
-		search.setMaxResults(maxResults);
+    public List<String> getLatestVideosByHandle(String handleId, long maxResults) throws IOException {
+        ChannelListResponse channelInfo = getChannelInfoByHandle(handleId);
+        if (channelInfo.getItems() == null || channelInfo.getItems().isEmpty()) {
+            throw new IOException("핸들에 해당하는 채널을 찾을 수 없습니다: " + handleId);
+        }
+        String channelId = channelInfo.getItems().get(0).getId();
+        return getLatestVideosByChannel(channelId, maxResults);
+    }
 
-		SearchListResponse searchResponse = search.execute();
-		List<SearchResult> searchResultList = searchResponse.getItems();
+    public List<String> searchVideos(String query, long maxResults) throws IOException {
+        YouTube.Search.List search = youTubeService.search().list(Arrays.asList("id", "snippet"));
+        search.setKey(youtubeApiKey);
+        search.setQ(query);
+        search.setType(List.of("video"));
+        search.setFields("items(id/videoId,snippet/title)");
+        search.setMaxResults(maxResults);
 
-		if (searchResultList != null) {
-			return searchResultList.stream().map(item -> item.getSnippet().getTitle()).collect(Collectors.toList());
-		}
-		return List.of();
-	}
-	
+        SearchListResponse searchResponse = search.execute();
+        return searchResponse.getItems() != null
+                ? searchResponse.getItems().stream().map(item -> item.getSnippet().getTitle()).collect(Collectors.toList())
+                : List.of();
+    }
+
+    public Channel getChannelDetailsByIdentifier(String identifier) throws IOException {
+        if (!StringUtils.hasText(identifier)) {
+            throw new IllegalArgumentException("채널 식별자(ID 또는 @handle)는 필수입니다.");
+        }
+
+        YouTube.Channels.List request = youTubeService.channels()
+                .list(List.of("snippet", "statistics", "brandingSettings"))
+                .setKey(youtubeApiKey);
+
+        if (identifier.startsWith("UC") && identifier.length() == 24) {
+            request.setId(List.of(identifier));
+        } else if (identifier.startsWith("@")) {
+            request.setForUsername(identifier.substring(1));
+        } else {
+            request.setForUsername(identifier);
+        }
+
+        ChannelListResponse response = request.execute();
+        if (response.getItems() != null && !response.getItems().isEmpty()) {
+            return response.getItems().get(0);
+        } else {
+            throw new IllegalArgumentException("YouTube에서 '" + identifier + "'에 해당하는 채널을 찾을 수 없습니다.");
+        }
+    }
 }
