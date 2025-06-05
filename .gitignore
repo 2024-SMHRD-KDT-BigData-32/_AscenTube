@@ -3,32 +3,36 @@
 .vscode/              # VS Code
 *.iml                 # IntelliJ IDEA module files
 .DS_Store             # macOS
+*.ipr                 # IntelliJ IDEA project files
+*.iws                 # IntelliJ IDEA workspace files
 
-# STS/Eclipse Workspace metadata (중요!)
-/.metadata/           # 루트 워크스페이스 메타데이터
-**/.metadata/         # 모든 하위 디렉토리의 메타데이터
+# STS/Eclipse Workspace metadata & project files
+.metadata/            # 루트 워크스페이스 메타데이터 (Git 루트에 있을 경우)
+**/.metadata/         # 모든 하위 디렉토리의 메타데이터 (하위 프로젝트에 .metadata가 있을 경우)
+.classpath            # Eclipse/STS project file
+.project              # Eclipse/STS project file
+.settings/            # Eclipse/STS project settings directory
+.factorypath          # Eclipse/STS specific
 
 # Node modules (프론트엔드 및 공통 JS/TS 라이브러리)
 /front_end/node_modules/
-/common-libs/node_modules/ # 만약 common-libs 폴더가 있고 node_modules가 있다면 추가
 
 # Spring Boot build artifacts & generated files
 /back_end/target/
 *.jar
 *.war
-/back_end/bin/        
-/back_end/.gradle/    
-/back_end/.factorypath
+/back_end/bin/
+/back_end/.gradle/
 /back_end/.sts4-cache/
-/back_end/.classpath
-/back_end/.project
-/back_end/.settings/
-/back_end/tokens/     
+/back_end/tokens/      
 
 # Maven Wrapper 파일 (필요시 추가, 권한 문제나 LF/CRLF 경고가 계속되면)
 # /back_end/mvnw
 # /back_end/mvnw.cmd
 
-# 로그 파일
+# Log files
 *.log
-/.metadata/
+
+# Other temporary or generated files
+temp/
+tmp/
