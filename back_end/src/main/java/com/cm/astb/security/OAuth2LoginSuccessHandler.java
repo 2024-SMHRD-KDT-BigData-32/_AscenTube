@@ -1,24 +1,25 @@
 // OAuth2LoginSuccessHandler.java (쿼리 파라미터명 jwtToken으로 수정)
 package com.cm.astb.security;
 
-import com.cm.astb.entity.User;
-import com.cm.astb.service.UserService;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.util.StringUtils;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import com.cm.astb.entity.User;
+import com.cm.astb.service.UserService;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -52,7 +53,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             return;
         }
 
-        User user = userService.findOrCreateUser(googleId, email, nickname, profileImg);
+        String googleRefreshToken = null; // 아직은 값 없음. 추후 OAuth 응답에서 추출 가능
+        
+        User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, googleRefreshToken);
         log.info("DB에서 사용자 정보 처리 완료: {}", user.getGoogleId());
 
         String jwtToken = jwtTokenProvider.generateToken(user); 

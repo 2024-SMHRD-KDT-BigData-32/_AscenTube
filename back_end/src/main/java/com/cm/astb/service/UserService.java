@@ -21,7 +21,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public User findOrCreateUser(String googleId, String email, String nickname, String profileImg) {
+	public User findOrCreateUser(String googleId, String email, String nickname, String profileImg, String googleRefreshToken) {
 		Optional<User> optionalUser = userRepository.findByGoogleId(googleId);
 		
 		User user;
@@ -33,6 +33,7 @@ public class UserService {
 			 user.setEmail(email);
 			 user.setNickname(nickname);
 			 user.setProfileImg(profileImg);
+			 user.setGoogleRefreshToken(googleRefreshToken);
 			 
 			 user = userRepository.save(user);
 			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );
@@ -53,6 +54,10 @@ public class UserService {
 				user.setProfileImg(profileImg);
 				isChanged = true;
 			}
+			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToken())) {
+				user.setGoogleRefreshToken(googleRefreshToken);
+				isChanged = true;
+			}
 			
 			if(isChanged) {
 				user = userRepository.save(user);
@@ -60,5 +65,9 @@ public class UserService {
 			}
 		}
 		return user;
+	}
+
+	public Optional<User> findByGoogleId(String googleId) {
+		return userRepository.findByGoogleId(googleId);
 	}
 }
