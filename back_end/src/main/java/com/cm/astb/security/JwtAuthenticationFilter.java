@@ -2,6 +2,8 @@ package com.cm.astb.security;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
+	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+	
 	private final JwtTokenProvider jwtTokenProvider;
 	private final UserDetailsService userDetailsService;
 	
@@ -38,10 +42,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 						userDetails, null, userDetails.getAuthorities());
 				
 				SecurityContextHolder.getContext().setAuthentication(authentication);
+				
+				logger.info("Authenticated user with googleId: {} and set SecurityContext", googleId);
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			logger.error("Could not set user authentication in security context", e);
 		}
+		
+		filterChain.doFilter(request, response);
 	}
 	
 	// Extract JWT from HTTP request header
