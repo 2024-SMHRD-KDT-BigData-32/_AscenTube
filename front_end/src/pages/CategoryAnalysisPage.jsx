@@ -23,8 +23,6 @@ const YOUTUBE_CATEGORIES = [
 ];
 
 function CategoryAnalysisPage() {
-  // 🚀 기존 로컬 상태(useState) 대신 Context에서 상태를 가져옵니다.
-  // const [selectedCategoryId, setSelectedCategoryId] = useState(''); // 이 줄을 삭제합니다.
   const { selectedCategoryId, setSelectedCategoryId } = useCategory();
 
   const handleCategoryChange = (categoryId) => {
