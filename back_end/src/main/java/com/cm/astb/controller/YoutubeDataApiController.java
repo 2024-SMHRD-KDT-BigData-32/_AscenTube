@@ -5,16 +5,12 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.YoutubeDataApiService;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.SearchResult;
@@ -29,6 +25,7 @@ public class YoutubeDataApiController {
 
 	@GetMapping("/trending")
 	public ResponseEntity<List<Video>> getTrendingVideos(
+			@RequestParam String userId,
 			@RequestParam(defaultValue = "0") String categoryId,
 			@RequestParam(defaultValue = "KR") String regionCode,
 			@RequestParam(defaultValue = "10") long maxResults) {

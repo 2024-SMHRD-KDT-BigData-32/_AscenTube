@@ -2,8 +2,6 @@ package com.cm.astb.security;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 				logger.info("Authenticated user with googleId: {} and set SecurityContext", googleId);
 			}
 		} catch (Exception e) {
-			logger.error("Could not set user authentication in security context", e);
+			// TODO: handle exception
 		}
 
 		filterChain.doFilter(request, response);
