@@ -50,8 +50,8 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 			oos.writeObject(value);
 			oos.close();
 			String credentialBase64 = Base64.getEncoder().encodeToString(bos.toByteArray());
-			
-			user.setGoogleRefreshToken(credentialBase64);
+			logger.error(">>> [CRITICAL_DEBUG] Serialized Credential Base64 Length (should be < 16M for MEDIUMTEXT): {}", credentialBase64.length());
+			user.setGoogleCredentialJson(credentialBase64);
 			userRepository.save(user);
 			logger.info("Google Credential saved (Base64) for user: {}", googleId);
 			
@@ -71,7 +71,8 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 		if (optionalUser.isPresent()) {
 			
 			User user = optionalUser.get();
-			String credentialBase64 = user.getGoogleRefreshToken();
+			String credentialBase64 = user.getGoogleCredentialJson();
+			
 			if (credentialBase64 != null && !credentialBase64.isEmpty()) {
 				
 				byte[] decodeBytes = Base64.getDecoder().decode(credentialBase64);
@@ -101,7 +102,7 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 		Optional<User> optionalUser = userRepository.findByGoogleId(googleId);
 		if(optionalUser.isPresent()) {
 			User user = optionalUser.get();
-			user.setGoogleRefreshToken(null);
+			user.setGoogleCredentialJson(null);
 			userRepository.save(user);
 			logger.info("Google Credential deleted for user: {}", googleId);
 		} else {
@@ -114,7 +115,7 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 	@Transactional	// DB changing
 	public DataStore<Serializable> clear() throws IOException {
 		logger.warn("clear() method is called. This will clear ALL Credentials in DB.");
-		userRepository.findAll().forEach(user -> user.setGoogleRefreshToken(null));	// Check the forEach() method.
+		userRepository.findAll().forEach(user -> user.setGoogleCredentialJson(null));	// Check the forEach() method.
 		userRepository.saveAll(userRepository.findAll());
 		return this;
 	}
@@ -132,7 +133,7 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 	public Collection<Serializable> values() throws IOException {
 		logger.warn("values() method is called. This will load all credentials and can be inefficient.");
 		return userRepository.findAll().stream()
-				.map(User::getGoogleRefreshToken)
+				.map(User::getGoogleCredentialJson)
 				.filter(json -> json != null && !json.isEmpty())
 				.map(json -> {
 					try {
@@ -166,7 +167,7 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 	@Override
 	public boolean containsKey(String googleId) throws IOException {
 		return userRepository.findByGoogleId(googleId)
-				.map(User::getGoogleRefreshToken)
+				.map(User::getGoogleCredentialJson)
 				.filter(token -> token != null && !token.isEmpty())
 				.isPresent();
 	}

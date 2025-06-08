@@ -26,13 +26,14 @@ public class UserService {
 		User user;
 		
 		if (optionalUser.isEmpty()) {
-			
-			 user = new User();
-			 user.setGoogleId(googleId);
-			 user.setEmail(email);
-			 user.setNickname(nickname);
-			 user.setProfileImg(profileImg);
-			 user.setGoogleRefreshToken(googleRefreshToken);
+			 user = User.builder()
+					 .googleId(googleId)
+					 .email(email)
+					 .nickname(nickname)
+					 .profileImg(profileImg)
+					 .googleRefreshToken(googleRefreshToken)
+					 .googleCredentialJson(null)
+					 .build();
 			 
 			 user = userRepository.save(user);
 			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );

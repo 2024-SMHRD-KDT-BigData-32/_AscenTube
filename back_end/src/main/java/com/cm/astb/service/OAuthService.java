@@ -8,9 +8,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.cm.astb.config.GoogleApiConfig;
+import com.cm.astb.security.GoogleCredentialDataStoreFactory;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
@@ -19,24 +22,27 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtubeAnalytics.v2.YouTubeAnalytics;
 
 @Service
 public class OAuthService {
 	
+	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
+	
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
-	private final FileDataStoreFactory dataStoreFactory;
+//	private final FileDataStoreFactory dataStoreFactory;
+	private final GoogleCredentialDataStoreFactory googleCredentialDataStoreFactory;
 	
 	public OAuthService(GoogleApiConfig googleApiConfig, NetHttpTransport httpTransport, 
-			GsonFactory jsonFactory, FileDataStoreFactory dataStoreFactory) {
+			GsonFactory jsonFactory, GoogleCredentialDataStoreFactory googleCredentialDataStoreFactory) {
 		this.googleApiConfig = googleApiConfig;
 		this.httpTransport = httpTransport;
 		this.jsonFactory = jsonFactory;
-		this.dataStoreFactory = dataStoreFactory;
+		this.googleCredentialDataStoreFactory = googleCredentialDataStoreFactory;
+//		this.dataStoreFactory = dataStoreFactory;
 	}
 
 	private GoogleAuthorizationCodeFlow buildFlow(Collection<String> scopes) throws IOException {
@@ -45,7 +51,7 @@ public class OAuthService {
 				jsonFactory, 
 				googleApiConfig.googleClientSecrets(),
 				scopes)
-				.setDataStoreFactory(dataStoreFactory)
+				.setDataStoreFactory(googleCredentialDataStoreFactory)
 				.setAccessType("offline")
 				.setApprovalPrompt("force")
 				.build();
@@ -64,14 +70,13 @@ public class OAuthService {
 		
 		GoogleAuthorizationCodeFlow flowWithAllScopes = buildFlow(allScopes);
 		
-		
 		GoogleTokenResponse response = flowWithAllScopes.newTokenRequest(code)
 				.setRedirectUri(googleApiConfig.getRedirectUri())
 				.execute();
 		System.out.println("Full GoogleTokenResponse: " + response.toPrettyString());
 		
 		String idTokenStr = response.getIdToken();
-		String userId = "currentLoggedInUser"; 
+		String userId = "default"; 
 		GoogleIdToken idToken = null;
 		
 		if (idTokenStr != null) {
@@ -96,6 +101,7 @@ public class OAuthService {
         Map<String, Object> result = new HashMap<>();
         result.put("credential", credential);
         result.put("idToken", idToken);
+        result.put("googleUserId", userId);
         
         return result;
 	}
@@ -105,7 +111,26 @@ public class OAuthService {
 		allScopes.addAll(GoogleApiConfig.ANALYTICS_SCOPES);
 		allScopes.addAll(GoogleApiConfig.USER_LOGIN_SCOPES);
 		
-		return buildFlow(allScopes).loadCredential(userId);
+		GoogleAuthorizationCodeFlow flowWithAllScopes = buildFlow(allScopes);
+		Credential credential = flowWithAllScopes.loadCredential(userId);
+		
+		if (credential != null && credential.getAccessToken() != null) {
+			logger.info("Credential loaded for user {}. Access Token is valid or refreshed.", userId);
+		} else if (credential != null && credential.getRefreshToken() != null) {
+			logger.warn("Credential loaded for user {} but Access Token is null/expired. Attempting refresh...", userId);
+			try {
+				if (credential.refreshToken()) {
+					logger.info("Access Token successfully refreshed for user {}.", userId);
+				} else {
+					logger.error("Failed to refresh Access Token for user {}. Refresh Token might be invalid.", userId);
+				}
+			} catch (IOException e) {
+				logger.error("IOException during Access Token refresh for user {}: {}", userId, e.getMessage());
+			}
+		} else {
+			logger.warn("No valid Credential or Refresh Token found for user {}.", userId);
+		}
+		return credential;
 	}
 	
 	// 인증된 Credential을 사용하여 YouTube Analytics API 서비스 객체를 반환.

@@ -23,6 +23,7 @@ public class GoogleCredentialDataStoreFactory implements DataStoreFactory{
 
 	// Method creating certified id's new DataStore instance or load present DataStore instance from cache.
 	@Override
+	@SuppressWarnings("unchecked")
 	public <V extends Serializable> DataStore<V> getDataStore(String id) throws IOException {
 		DataStore<V> dataStore = (DataStore<V>) dataStoreMap.get(id);
 		if (dataStore == null) {
@@ -31,6 +32,4 @@ public class GoogleCredentialDataStoreFactory implements DataStoreFactory{
 		}
 		return dataStore;
 	}
-	
-	
 }
