@@ -33,7 +33,7 @@ public class UserService {
 			 user.setEmail(email);
 			 user.setNickname(nickname);
 			 user.setProfileImg(profileImg);
-			 user.setGoogleRefreshToken(googleRefreshToken);
+			 user.setGoogleRefreshToekn(googleRefreshToken);
 			 
 			 user = userRepository.save(user);
 			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );
@@ -54,8 +54,8 @@ public class UserService {
 				user.setProfileImg(profileImg);
 				isChanged = true;
 			}
-			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToken())) {
-				user.setGoogleRefreshToken(googleRefreshToken);
+			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToekn())) {
+				user.setGoogleRefreshToekn(googleRefreshToken);
 				isChanged = true;
 			}
 			
