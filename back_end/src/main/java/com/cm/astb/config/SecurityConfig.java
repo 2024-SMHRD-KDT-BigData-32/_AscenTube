@@ -1,26 +1,9 @@
 // SecurityConfig.java (CORS 설정 강화)
 package com.cm.astb.config;
 
-import com.cm.astb.security.JwtFilter;
-import com.cm.astb.service.UserService;
-import com.cm.astb.security.OAuth2LoginSuccessHandler;
-import com.cm.astb.security.JwtTokenProvider;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value; 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration; 
-import org.springframework.web.cors.CorsConfigurationSource; 
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource; 
-import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,23 +15,41 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List; 
+import com.cm.astb.security.CustomUserDetailsService;
+import com.cm.astb.security.JwtAuthenticationFilter;
+import com.cm.astb.security.JwtFilter;
+import com.cm.astb.security.JwtTokenProvider;
+import com.cm.astb.security.OAuth2LoginSuccessHandler;
+import com.cm.astb.service.UserService;
+
+import lombok.RequiredArgsConstructor; 
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+	@Value("${chrome.extension.id}") 
+	private String chromeExtensionId;
+	
+//    private final JwtFilter jwtFilter;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    @Value("${chrome.extension.id}") 
-    private String chromeExtensionId; 
+    private final CustomUserDetailsService customUserDetailsService;
+    
+	public SecurityConfig(
+			/* JwtFilter jwtFilter, */ UserService userService, JwtTokenProvider jwtTokenProvider,
+			CustomUserDetailsService customUserDetailsService) {
+//		this.jwtFilter = jwtFilter;
+		this.userService = userService;
+		this.jwtTokenProvider = jwtTokenProvider;
+		this.customUserDetailsService = customUserDetailsService;
+	}
 
     @Bean
     public OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler() {
@@ -77,6 +78,11 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration); 
         return source;
     }
+    
+    @Bean
+	public JwtAuthenticationFilter jwtAuthenticationFilter() {
+		return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
+	}
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { 
@@ -97,7 +103,7 @@ public class SecurityConfig {
                 .successHandler(oAuth2LoginSuccessHandler())
             )
             .formLogin(formLogin -> formLogin.disable())
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -112,5 +118,7 @@ public class SecurityConfig {
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
+
+	
 
 }
