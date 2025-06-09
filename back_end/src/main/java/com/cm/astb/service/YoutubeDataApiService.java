@@ -49,6 +49,7 @@ public class YoutubeDataApiService {
 		this.youTube = youTube;
 		this.youtubeApiKey = googleApiConfig.getYoutubeApiKey();
 		this.oAuthService = oAuthService;
+		this.googleApiConfig = new GoogleApiConfig();
 	}
 	
 public List<SearchResult> getTrendingVideosByPeriod(String userId, String categoryId, String regionCode, String period, long maxResults) throws IOException, GeneralSecurityException{
@@ -116,7 +117,7 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
 	}
 
 	public ChannelListResponse getChannelInfo(String channelId) throws IOException {
-		YouTube.Channels.List request = youTubeService.channels()
+		YouTube.Channels.List request = youTube.channels()
 				.list(Arrays.asList("snippet", "contentDetails", "statistics"))
 				.setKey(youtubeApiKey).setId(Arrays.asList(channelId));
 		return request.execute();
@@ -127,14 +128,14 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
         // @핸들은 일반적으로 채널 ID로 변환 후 조회하거나, Search API를 사용해야 합니다.
         // 여기서는 핸들에서 '@'를 제거하고 setForUsername으로 시도하는 것으로 가정 (정확도 낮을 수 있음)
         String username = handleId.startsWith("@") ? handleId.substring(1) : handleId;
-		YouTube.Channels.List request = youTubeService.channels()
+		YouTube.Channels.List request = youTube.channels()
 				.list(Arrays.asList("snippet", "contentDetails", "statistics")).setKey(youtubeApiKey)
 				.setForUsername(username); // setForHandle 대신 setForUsername 사용 시도
 		return request.execute();
 	}
 
 	public List<String> getLatestVideosByChannel(String channelId, long maxResults) throws IOException {
-		ChannelListResponse channelListResponse = youTubeService.channels().list(Arrays.asList("contentDetails"))
+		ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("contentDetails"))
 				.setKey(youtubeApiKey).setId(Arrays.asList(channelId)).execute();
 		String uploadsPlaylistId = null;
 		if (channelListResponse.getItems() != null && !channelListResponse.getItems().isEmpty()) {
@@ -144,7 +145,7 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
 		if (uploadsPlaylistId == null) {
 			throw new IOException("채널의 업로드 플레이리스트를 찾을 수 없습니다: " + channelId);
 		}
-		PlaylistItemListResponse playlistItemListResponse = youTubeService.playlistItems()
+		PlaylistItemListResponse playlistItemListResponse = youTube.playlistItems()
 				.list(Arrays.asList("snippet"))
 				.setKey(youtubeApiKey)
 				.setPlaylistId(uploadsPlaylistId)
@@ -165,7 +166,7 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
 	}
 
 	public List<String> searchVideos(String query, long maxResults) throws IOException {
-		YouTube.Search.List search = youTubeService.search().list(Arrays.asList("id", "snippet"));
+		YouTube.Search.List search = youTube.search().list(Arrays.asList("id", "snippet"));
 		search.setKey(youtubeApiKey);
 		search.setQ(query);
 		search.setType(Arrays.asList("video"));
@@ -193,7 +194,7 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
         }
 
         System.out.println("[YoutubeDataApiService] 채널 정보 조회 시도. 식별자: " + identifier);
-        YouTube.Channels.List request = youTubeService.channels().list(List.of("snippet", "statistics", "brandingSettings"));
+        YouTube.Channels.List request = youTube.channels().list(List.of("snippet", "statistics", "brandingSettings"));
         request.setKey(youtubeApiKey); // API Key 설정
 
         // 식별자 유형에 따라 API 요청 파라미터 설정

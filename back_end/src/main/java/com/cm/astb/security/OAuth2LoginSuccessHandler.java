@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserService userService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider; 
 
     @Value("${frontend.redirect.url}")
     private String frontendRedirectUrlConfigValue;
@@ -52,7 +52,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             return;
         }
 
-        User user = userService.findOrCreateUser(googleId, email, nickname, profileImg);
+        User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, null);
         log.info("DB에서 사용자 정보 처리 완료: {}", user.getGoogleId());
 
         String jwtToken = jwtTokenProvider.generateToken(user); 
