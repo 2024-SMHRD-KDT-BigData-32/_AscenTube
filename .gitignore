@@ -160,8 +160,4 @@ desktop.ini             # Windows system files
 
 # Logs not covered by backend/frontend specific
 *.log
-=======
-# 로그 파일
-*.log
 /.metadata/
->>>>>>> 5a577b8 (Feat: 회원 정보 localStorage에 저장 구현)
