@@ -1,17 +1,13 @@
 // JwtTokenProvider.java (디버깅 로그 강화 및 키 생성 안정성 확인)
 package com.cm.astb.security;
 
-import java.nio.charset.StandardCharsets; 
-import java.security.Key;
-import java.security.KeyStore.SecretKeyEntry;
-import java.util.Base64;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,11 +26,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.WeakKeyException; 
+import io.jsonwebtoken.security.WeakKeyException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Component
@@ -42,7 +37,7 @@ public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    private final Key key;
+    private final SecretKey key;
     private final long jwtExpirationMs;
 
     public JwtTokenProvider(
@@ -80,41 +75,53 @@ public class JwtTokenProvider {
         logger.info("JWT 토큰 만료 시간 설정: {}분 ({}ms)", expirationMinutes, jwtExpirationMs);
         logger.info("JwtTokenProvider 초기화 완료. Key 알고리즘: {}", this.key.getAlgorithm());
     }
+    
+	public String generateToken(User user) {
 
-    public String generateToken(User user) {
-        if (user == null || !StringUtils.hasText(user.getGoogleId())) {
-            logger.error("토큰 생성 실패: User 객체가 null이거나 Google ID가 없습니다.");
-            return null; 
-        }
-        logger.info("generateToken 호출됨. 사용자 Google ID: {}", user.getGoogleId());
-        Claims claims = Jwts.claims().setSubject(user.getGoogleId());
-        claims.put("email", user.getEmail());
-        claims.put("nickname", user.getNickname());
+		Date now = new Date();
+		Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+		String generateKeyBase64 = Base64.getEncoder().encodeToString(this.key.getEncoded());
+		logger.warn(">>> [JWT_DEBUG] Key used for GENERATION (Base64): {}", generateKeyBase64);
 
-        try {
-            String token = Jwts.builder()
-                    .setClaims(claims)
-                    .setIssuedAt(now)
-                    .setExpiration(expiryDate)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
-            // logger.info("생성된 JWT 토큰 (앞 10자): {}", token.substring(0, Math.min(token.length(), 10)) + "...");
-            return token;
-        } catch (Exception e) {
-            logger.error("JWT 토큰 생성 중 예외 발생: {}", e.getMessage(), e);
-            return null; 
-        }
-    }
+		return Jwts.builder().subject(user.getGoogleId()).claim("email", user.getEmail())
+				.claim("nickname", user.getNickname()).issuedAt(now).expiration(expiryDate).signWith(key).compact();
+	}
+//    public String generateToken(User user) {
+//        if (user == null || !StringUtils.hasText(user.getGoogleId())) {
+//            logger.error("토큰 생성 실패: User 객체가 null이거나 Google ID가 없습니다.");
+//            return null; 
+//        }
+//        logger.info("generateToken 호출됨. 사용자 Google ID: {}", user.getGoogleId());
+//        Claims claims = Jwts.claims().setSubject(user.getGoogleId());
+//        claims.put("email", user.getEmail());
+//        claims.put("nickname", user.getNickname());
+//
+//        Date now = new Date();
+//        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+//
+//        try {
+//            String token = Jwts.builder()
+//                    .setClaims(claims)
+//                    .setIssuedAt(now)
+//                    .setExpiration(expiryDate)
+//                    .signWith(key, SignatureAlgorithm.HS256)
+//                    .compact();
+//            // logger.info("생성된 JWT 토큰 (앞 10자): {}", token.substring(0, Math.min(token.length(), 10)) + "...");
+//            return token;
+//        } catch (Exception e) {
+//            logger.error("JWT 토큰 생성 중 예외 발생: {}", e.getMessage(), e);
+//            return null; 
+//        }
+//    }
 
     public String getUserIdFromJWT(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        Claims claims = Jwts.parser()
+        		.verifyWith(key)		// secret key
+				.build()
+				.parseSignedClaims(token)
+				.getPayload();
+
         return claims.getSubject();
     }
 
@@ -128,21 +135,21 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
-    public boolean validateToken(String authToken) {
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            logger.error("Invalid JWT signature or malformed JWT: {}", e.getMessage());
-        } catch (ExpiredJwtException e) {
-            logger.error("Expired JWT token: {}", e.getMessage());
-        } catch (UnsupportedJwtException e) {
-            logger.error("Unsupported JWT token: {}", e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.error("JWT claims string is empty or invalid argument: {}", e.getMessage());
-        }
-        return false;
-    }
+	public boolean validateToken(String authToken) {
+		try {
+			Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
+			return true;
+		} catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+			logger.error("Invalid JWT signature or malformed JWT: {}", e.getMessage());
+		} catch (ExpiredJwtException e) {
+			logger.error("Expired JWT token: {}", e.getMessage());
+		} catch (UnsupportedJwtException e) {
+			logger.error("Unsupported JWT token: {}", e.getMessage());
+		} catch (IllegalArgumentException e) {
+			logger.error("JWT claims string is empty or invalid argument: {}", e.getMessage());
+		}
+		return false;
+	}
     
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
