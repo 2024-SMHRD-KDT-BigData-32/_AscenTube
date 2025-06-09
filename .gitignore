@@ -1,39 +1,147 @@
-# IDE & OS specific files
-.idea/                # IntelliJ IDEA
-.vscode/              # VS Code
-*.iml                 # IntelliJ IDEA module files
-.DS_Store             # macOS
-*.ipr                 # IntelliJ IDEA project files
-*.iws                 # IntelliJ IDEA workspace files
+# =========================================================
+# .gitignore for Spring Boot (Java) & React (Node.js) Project
+# Project Structure: /AscenTube (root) -> back_end/, front_end/
+# =========================================================
 
-# STS/Eclipse Workspace metadata & project files
-.metadata/            # 루트 워크스페이스 메타데이터 (Git 루트에 있을 경우)
-**/.metadata/         # 모든 하위 디렉토리의 메타데이터 (하위 프로젝트에 .metadata가 있을 경우)
-.classpath            # Eclipse/STS project file
-.project              # Eclipse/STS project file
-.settings/            # Eclipse/STS project settings directory
-.factorypath          # Eclipse/STS specific
 
-# Node modules (프론트엔드 및 공통 JS/TS 라이브러리)
-/front_end/node_modules/
+# ==============================
+# 1. Global / OS Specific Files
+# ==============================
+.DS_Store               # macOS folder attributes
+Thumbs.db               # Windows thumbnail cache
+desktop.ini             # Windows system files
+*.log                   # General log files
+*.tmp                   # Temporary files
+*.temp
+*~                      # Backup files (e.g., from text editors like Vim/Emacs)
+*.bak                   # Generic backup files
+.idea/                  # IntelliJ IDEA project files (root level if accidentally created)
+.vscode/                # VS Code project files (root level if accidentally created)
 
-# Spring Boot build artifacts & generated files
+
+# ==============================
+# 2. IDE Specific Files & Directories
+#    (Applies to both back_end/ and front_end/ if created inside)
+# ==============================
+
+# IntelliJ IDEA
+# .idea/ (already covered by global if at root, but explicitly include for sub-projects)
+*/.idea/
+*.iml
+*.iws
+*.ipr
+.project.template
+
+# Eclipse / STS (Spring Tool Suite)
+.project
+.classpath
+.settings/
+.apt_generated/
+.factorypath
+.sts4-cache/
+/.metadata/             # Workspace metadata (if created at project root)
+**/.metadata/           # Any .metadata/ created in subdirectories
+
+# VS Code
+# .vscode/ (already covered by global if at root, but explicitly include for sub-projects)
+*/.vscode/
+
+
+# ==============================
+# 3. Backend (Spring Boot / Java / Maven / Gradle)
+#    (Located in /back_end/)
+# ==============================
+
+# Build output directories
 /back_end/target/
-*.jar
-*.war
-/back_end/bin/
-/back_end/.gradle/
-/back_end/.sts4-cache/
-/back_end/tokens/      
+/back_end/build/        # For Gradle projects
 
-# Maven Wrapper 파일 (필요시 추가, 권한 문제나 LF/CRLF 경고가 계속되면)
+# Compiled class files
+/back_end/**/*.class
+
+# Package files
+/back_end/*.jar
+/back_end/*.war
+/back_end/*.ear
+/back_end/*.zip
+/back_end/*.tar.gz
+
+# Log files (specific to backend)
+/back_end/logs/
+/back_end/hs_err_pid*.log  # JVM crash logs
+/back_end/nohup.out        # Output from nohup command
+
+# Local environment configuration files (CRITICAL for secrets like JWT key)
+# These should NOT be committed. Managed via environment variables or secure vault.
+/back_end/src/main/resources/application-dev.properties
+/back_end/src/main/resources/application-local.properties
+/back_end/src/main/resources/*.properties.example # If you distribute example config
+/back_end/src/main/resources/*.yml.example        # If you distribute example config
+/back_end/.env                                    # General local environment file
+
+# Google API client library specific local store (our custom DB based DataStore is better, but this might still be created)
+# This is the directory where FileDataStoreFactory would store credentials.
+/back_end/tokens/
+/back_end/.metadata
+# Maven Wrapper files (usually committed for consistent builds, but can ignore if issues)
 # /back_end/mvnw
 # /back_end/mvnw.cmd
+# /back_end/.mvn/wrapper/maven-wrapper.jar
 
-# Log files
+# Gradle Wrapper files (usually committed, but can ignore if issues)
+# /back_end/gradlew
+# /back_end/gradlew.bat
+# /back_end/gradle/wrapper/gradle-wrapper.jar
+
+# ==============================
+# 4. Frontend (React / Node.js)
+#    (Located in /front_end/)
+# ==============================
+
+# Node modules
+/front_end/node_modules/
+
+# Production build output
+/front_end/build/       # Create React App default build output
+/front_end/dist/        # Common alternative build output
+/front_end/out/         # Next.js build output
+
+# Dependency lock files (usually committed for consistent builds, but can ignore)
+# /front_end/package-lock.json
+# /front_end/yarn.lock
+# /front_end/pnpm-lock.yaml
+
+# Environment variables (specific to frontend)
+/front_end/.env
+/front_end/.env.*
+/front_end/env.js # CRA specific
+/front_end/.local
+
+# Log files (specific to frontend)
+/front_end/npm-debug.log*
+/front_end/yarn-debug.log*
+
+# Test / Coverage reports
+/front_end/coverage/
+
+# IDE files (if created inside frontend directory)
+/front_end/.idea/
+/front_end/.vscode/
+
+# ==============================
+# 5. Other Common / Temporary Files
+# ==============================
+# Editor swap files
+*.swp
+*.swo
+*.swn
+
+# Backup files
+*.bak
+
+# macOS specific (if not covered globally)
+.DS_Store
+
+# Logs not covered by backend/frontend specific
 *.log
-
-# Other temporary or generated files
-temp/
-tmp/
 /.metadata/
