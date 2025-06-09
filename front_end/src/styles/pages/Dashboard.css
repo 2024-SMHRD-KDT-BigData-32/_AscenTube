@@ -1,6 +1,6 @@
 /* ===============================
-     🧱 기본 레이아웃 구조
- =============================== */
+    🧱 기본 레이아웃 구조
+=============================== */
 .dashboard-container {
   background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
   min-height: 100vh;
@@ -11,8 +11,8 @@
 }
 
 /* ===============================
-     🔝 헤더 영역
- =============================== */
+    🔝 헤더 영역
+=============================== */
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -24,8 +24,8 @@
 }
 
 /* ===============================
-     🧩 메인 콘텐츠 영역
- =============================== */
+    🧩 메인 콘텐츠 영역
+=============================== */
 .dashboard-main {
   padding: 2rem 1.5rem;
   display: flex;
@@ -61,8 +61,8 @@
 }
 
 /* ===============================
-     📦 카드 그리드 (KPI 카드)
- =============================== */
+    📦 카드 그리드 (KPI 카드)
+=============================== */
 .kpi-section {
   padding-top: 1.5rem;
 }
@@ -73,18 +73,8 @@
 }
 
 .kpi-grid {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(5, 1fr); /* 5개의 카드를 한 줄에 동일한 너비로 배치 */
-  max-width: 960px; /* KPI 섹션 전체의 최대 너비 제한 (예: 5개 카드 * ~160px + gaps) */
-  margin-left: auto; /* 중앙 정렬 */
-  margin-right: auto; /* 중앙 정렬 */
+  grid-template-columns: repeat(2, 1fr);
 }
-
-/*
-  한 줄 고정을 위해 기존 반응형 설정은 주석 처리 또는 삭제합니다.
-*/
-/*
 @media (min-width: 768px) {
   .kpi-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -95,44 +85,29 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
-*/
 
 .card {
   background: white;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid #e0e7ff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s, box-shadow 0.3s;
-  display: flex;
-  flex-direction: column;
 }
-
 .card:hover {
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
 }
-
 .card h3 {
   font-size: 0.875rem;
   color: #6b7280;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  text-align: center;
 }
-
 .card p {
   font-size: 1.875rem;
   font-weight: bold;
   color: #4f46e5;
-  text-align: center;
-  margin-top: auto;
-  margin-bottom: auto;
-  line-height: 1.2;
-}
-
-.subscriber-focus-card h3 {
-  text-align: left;
 }
 
 .subscriber-focus-card .subscriber-main-stats {
@@ -140,23 +115,18 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 0.5rem;
-  width: 100%;
 }
-
 .subscriber-focus-card .total-subscribers {
   font-size: 1.875rem;
   font-weight: bold;
   color: #4f46e5;
   margin: 0;
-  text-align: left;
 }
-
 .subscriber-focus-card .subscriber-changes {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
 }
-
 .subscriber-focus-card .new-subs,
 .subscriber-focus-card .lost-subs {
   font-size: 1rem;
@@ -164,16 +134,13 @@
   display: flex;
   align-items: center;
 }
-
 .subscriber-focus-card .new-subs {
   color: #10b981;
   margin-bottom: 0.2rem;
 }
-
 .subscriber-focus-card .lost-subs {
   color: #ef4444;
 }
-
 .subscriber-focus-card .arrow {
   font-size: 1.1em;
   margin-right: 0.2em;
@@ -181,8 +148,8 @@
 }
 
 /* ===============================
-     📝 콘텐츠 분석 섹션
- =============================== */
+    📝 콘텐츠 분석 섹션
+=============================== */
 .content-performance-section .content-grid {
   display: flex;
   flex-wrap: wrap;
@@ -244,8 +211,8 @@
 .content-box li strong { color: #4f46e5; }
 
 /* ===============================
-     📊 통계 섹션 (시청자 분석 등)
- =============================== */
+    📊 통계 섹션 (시청자 분석 등)
+=============================== */
 .audience-analysis-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -320,8 +287,8 @@
 }
 
 /* ===============================
-     📉 차트 영역 (Chart.js) - 채널 성장 추이
- =============================== */
+    📉 차트 영역 (Chart.js) - 채널 성장 추이
+=============================== */
 .additional-growth-metrics .stat-box {}
 .additional-growth-metrics .highlight-stat-value {
   font-size: 1.5rem;
@@ -335,8 +302,8 @@
 }
 
 /* ===============================
-     🗺️ 지역별 시청자 분포 섹션 - 관련 스타일 삭제됨
- =============================== */
+    🗺️ 지역별 시청자 분포 섹션 - 관련 스타일 삭제됨
+=============================== */
 /*
 .regional-viewership-section .section-title { ... }
 .map-layout-container { ... }
@@ -350,8 +317,8 @@
 */
 
 /* ===============================
-     📶 진행률 바 (AnimatedBar - JS에서 현재 주석 처리됨 또는 다른 곳에서 사용될 수 있음)
- =============================== */
+    📶 진행률 바 (AnimatedBar - JS에서 현재 주석 처리됨 또는 다른 곳에서 사용될 수 있음)
+=============================== */
 .progress-bar-container {
   background-color: #e0e7ff;
   border-radius: 9999px;
