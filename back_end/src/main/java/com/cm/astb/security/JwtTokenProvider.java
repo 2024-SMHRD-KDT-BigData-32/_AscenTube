@@ -73,7 +73,6 @@ public class JwtTokenProvider {
 
         this.jwtExpirationMs = expirationMinutes * 60 * 1000;
         logger.info("JWT 토큰 만료 시간 설정: {}분 ({}ms)", expirationMinutes, jwtExpirationMs);
-        logger.info("JwtTokenProvider 초기화 완료. Key 알고리즘: {}", this.key.getAlgorithm());
     }
     
 	public String generateToken(User user) {
