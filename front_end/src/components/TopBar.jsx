@@ -58,6 +58,17 @@ const TopBar = ({ onToggleSidebar }) => {
     localStorage.removeItem('user_thumbnail'); 
     localStorage.removeItem('user_email'); 
     localStorage.removeItem('user_channel_name'); 
+    
+    localStorage.removeItem('token'); 
+    localStorage.removeItem('vidAnalysis_results'); 
+    localStorage.removeItem('vidAnalysis_selectedMetric'); 
+    localStorage.removeItem('vidAnalysis_selectedTimePeriod'); 
+    localStorage.removeItem('vidAnalysis_showFullDescription'); 
+    localStorage.removeItem('vidAnalysis_summary'); 
+    localStorage.removeItem('vidAnalysis_videoUrl'); 
+    
+
+
     setUser(null); // 사용자 상태 null로
     setIsDropdownOpen(false); // 드롭다운 닫기
     navigate('/login'); // 로그인 페이지로 이동

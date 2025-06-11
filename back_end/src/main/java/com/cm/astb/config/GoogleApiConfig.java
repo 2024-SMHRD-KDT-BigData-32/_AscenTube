@@ -17,7 +17,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtubeAnalytics.v2.YouTubeAnalytics;
 
 @Configuration
 public class GoogleApiConfig {

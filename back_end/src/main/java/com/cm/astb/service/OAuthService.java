@@ -33,6 +33,8 @@ public class OAuthService {
 
 	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
 	
+	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
+	
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
