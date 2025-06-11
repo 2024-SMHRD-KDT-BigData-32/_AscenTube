@@ -43,7 +43,6 @@ public class YoutubeDataApiService {
     // 만약 YouTube 객체도 여기서 생성해야 한다면, GoogleApiConfig에서 httpTransport, jsonFactory도 가져와야 함.
     // 이전 Canvas 코드에서는 생성자에서 httpTransport, jsonFactory를 받아 YouTube 객체를 만들었음.
     // 여기서는 기존 코드의 생성자 시그니처를 최대한 따르되, YouTube 객체를 직접 주입받는 것으로 변경.
-	@Autowired // 의존성 주입 명시
 	public YoutubeDataApiService(YouTube youTube, GoogleApiConfig googleApiConfig,
 			OAuthService oAuthService) {
 		this.youTube = youTube;
