@@ -33,8 +33,6 @@ public class OAuthService {
 
 	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
 	
-	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
-	
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
@@ -112,7 +110,7 @@ public class OAuthService {
 		}
 		
 		User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken()); 
-		
+				
 		Credential credential = flowWithAllScopes.createAndStoreCredential(response, user.getGoogleId());
 		
         Map<String, Object> result = new HashMap<>();
