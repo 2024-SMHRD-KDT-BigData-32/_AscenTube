@@ -7,13 +7,11 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,7 +25,6 @@ import com.cm.astb.service.OAuthService;
 import com.cm.astb.service.UserService;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
@@ -78,7 +75,7 @@ public class OAuthController {
 			Map<String, Object> googleTokenResponse = oAuthService.exchangeCodeForTokens(code);
 			Credential credential = (Credential) googleTokenResponse.get("credential"); 
 			GoogleIdToken idToken = (GoogleIdToken) googleTokenResponse.get("idToken");
-			
+			User user = (User) googleTokenResponse.get("user");
 			if (idToken != null) {
 				GoogleIdToken.Payload payload = idToken.getPayload();	// payload(사용자 정보)
 				
@@ -111,7 +108,7 @@ public class OAuthController {
 				System.out.println("No YouTube Channel found for this user");
 			}
 			
-			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, credential.getRefreshToken());
+//			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, credential.getRefreshToken());
 			
 			String jwtToken = jwtTokenProvider.generateToken(user);
 			
