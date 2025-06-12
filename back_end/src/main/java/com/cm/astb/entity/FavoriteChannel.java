@@ -1,6 +1,11 @@
 // FavoriteChannel.java
 package com.cm.astb.entity; // 실제 프로젝트의 엔티티 패키지 경로에 맞게 수정해주세요.
 
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,10 +20,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 
 @Data // Lombok: Getter, Setter, toString, equals, hashCode 자동 생성
 @Builder // Lombok: 빌더 패턴 사용 가능

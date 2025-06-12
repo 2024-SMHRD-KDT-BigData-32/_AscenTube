@@ -32,15 +32,15 @@ import jakarta.transaction.Transactional;
 public class OAuthService {
 
 	private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
-	
+
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
 //	private final FileDataStoreFactory dataStoreFactory;
 	private final GoogleCredentialDataStoreFactory googleCredentialDataStoreFactory;
 	private final UserService userService;
-	
-	public OAuthService(GoogleApiConfig googleApiConfig, NetHttpTransport httpTransport, 
+
+	public OAuthService(GoogleApiConfig googleApiConfig, NetHttpTransport httpTransport,
 			GsonFactory jsonFactory, GoogleCredentialDataStoreFactory googleCredentialDataStoreFactory,
 			UserService userService) {
 		this.googleApiConfig = googleApiConfig;
@@ -53,8 +53,8 @@ public class OAuthService {
 
 	private GoogleAuthorizationCodeFlow buildFlow(Collection<String> scopes) throws IOException {
 		return new GoogleAuthorizationCodeFlow.Builder(
-				httpTransport, 
-				jsonFactory, 
+				httpTransport,
+				jsonFactory,
 				googleApiConfig.googleClientSecrets(),
 				scopes)
 				.setDataStoreFactory(googleCredentialDataStoreFactory)
@@ -62,40 +62,40 @@ public class OAuthService {
 				.setApprovalPrompt("force")
 				.build();
 	}
-	
+
 	public String getAuthorizationUrl(Collection<String> scopes) throws IOException {
 		GoogleAuthorizationCodeRequestUrl url = buildFlow(scopes).newAuthorizationUrl()
 				.setRedirectUri(googleApiConfig.getRedirectUri());
 		return url.build();
 	}
-	
+
 	@Transactional
 	public Map<String, Object> exchangeCodeForTokens(String code) throws IOException, GeneralSecurityException {
 		Collection<String> allScopes = new ArrayList<>();
 		allScopes.addAll(GoogleApiConfig.ANALYTICS_SCOPES);
 		allScopes.addAll(GoogleApiConfig.USER_LOGIN_SCOPES);
-		
+
 		GoogleAuthorizationCodeFlow flowWithAllScopes = buildFlow(allScopes);
-		
+
 		GoogleTokenResponse response = flowWithAllScopes.newTokenRequest(code)
 				.setRedirectUri(googleApiConfig.getRedirectUri())
 				.execute();
 		System.out.println("Full GoogleTokenResponse: " + response.toPrettyString());
-		
+
 		String idTokenStr = response.getIdToken();
 		GoogleIdToken idToken = null;
 		String googleId = "default";
 		String email = null;
 		String nickname = null;
 		String profileImg = null;
-		
+
 		if (idTokenStr != null) {
 			GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
 					.setAudience(Collections.singletonList(googleApiConfig.getClientId()))
 					.build();
-			
+
 			idToken = verifier.verify(idTokenStr);
-			
+
 			if(idToken != null) {
 				googleId = idToken.getPayload().getSubject();
 				email = idToken.getPayload().getEmail();
@@ -108,28 +108,28 @@ public class OAuthService {
 		} else {
 			System.err.println("ID Token string is null in OAuthService for code: " + code + ". Cannot extract user ID from ID Token.");
 		}
-		
-		User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken()); 
-				
+
+		User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken());
+
 		Credential credential = flowWithAllScopes.createAndStoreCredential(response, user.getGoogleId());
-		
+
         Map<String, Object> result = new HashMap<>();
         result.put("credential", credential);
         result.put("idToken", idToken);
         result.put("googleUserId", googleId);
         result.put("user", user);
-        
+
         return result;
 	}
-	
+
 	public Credential getCredential(String userId) throws IOException {
 		Collection<String> allScopes = new ArrayList<>();
 		allScopes.addAll(GoogleApiConfig.ANALYTICS_SCOPES);
 		allScopes.addAll(GoogleApiConfig.USER_LOGIN_SCOPES);
-		
+
 		GoogleAuthorizationCodeFlow flowWithAllScopes = buildFlow(allScopes);
 		Credential credential = flowWithAllScopes.loadCredential(userId);
-		
+
 		if (credential != null && credential.getAccessToken() != null) {
 			logger.info("Credential loaded for user {}. Access Token is valid or refreshed.", userId);
 		} else if (credential != null && credential.getRefreshToken() != null) {
@@ -148,18 +148,18 @@ public class OAuthService {
 		}
 		return credential;
 	}
-	
+
 	// 인증된 Credential을 사용하여 YouTube Analytics API 서비스 객체를 반환.
 	public YouTubeAnalytics getYouTubeAnalyticsService(Credential credential) throws IOException {
 		return new YouTubeAnalytics.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(googleApiConfig.getApplicationName())
 				.build();
 	}
-	
+
 	public YouTube getYouTubeService(Credential credential) throws IOException {
 		return new YouTube.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(googleApiConfig.getApplicationName())
 				.build();
 	}
-	
+
 }

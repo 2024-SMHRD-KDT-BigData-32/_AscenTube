@@ -31,7 +31,7 @@ public class YoutubeAnalyticsService {
 
 	/**
 	 * 지정된 채널의 기본 Analytics 데이터를 가져오기.
-	 * 
+	 *
 	 * @param startDate 시작 날짜 (YYYY-MM-DD)
 	 * @param endDate   종료 날짜 (YYYY-MM-DD)
 	 * @param channelId 채널 ID (비워두면 인증된 사용자의 채널)
@@ -64,7 +64,7 @@ public class YoutubeAnalyticsService {
 
 	/**
 	 * Analytics API 응답에서 특정 메트릭의 데이터를 보기 좋게 파싱합니다.
-	 * 
+	 *
 	 * @param queryResponse Analytics API 응답 QueryResponse
 	 * @param metricName    파싱할 측정항목 이름 (예: "views", "estimatedMinutesWatched")
 	 * @return 날짜별 메트릭 값의 맵
@@ -153,7 +153,7 @@ public class YoutubeAnalyticsService {
 
 	/**
 	 * 유입 경로 유형별 조회수 데이터를 가져옵니다.
-	 * 
+	 *
 	 * @param startDate 시작 날짜 (YYYY-MM-DD)
 	 * @param endDate   종료 날짜 (YYYY-MM-DD)
 	 * @param channelId 채널 ID

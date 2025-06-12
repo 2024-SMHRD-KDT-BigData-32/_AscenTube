@@ -1,14 +1,14 @@
 // FavoriteChannelDto.java
 package com.cm.astb.dto; // 실제 프로젝트의 DTO 패키지 경로에 맞게 수정해주세요.
 
+import java.time.format.DateTimeFormatter;
+
 import com.cm.astb.entity.FavoriteChannel; // 엔티티 패키지 경로
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Data // Lombok: Getter, Setter, toString, equals, hashCode 자동 생성
 @Builder // Lombok: 빌더 패턴 구현

@@ -1,6 +1,5 @@
-/* src/styles/pages/ChannelAnalysisPage.css (수정 및 추가) */
+/* src/styles/pages/ChannelAnalysisPage.css */
 
-/* ... 기존 CSS 상단 부분 (channel-analysis-page, channel-header 등)은 동일하게 유지 ... */
 .channel-analysis-page {
   padding: 20px;
   background-color: #eef2f9;
@@ -158,23 +157,7 @@
   margin: 0;
 }
 
-/* 🚀 기존 .chart-container-wrapper (파이 차트용) 스타일 삭제 또는 주석 처리 */
-/*
-.chart-container-wrapper {
-  width: 100%;
-  height: 300px;
-  margin-top: 10px;
-}
-.chart-container-wrapper h3 {
-  text-align: center;
-  font-size: 1.1em;
-  color: #3c4043;
-  margin-bottom: 15px;
-  font-weight: 500;
-}
-*/
-
-/* 🚀 새로운 영상 길이 분포 가로 막대 리스트 스타일 */
+/* 새로운 영상 길이 분포 가로 막대 리스트 스타일 */
 .duration-bar-list-container {
   margin-top: 10px; /* 제목과의 간격 */
 }
@@ -225,13 +208,8 @@
   color: #546e7a; /* 퍼센트 값 텍스트 색상 */
   font-weight: normal;
   margin-top: 5px;
-  /* 이미지처럼 왼쪽에 정렬되도록 하려면 아래 주석 해제 또는 필요에 맞게 조정 */
-  /* text-align: left; */
-  /* padding-left: calc(1.6em + 8px); /* Bullet과 이름 너비만큼 대략적으로 왼쪽 여백 (더 정확한 정렬은 flex 등 필요) */
 }
 
-
-/* ... 이하 기존 CSS ... */
 .channel-content-card ul {
   list-style-type: disc;
   padding-left: 20px;
@@ -246,16 +224,68 @@
  color: #546e7a;
 }
 
-/* Recharts Legend 커스텀 (선택적) - 현재 파이차트가 아니므로 이 부분은 필요 없을 수 있음 */
-/*
-.recharts-legend-wrapper {
-  margin-top: 15px !important; 
-  text-align: center !important;
+.video-list {
+  display: grid;
+  gap: 20px;
 }
-.recharts-default-legend {
-  text-align: center !important;
+
+/* 🚀 이 부분 수정: video-item-preview는 이제 <a> 태그이므로 기본 링크 스타일 제거 */
+.video-item-preview {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eef2f9;
+
+  /* 🚀 추가: 클릭 가능한 요소임을 나타내고 애니메이션 효과 준비 */
+  cursor: pointer;
+  text-decoration: none; /* 텍스트 밑줄 제거 (a 태그 기본 스타일) */
+  color: inherit; /* 상위 요소 색상 상속 (a 태그 기본 색상 변경) */
+  border: 1px solid transparent; /* 초기 테두리 투명하게 설정 */
+  border-radius: 8px; /* 약간의 둥근 모서리 추가 */
+  padding: 15px; /* 내부 여백 추가하여 hover 효과 시 깔끔하게 */
+  margin-bottom: -15px; /* border-bottom과 gap 충돌 방지 */
+  transition: all 0.2s ease-in-out; /* 모든 속성에 부드러운 전환 효과 */
 }
-.recharts-legend-item {
-  margin-right: 10px !important;
+.video-item-preview:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0; /* 마지막 요소 margin 조정 */
 }
-*/
+
+/* 🚀 추가: 마우스 오버 시 효과 */
+.video-item-preview:hover {
+  background-color: #f5f8fb; /* 약간 밝은 배경색 */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 그림자 효과 */
+  transform: translateY(-3px); /* 위로 약간 이동 */
+  border-color: #cdd9e8; /* 테두리 색상 변경 */
+}
+
+
+.video-thumbnail-preview {
+  width: 160px;
+  height: 90px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-color: #e0e0e0;
+}
+
+.video-info-preview {
+  flex-grow: 1;
+}
+
+.video-title-preview {
+  font-size: 1em;
+  font-weight: 500;
+  color: #263238;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.video-meta-preview {
+  font-size: 0.8em;
+  color: #546e7a;
+  margin: 0;
+}
+

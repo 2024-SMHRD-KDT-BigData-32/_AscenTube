@@ -22,26 +22,23 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.cm.astb.security.CustomUserDetailsService;
 import com.cm.astb.security.JwtAuthenticationFilter;
-import com.cm.astb.security.JwtFilter;
 import com.cm.astb.security.JwtTokenProvider;
 import com.cm.astb.security.OAuth2LoginSuccessHandler;
 import com.cm.astb.service.UserService;
-
-import lombok.RequiredArgsConstructor; 
 
 @Configuration
 @EnableWebSecurity
 //@RequiredArgsConstructor
 public class SecurityConfig {
 
-   @Value("${chrome.extension.id}") 
+   @Value("${chrome.extension.id}")
    private String chromeExtensionId;
-   
+
 //    private final JwtFilter jwtFilter;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
-    
+
    public SecurityConfig(
          /* JwtFilter jwtFilter, */ UserService userService, JwtTokenProvider jwtTokenProvider,
          CustomUserDetailsService customUserDetailsService) {
@@ -66,29 +63,29 @@ public class SecurityConfig {
    }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() { 
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "chrome-extension://" + chromeExtensionId));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); 
-        configuration.setAllowedHeaders(List.of("*")); 
-        configuration.setAllowCredentials(true); 
-        configuration.setMaxAge(3600L); 
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); 
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-    
+
     @Bean
    public JwtAuthenticationFilter jwtAuthenticationFilter() {
       return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
    }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { 
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/favicon.ico", "/error").permitAll()
@@ -113,12 +110,12 @@ public class SecurityConfig {
    public PasswordEncoder passwordEncoder() {
       return new BCryptPasswordEncoder();
    }
-   
+
    @Bean
    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
       return authenticationConfiguration.getAuthenticationManager();
    }
 
-   
+
 
 }

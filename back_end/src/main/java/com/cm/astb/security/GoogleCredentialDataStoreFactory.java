@@ -13,10 +13,10 @@ import com.google.api.client.util.store.DataStoreFactory;
 
 @Component
 public class GoogleCredentialDataStoreFactory implements DataStoreFactory{
-	
+
 	private final UserRepository userRepository;
 	private final ConcurrentMap<String, DataStore<? extends Serializable>> dataStoreMap = new ConcurrentHashMap<>();
-	
+
 	public GoogleCredentialDataStoreFactory(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}

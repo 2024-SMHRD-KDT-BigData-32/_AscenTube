@@ -71,7 +71,7 @@ public class ChannelService {
 		if (credential == null || credential.getAccessToken() == null) {
             throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
         }
-		
+
 		YouTube youTube = oAuthService.getYouTubeService(credential);
 
 		YouTube.Channels.List request = youTube.channels().list(Arrays.asList("snippet", "statistics", "contentDetails"));
@@ -125,9 +125,9 @@ public class ChannelService {
 		if (credential == null || credential.getAccessToken() == null) {
             throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
         }
-		
+
 		YouTube youTube = oAuthService.getYouTubeService(credential);
-		
+
 		String uploadsPlaylistId;
 		if(response != null && !response.isEmpty()) {
 			uploadsPlaylistId = response.getItems().get(0).getContentDetails().getRelatedPlaylists().getUploads();
@@ -135,18 +135,18 @@ public class ChannelService {
 			logger.warn("Channel {} not found or has no contentDetails for uploads playlist ID.", response.getItems().get(0).getSnippet().getTitle());
             return Collections.emptyList();
 		}
-		
+
 		YouTube.PlaylistItems.List playListItems = youTube.playlistItems().list(Arrays.asList("snippet", "contentDetails"));
 		playListItems.setPlaylistId(uploadsPlaylistId);
 		playListItems.setMaxResults(5L);
-		
+
 		PlaylistItemListResponse playlistItemListResponse = playListItems.execute();
-		
+
 		List<String> videoIds = playlistItemListResponse.getItems().stream()
                 .map(item -> item.getContentDetails().getVideoId())
                 .collect(Collectors.toList());
 		Map<String, VideoStatistics> videoStatsMap = getVideosStatisticsByIds(userId, videoIds);
-		
+
 		return playlistItemListResponse.getItems().stream()
 				.map(playlistItem -> {
                     Video video = new Video();
@@ -165,31 +165,31 @@ public class ChannelService {
                 })
                 .collect(Collectors.toList());
 	}
-	
+
 	public List<Video> getPopularVideosFromChannel(String userId, String channelId) throws IOException, GeneralSecurityException {
 		Credential credential = oAuthService.getCredential(userId);
 		if (credential == null || credential.getAccessToken() == null) {
             throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
         }
-		
+
 		YouTube youTube = oAuthService.getYouTubeService(credential);
 		YouTube.Search.List search = youTube.search().list(Arrays.asList("snippet"));
 		search.setType(Arrays.asList("video"));
 		search.setOrder("viewCount");
 		search.setMaxResults(5L);
 		search.setChannelId(channelId);
-		
+
 		SearchListResponse searchResponse = search.execute();
 		List<String> videoIds = searchResponse.getItems().stream()
 									.map(item -> item.getId().getVideoId())
 									.collect(Collectors.toList());
 		Map<String, VideoStatistics> videoStatsMap = getVideosStatisticsByIds(userId, videoIds);
-		
+
 		return searchResponse.getItems().stream()
                 .map(searchResult -> {
                     Video video = new Video();
                     video.setId(searchResult.getId().getVideoId());
-                    
+
                     VideoSnippet videoSnippet = new VideoSnippet();
                     videoSnippet.setChannelId(searchResult.getSnippet().getChannelId());
                     videoSnippet.setChannelTitle(searchResult.getSnippet().getChannelTitle());
@@ -201,13 +201,13 @@ public class ChannelService {
                     video.setSnippet(videoSnippet);
 
                     video.setStatistics(videoStatsMap.get(video.getId()));
-                    
+
                     return video;
                 })
                 .collect(Collectors.toList());
 	}
-	
-	
+
+
 	public Map<String, VideoStatistics> getVideosStatisticsByIds(String userId, List<String> videoIds) throws IOException, GeneralSecurityException {
         if (videoIds == null || videoIds.isEmpty()) {
             return Collections.emptyMap();
@@ -223,7 +223,7 @@ public class ChannelService {
         request.setId(Arrays.asList(String.join(",", videoIds))); // 동영상 ID들을 쉼표로 연결
 
         VideoListResponse response = request.execute();
-        
+
         return response.getItems().stream()
                 .filter(video -> video.getStatistics() != null)
                 .collect(Collectors.toMap(Video::getId, Video::getStatistics));

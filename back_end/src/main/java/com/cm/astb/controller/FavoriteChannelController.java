@@ -1,13 +1,12 @@
 // FavoriteChannelController.java (getCurrentUserGoogleId 메소드 수정)
 package com.cm.astb.controller;
 
-import com.cm.astb.dto.FavoriteChannelDto;
-import com.cm.astb.service.FavoriteChannelService;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication; 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails; // UserDetails 임포트
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -16,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import com.cm.astb.dto.FavoriteChannelDto;
+import com.cm.astb.service.FavoriteChannelService;
 
 @RestController
 @RequestMapping("/api/ascen/user/me/favorite-channels")
@@ -31,7 +31,7 @@ public class FavoriteChannelController {
 
     @GetMapping
     public ResponseEntity<List<FavoriteChannelDto>> getMyFavoriteChannels() {
-        String googleId = getCurrentUserGoogleId(); 
+        String googleId = getCurrentUserGoogleId();
 
         if (googleId == null) {
             System.err.println("[FavoriteChannelController] 사용자를 식별할 수 없어 관심 채널을 조회할 수 없습니다. 로그인이 필요합니다.");
@@ -42,9 +42,9 @@ public class FavoriteChannelController {
             List<FavoriteChannelDto> channels = favoriteChannelService.getFavoriteChannelsByGoogleId(googleId);
             System.out.println("[FavoriteChannelController] 사용자(" + googleId + ")의 관심 채널 " + channels.size() + "개 조회 완료.");
             return ResponseEntity.ok(channels);
-        } catch (Exception e) { 
+        } catch (Exception e) {
             System.err.println("[FavoriteChannelController] 관심 채널 조회 중 서버 오류 (Google ID: " + googleId + "): " + e.getMessage());
-            e.printStackTrace(); 
+            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "관심 채널 조회 중 오류가 발생했습니다.", e);
         }
     }
@@ -78,6 +78,6 @@ public class FavoriteChannelController {
         } else {
             System.err.println("[FavoriteChannelController] 유효한 Authentication 객체를 찾을 수 없거나 인증되지 않았습니다.");
         }
-        return null; 
+        return null;
     }
 }
