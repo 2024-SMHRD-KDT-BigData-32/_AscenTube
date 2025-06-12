@@ -58,5 +58,8 @@ public class YouTubeChannel {
 	@Column(name = "THUMBNAIL_URL", length = 1000)
 	private String thumbnailUrl;
 	
+	@Column(name = "UPLOADS_PLAYLIST_ID", length = 100)
+	private String uploadsPlaylistId;
+	
 	
 }
