@@ -1,5 +1,4 @@
 // JwtTokenProvider.java (디버깅 로그 강화 및 키 생성 안정성 확인)
-// JwtTokenProvider.java (디버깅 로그 강화 및 키 생성 안정성 확인)
 package com.cm.astb.security;
 
 import java.util.Arrays;
@@ -18,14 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.util.StringUtils;
 
 import com.cm.astb.entity.User;
 

@@ -32,7 +32,7 @@ const App = () => {
         <Route path="ai" element={<Ai />} />
         <Route path="category-analysis" element={<CategoryAnalysisPage />} />
         
-        {/* ✨✨✨ 핵심 수정 부분 ✨✨✨ */}
+        {/* 핵심 수정 부분  */}
         {/* 사이드바에서 사용하는 고정 경로와, 특정 영상에서 사용하는 동적 경로를 모두 등록합니다. */}
         {/* 두 경로 모두 VidAnalysis 컴포넌트를 보여줍니다. */}
         <Route path="vidanalysis" element={<VidAnalysis />} />

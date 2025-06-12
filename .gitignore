@@ -68,8 +68,6 @@ desktop.ini             # Windows system files
 # Build output directories
 /back_end/.metadata/
 /back_end/.metadata/**
-/back_end/.metadata/
-/back_end/.metadata/**
 /back_end/target/
 /back_end/build/        # For Gradle projects
 /back_end/bin/
@@ -106,7 +104,6 @@ desktop.ini             # Windows system files
 # /back_end/mvnw.cmd
 # /back_end/.mvn/wrapper/maven-wrapper.jar
 
-<<<<<<< HEAD
 # Gradle Wrapper files (usually committed, but can ignore if issues)
 # /back_end/gradlew
 # /back_end/gradlew.bat
