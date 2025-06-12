@@ -43,10 +43,10 @@ public class User {
     @Column(name = "UPDATED_AT")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "GOOGLE_REFRESH_TOKEN", length = 4000)
     private String googleRefreshToken;
-    
+
     @Lob
     @Column(name = "GOOGLE_CREDENTIAL_JSON", columnDefinition = "LONGTEXT")
     private String googleCredentialJson;

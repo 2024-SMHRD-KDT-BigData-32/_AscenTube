@@ -11,7 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.cm.astb.entity.User;
 
 public class CustomUserDetails implements UserDetails{
-	
+
 	private Optional<User> user;
 
 	public CustomUserDetails(Optional<User> user) {
@@ -32,12 +32,12 @@ public class CustomUserDetails implements UserDetails{
 	public String getUsername() {
 		return user.get().getGoogleId();	//  Spring Security에서는 이 값을 'username'으로 간주
 	}
-	
+
 	@Override
 	public boolean isAccountNonExpired() {
 		return true;
 	}
-	
+
     @Override
     public boolean isAccountNonLocked() {
         return true;

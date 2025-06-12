@@ -51,7 +51,7 @@ const Sidebar = ({ isOpen }) => {
           alt="프로필"
           className="profile-image"
         />
-        <span className={`profile-name ${isOpen ? 'show' : 'hide'}`}>조석빈</span>
+        <span className={`profile-name ${isOpen ? 'show' : 'hide'}`}>야비킴</span>
       </div>
     </aside>
   );

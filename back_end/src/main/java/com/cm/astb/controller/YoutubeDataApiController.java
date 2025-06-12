@@ -3,7 +3,6 @@ package com.cm.astb.controller;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,36 +23,36 @@ import com.google.api.services.youtube.model.Video;
 @RestController
 @RequestMapping("/data")
 public class YoutubeDataApiController {
-	
+
 	@Autowired
 	private YoutubeDataApiService youtubeDataApiService;
-	
+
 	@GetMapping("/trending")
 	public ResponseEntity<List<Video>> getTrendingVideos(
 			@RequestParam(defaultValue = "0") String categoryId,
 			@RequestParam(defaultValue = "KR") String regionCode,
 			@RequestParam(defaultValue = "10") long maxResults) {
-		
+
 		try {
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-			
+
 			if (authentication == null || !authentication.isAuthenticated()) {
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body(null);
 			}
-			
+
 			Object principal = authentication.getPrincipal();
 			if(!(principal instanceof CustomUserDetails)) {
 				return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
 			}
-			
+
 			CustomUserDetails userDetails = (CustomUserDetails) principal;
 			String userId = userDetails.getUsername();
-			
+
 			if(userId == null || userId.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 			}
-			
+
 			List<Video> trendingVideos =  youtubeDataApiService.getTrendingVideosByCategory(userId, categoryId, regionCode, maxResults);
 			return ResponseEntity.ok(trendingVideos);
 		} catch (GeneralSecurityException e) {
@@ -66,7 +65,7 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body(null);
 		}
 	}
-	
+
 	@GetMapping("/trending-by-period")
 	public ResponseEntity<List<SearchResult>> getTrendingVideosByPeriod(
 			@RequestParam String userId,
@@ -74,7 +73,7 @@ public class YoutubeDataApiController {
 			@RequestParam(defaultValue = "KR") String regionCode,
 			@RequestParam(defaultValue = "daily") String period,
 			@RequestParam(defaultValue = "10") long maxResults) {
-		
+
 		try {
 			List<SearchResult> trendingVideos =  youtubeDataApiService.getTrendingVideosByPeriod(userId, categoryId, regionCode, period, maxResults);
 			return ResponseEntity.ok(trendingVideos);
@@ -88,7 +87,7 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body(null);
 		}
 	}
-	
+
 	@GetMapping("/channel-info")
 	public ResponseEntity<?> getChannelInfo(@RequestParam String channelId){
 		try {
@@ -102,7 +101,7 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error fetching channel info: " + e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/channel-info-by-handle")
 	public ResponseEntity<?> getChannelInfoByHandle(@RequestParam String handleId){
 		try {
@@ -116,7 +115,7 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error fetching channel info by handle: " + e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/latest-videos")
 	public ResponseEntity<?> getLatestVideos(@RequestParam(defaultValue = "UC_x5XG1OV2P6uZZ5FSM9Ttw") String channelId,
 											@RequestParam(defaultValue = "5") long maxResults){
@@ -138,9 +137,9 @@ public class YoutubeDataApiController {
 			return ResponseEntity.status(500).body("Error searching videos : " + e.getMessage());
 		}
 	}
-	
+
 	@GetMapping("/search-videos")
-	public ResponseEntity<?> searchVideos(@RequestParam String query, 
+	public ResponseEntity<?> searchVideos(@RequestParam String query,
 										@RequestParam(defaultValue = "10") long maxResults){
 		try {
 			List<String> videoTitles = youtubeDataApiService.searchVideos(query, maxResults);

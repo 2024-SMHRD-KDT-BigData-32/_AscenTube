@@ -11,10 +11,10 @@ import com.cm.astb.repository.UserRepository;
 @Service
 public class UserService {
 
-	
+
 	private final UserRepository userRepository;
-	
-	
+
+
 	public UserService(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
@@ -22,9 +22,9 @@ public class UserService {
 	@Transactional
 	public User findOrCreateUser(String googleId, String email, String nickname, String profileImg, String googleRefreshToken) {
 		Optional<User> optionalUser = userRepository.findByGoogleId(googleId);
-		
+
 		User user;
-		
+
 		if (optionalUser.isEmpty()) {
 			 user = User.builder()
 					 .googleId(googleId)
@@ -34,14 +34,14 @@ public class UserService {
 					 .googleRefreshToken(googleRefreshToken)
 					 .googleCredentialJson(null)
 					 .build();
-			 
+
 			 user = userRepository.save(user);
 			 System.out.println("새로운 사용자 등록: " + user.getNickname() + "(" + user.getEmail() + ")" );
 		} else {
 			user = optionalUser.get();
-			
+
 			boolean isChanged = false;
-			
+
 			if (nickname != null && !nickname.equals(user.getNickname())) {
 				user.setNickname(nickname);
 				isChanged = true;
@@ -58,7 +58,7 @@ public class UserService {
 				user.setGoogleRefreshToken(googleRefreshToken);
 				isChanged = true;
 			}
-			
+
 			if(isChanged) {
 				user = userRepository.save(user);
 				System.out.println("기존 사용자 정보 업데이트: " + user.getNickname() + " (" + user.getEmail() + ")");

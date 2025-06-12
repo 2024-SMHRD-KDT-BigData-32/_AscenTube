@@ -9,16 +9,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired; // Autowired 추가
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils; // StringUtils 추가
 
-import com.cm.astb.AscenTubeApplication; // 기존 코드에 있었으므로 유지
 import com.cm.astb.config.GoogleApiConfig;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
-import com.google.api.client.http.javanet.NetHttpTransport; // 생성자에서 사용하므로 추가
-import com.google.api.client.json.gson.GsonFactory;      // 생성자에서 사용하므로 추가
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
@@ -50,14 +46,14 @@ public class YoutubeDataApiService {
       this.oAuthService = oAuthService;
       this.googleApiConfig = new GoogleApiConfig();
    }
-   
+
 public List<SearchResult> getTrendingVideosByPeriod(String userId, String categoryId, String regionCode, String period, long maxResults) throws IOException, GeneralSecurityException{
-      
+
       Credential credential = oAuthService.getCredential(userId);
       if (credential == null || credential.getAccessToken() == null) {
          throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
       }
-      
+
       YouTube oAuthYouTube = oAuthService.getYouTubeService(credential);
       YouTube.Search.List search = oAuthYouTube.search().list(Arrays.asList("id", "snippet"));
       search.setType(Arrays.asList("video"));
@@ -65,10 +61,10 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
       search.setVideoCategoryId(categoryId);
       search.setMaxResults(maxResults);
       search.setOrder("viewCount");
-      
+
       Instant now  = Instant.now();
       Instant publishedAfterInstant = null;
-      
+
       switch (period.toLowerCase()) {
       case "daily":
          publishedAfterInstant = now.minus(1, ChronoUnit.DAYS);
@@ -82,32 +78,32 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
       default:
          throw new IllegalArgumentException("Invalid period specified. Please use 'daily', 'weekly', or 'monthly'.");
       }
-      
+
       if (publishedAfterInstant != null) {
          search.setPublishedAfter(new DateTime(publishedAfterInstant.toEpochMilli()).toStringRfc3339());
       }
-      
+
       SearchListResponse response = search.execute();
       if(response.getItems() != null) {
          return response.getItems();
       }
       return List.of();
    }
-   
+
    public List<Video> getTrendingVideosByCategory(String userId, String categoryId, String regionCode, long maxResults) throws IOException, GeneralSecurityException{
-      
+
       Credential credential = oAuthService.getCredential(userId);
       if (credential == null || credential.getAccessToken() == null) {
          throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
       }
-      
+
       YouTube oauthYouTube = oAuthService.getYouTubeService(credential);
       YouTube.Videos.List request = oauthYouTube.videos().list(Arrays.asList("snippet", "statistics"));
       request.setChart("mostPopular");
       request.setRegionCode(regionCode);
       request.setVideoCategoryId(categoryId);
       request.setMaxResults(maxResults);
-      
+
       VideoListResponse response = request.execute();
       if(response.getItems() != null) {
          return response.getItems();

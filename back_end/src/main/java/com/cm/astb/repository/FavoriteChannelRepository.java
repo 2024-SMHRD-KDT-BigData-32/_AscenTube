@@ -1,12 +1,13 @@
 // FavoriteChannelRepository.java
 package com.cm.astb.repository; // 실제 프로젝트의 리포지토리 패키지 경로에 맞게 수정해주세요.
 
-import com.cm.astb.entity.FavoriteChannel; // 엔티티 패키지 경로
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.cm.astb.entity.FavoriteChannel; // 엔티티 패키지 경로
 
 @Repository
 public interface FavoriteChannelRepository extends JpaRepository<FavoriteChannel, Long> { // 기본키 타입은 Long (FAV_ID)

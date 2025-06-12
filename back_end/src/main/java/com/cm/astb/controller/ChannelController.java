@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,23 +23,23 @@ import com.google.api.services.youtube.model.Video;
 @RestController
 @RequestMapping("/channel")
 public class ChannelController {
-	
+
 	private final ChannelService channelService;
 
 	public ChannelController(ChannelService channelService) {
 		this.channelService = channelService;
 	}
-	
+
 	@GetMapping("/channel-info")
 	public ResponseEntity<?> getChannelInfo(@RequestParam("channelId") String channelId) {
 		try {
-			
+
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 			if (authentication == null || !authentication.isAuthenticated()) {
 				return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
 						.body(Map.of("error", "User is unauthorized."));
 			}
-			
+
 			Object principal = authentication.getPrincipal();
 			if(!(principal instanceof CustomUserDetails)) {
 				return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN)
@@ -48,18 +47,18 @@ public class ChannelController {
 			}
 			CustomUserDetails userDetails = (CustomUserDetails) principal;
 			String userId = userDetails.getUsername();
-			
-			
+
+
 			if(userId == null || userId.isEmpty()) {
 				return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
 						.body(Map.of("error", "Can't load authorized user's ID."));
 			}
-			
+
 			ChannelListResponse response = channelService.getChannelInfoById(userId, channelId);
-			
+
 			List<Video> latestVideos = channelService.getLatestVideosFromChannel(userId, response);
 			List<Video> popularVideos = channelService.getPopularVideosFromChannel(userId, channelId);
-			
+
 			if (response != null && response.getItems() != null && !response.isEmpty()) {
 				Channel channel = response.getItems().get(0);
 				Map<String, Object> channelInfo = Map.of(
@@ -74,7 +73,7 @@ public class ChannelController {
 					"latestVideos", latestVideos,
 					"popularVideos", popularVideos
 				);
-				
+
 				return ResponseEntity.ok(channelInfo);
 			} else {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -95,4 +94,4 @@ public class ChannelController {
 		}
 	}
 }
-	
+
