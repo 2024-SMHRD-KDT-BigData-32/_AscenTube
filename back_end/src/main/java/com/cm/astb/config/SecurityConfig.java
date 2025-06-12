@@ -34,22 +34,22 @@ import lombok.RequiredArgsConstructor;
 //@RequiredArgsConstructor
 public class SecurityConfig {
 
-	@Value("${chrome.extension.id}") 
-	private String chromeExtensionId;
-	
+   @Value("${chrome.extension.id}") 
+   private String chromeExtensionId;
+   
 //    private final JwtFilter jwtFilter;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
     
-	public SecurityConfig(
-			/* JwtFilter jwtFilter, */ UserService userService, JwtTokenProvider jwtTokenProvider,
-			CustomUserDetailsService customUserDetailsService) {
-//		this.jwtFilter = jwtFilter;
-		this.userService = userService;
-		this.jwtTokenProvider = jwtTokenProvider;
-		this.customUserDetailsService = customUserDetailsService;
-	}
+   public SecurityConfig(
+         /* JwtFilter jwtFilter, */ UserService userService, JwtTokenProvider jwtTokenProvider,
+         CustomUserDetailsService customUserDetailsService) {
+//      this.jwtFilter = jwtFilter;
+      this.userService = userService;
+      this.jwtTokenProvider = jwtTokenProvider;
+      this.customUserDetailsService = customUserDetailsService;
+   }
 
     @Bean
     public OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler() {
@@ -57,13 +57,13 @@ public class SecurityConfig {
     }
 
     // WebSecurityCustomizer: 특정 경로에 대해 Spring Security 필터 체인 무시
-	@Bean
-	public WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring()
-				.requestMatchers("/oauth/**")
-				.requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
-				.requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/favicon.ico");
-	}
+   @Bean
+   public WebSecurityCustomizer webSecurityCustomizer() {
+      return (web) -> web.ignoring()
+            .requestMatchers("/oauth/**")
+            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**")
+            .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**", "/favicon.ico");
+   }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() { 
@@ -80,9 +80,9 @@ public class SecurityConfig {
     }
     
     @Bean
-	public JwtAuthenticationFilter jwtAuthenticationFilter() {
-		return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
-	}
+   public JwtAuthenticationFilter jwtAuthenticationFilter() {
+      return new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService);
+   }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception { 
@@ -92,7 +92,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/favicon.ico", "/error").permitAll()
-                .requestMatchers("/api/public/**").permitAll()	// 공개 API 접근 허용
+                .requestMatchers("/api/public/**").permitAll()   // 공개 API 접근 허용
                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                 .requestMatchers("/AscenTube/oauth/google/login").permitAll()
                 .requestMatchers("/AscenTube/oauth/oauth2callback").permitAll()
@@ -109,16 +109,16 @@ public class SecurityConfig {
     }
 
     // 비밀번호 암호화 Bean
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
-	
-	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-		return authenticationConfiguration.getAuthenticationManager();
-	}
+   @Bean
+   public PasswordEncoder passwordEncoder() {
+      return new BCryptPasswordEncoder();
+   }
+   
+   @Bean
+   public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+      return authenticationConfiguration.getAuthenticationManager();
+   }
 
-	
+   
 
 }

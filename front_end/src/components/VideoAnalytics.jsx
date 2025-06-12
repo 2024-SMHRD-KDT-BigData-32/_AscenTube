@@ -152,6 +152,8 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
     <div className="video-analysis-section">
       <h2 className="section-subtitle">{title}</h2>
       
+      {/* ✨✨✨ 에러 발생 부분 수정: section-meta-info div를 완전히 삭제했습니다. ✨✨✨ */}
+
       <div className="video-list-container">
         {analyticsData.videos.map((video) => {
           const sentimentChartData = [{ name: '반응', positive: video.positivePercent, negative: video.negativePercent }];
@@ -189,19 +191,19 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                   <div className="comment-analysis-section">
                     <h5>댓글 분석</h5>
                     <div className="sentiment-chart-container">
-                      <ResponsiveContainer width="100%" height={40}>
-                        <BarChart layout="vertical" data={sentimentChartData} stackOffset="expand" margin={{ top: 2, right: 5, left: 5, bottom: 2 }}>
-                          <XAxis type="number" hide domain={[0, 1]} />
-                          <YAxis type="category" dataKey="name" hide />
-                          <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
-                          <Bar dataKey="positive" stackId="sentiment" fill="#FFC107" barSize={30} radius={positiveRadius}>
-                            <LabelList dataKey="positive" position="center" fill="#ffffff" fontSize={10} formatter={(value) => `긍정 ${value}%`} />
-                          </Bar>
-                          <Bar dataKey="negative" stackId="sentiment" fill="#F44336" barSize={30} radius={negativeRadius}>
-                            <LabelList dataKey="negative" position="center" fill="#ffffff" fontSize={10} formatter={(value) => `부정 ${value}%`} />
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height={40}>
+                            <BarChart layout="vertical" data={sentimentChartData} stackOffset="expand" margin={{ top: 2, right: 5, left: 5, bottom: 2 }}>
+                                <XAxis type="number" hide domain={[0, 1]} />
+                                <YAxis type="category" dataKey="name" hide />
+                                <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
+                                <Bar dataKey="positive" stackId="sentiment" fill="#FFC107" barSize={30} radius={positiveRadius}>
+                                    <LabelList dataKey="positive" position="center" fill="#ffffff" fontSize={10} formatter={(value) => `긍정 ${value}%`} />
+                                </Bar>
+                                <Bar dataKey="negative" stackId="sentiment" fill="#F44336" barSize={30} radius={negativeRadius}>
+                                    <LabelList dataKey="negative" position="center" fill="#ffffff" fontSize={10} formatter={(value) => `부정 ${value}%`} />
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                     <div className="representative-comments">
                       <p className="positive-comment"><strong>대표 긍정 댓글:</strong> {video.positiveComment}</p>

@@ -48,6 +48,6 @@ public class User {
     private String googleRefreshToken;
     
     @Lob
-    @Column(name = "GOOGLE_CREDENTIAL_JSON")
+    @Column(name = "GOOGLE_CREDENTIAL_JSON", columnDefinition = "LONGTEXT")
     private String googleCredentialJson;
 }

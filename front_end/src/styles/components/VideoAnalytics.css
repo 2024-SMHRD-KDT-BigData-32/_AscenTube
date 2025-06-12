@@ -48,6 +48,12 @@
   border-radius: 4px;
   flex-shrink: 0;
   background-color: #f0f0f0;
+  cursor: pointer; /* 클릭 가능함 표시 */
+  transition: filter 0.2s ease; /* 호버 효과 */
+}
+
+.video-thumbnail-small:hover {
+  filter: brightness(0.95); /* 호버 시 약간 어두워짐 */
 }
 
 .video-text-info {
