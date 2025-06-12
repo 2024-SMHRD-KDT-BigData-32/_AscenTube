@@ -1,12 +1,13 @@
-// src/components/VideoAnalytics.jsx (그래프 높이 및 여백 조정)
+// src/components/VideoAnalytics.jsx
+
 import React, { useState, useEffect } from 'react';
 import '../styles/components/VideoAnalytics.css';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
+import { fetchTrendingVideosByPeriod } from '../api/youtubeApi';
+import '../styles/components/VideoAnalytics.css';
 
-// formatDuration, formatFullDateTime, generateDummyVideoData 함수는 이전과 동일하게 유지합니다.
-// (generateDummyVideoData 함수는 이전 답변의 최종 버전을 사용한다고 가정합니다)
-// ... (formatDuration, formatFullDateTime, generateDummyVideoData 함수 코드 생략) ...
+// 헬퍼 함수: ISO 8601 형식의 재생시간을 'X분 Y초' 형태로 변환
 const formatDuration = (isoDuration) => {
   if (!isoDuration) return 'N/A';
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -21,10 +22,11 @@ const formatDuration = (isoDuration) => {
   return formatted.trim();
 };
 
-const formatFullDateTime = (isoString) => {
-  if (!isoString) return 'N/A';
+// 헬퍼 함수: 타임스탬프 값을 'YYYY.MM.DD HH:mm' 형태로 변환
+const formatFullDateTime = (timestamp) => {
+  if (!timestamp) return 'N/A';
   try {
-    const date = new Date(isoString);
+    const date = new Date(timestamp);
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -85,56 +87,30 @@ const generateDummyVideoData = (categoryId, categoryName, timePeriod, videoCount
       negativeComment: `음... 잘 모르겠네요. ${timePeriod}에는 좀 더 다른 걸 기대했는데.`,
       tags: videoTags,
       isSummaryVisible: false,
-      summaryText: `${categoryName} ${timePeriod} 인기 동영상 ${i}의 요약입니다...`,
+      summaryText: `[구현 예정] ${video.snippet.title.substring(0,20)}... 영상의 AI 요약 내용이 여기에 표시됩니다.`,
+      positiveComment: `[구현 예정] 대표 긍정 댓글입니다.`,
+      negativeComment: `[구현 예정] 대표 부정 댓글입니다.`,
       positivePercent: positivePercent,
-      negativePercent: negativePercent,
-    });
-  }
-
-  const avgDurationFormatted = videos.length > 0 ? formatDuration(`PT${Math.floor(totalDurationSeconds / videos.length / 3600)}H${Math.floor((totalDurationSeconds / videos.length % 3600) / 60)}M${Math.floor(totalDurationSeconds / videos.length % 60)}S`) : 'N/A';
-  const averageUploadHour = videos.length > 0 ? Math.floor(totalUploadHours / videos.length) : null;
-  const averageUploadMinute = videos.length > 0 ? Math.floor(totalUploadMinutes / videos.length) : null;
-  const sortedTags = Object.entries(allTags).sort(([, a], [, b]) => b - a).slice(0, 5).map(([tag]) => tag);
-
+      negativePercent: 100 - positivePercent,
+    };
+  });
+  
   return {
-    videos,
-    averageDuration: avgDurationFormatted,
-    topTags: sortedTags,
-    averageUploadHour,
-    averageUploadMinute,
+    videos: processedVideos,
   };
 };
 
-
 const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
-  // ... (useState, useEffect, toggleSummary, CustomTooltip 로직은 이전과 동일) ...
   const [loading, setLoading] = useState(true);
   const [videoData, setVideoData] = useState({
     videos: [],
-    averageDuration: 'N/A',
-    topTags: [],
-    averageUploadHour: null,
-    averageUploadMinute: null,
   });
 
-  useEffect(() => {
-    if (categoryId && categoryName) {
-      setLoading(true);
-      setTimeout(() => {
-        const dummyData = generateDummyVideoData(categoryId, categoryName, timePeriod);
-        setVideoData(dummyData);
-        setLoading(false);
-      }, 500 + Math.random() * 500);
-    }
-  }, [categoryId, categoryName, timePeriod]);
-
   const toggleSummary = (videoId) => {
-    setVideoData(prevData => ({
+    setAnalyticsData(prevData => ({
       ...prevData,
       videos: prevData.videos.map(video =>
-        video.id === videoId
-          ? { ...video, isSummaryVisible: !video.isSummaryVisible }
-          : video
+        video.id === videoId ? { ...video, isSummaryVisible: !video.isSummaryVisible } : video
       ),
     }));
   };
@@ -154,7 +130,35 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
     return null;
   };
 
-  if (loading && categoryId) {
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const userId = localStorage.getItem('user_google_id'); 
+
+    if (categoryId && token && userId) {
+      const fetchData = async () => {
+        setIsLoading(true);
+        setError(null);
+        
+        const periodMap = { '일간': 'daily', '주간': 'weekly', '월간': 'monthly' };
+        const apiPeriod = periodMap[timePeriod] || 'daily';
+
+        const rawData = await fetchTrendingVideosByPeriod(token, userId, categoryId, apiPeriod);
+
+        if (rawData) {
+          const processedData = processApiData(rawData);
+          setAnalyticsData(processedData);
+        } else {
+          setError('데이터를 불러오는 데 실패했습니다.');
+          setAnalyticsData({ videos: [] });
+        }
+        setIsLoading(false);
+      };
+
+      fetchData();
+    }
+  }, [categoryId, timePeriod]); 
+
+  if (isLoading) {
     return (
       <div className="video-analysis-section">
         <h2 className="section-subtitle">{title}</h2>
@@ -163,6 +167,14 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="video-analysis-section error">
+        <h2 className="section-subtitle">{title}</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="video-analysis-section">
@@ -191,18 +203,10 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
       </div>
 
       <div className="video-list-container">
-        {videoData.videos.map((video) => {
-          const sentimentChartData = [
-            {
-              name: '반응',
-              positive: video.positivePercent,
-              negative: video.negativePercent,
-            },
-          ];
-
+        {analyticsData.videos.map((video) => {
+          const sentimentChartData = [{ name: '반응', positive: video.positivePercent, negative: video.negativePercent }];
           const positiveRadius = video.negativePercent === 0 ? [4, 4, 4, 4] : [4, 0, 0, 4];
-          const negativeRadius = video.positivePercent === 0 ? [4, 4, 4, 4] : [0, 4, 4, 0];
-
+          const negativeRadius = video.positivePercent === 0 ? [0, 4, 4, 0] : [0, 4, 4, 0];
           return (
             <div key={video.id} className="video-item-detail">
               <div className="video-info-header">
@@ -228,11 +232,11 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                   채널분석
                 </Link>
               </div>
-
+              
               {video.isSummaryVisible && (
                 <div className="detailed-content-wrapper">
                   <div className="comment-analysis-section">
-                    <h5>댓글 분석 (영상: {video.title.substring(0,15)}...)</h5>
+                    <h5>댓글 분석</h5>
                     <div className="sentiment-chart-container">
                       {/* 🚀 ResponsiveContainer 높이 조정 */}
                       <ResponsiveContainer width="100%" height={40}> 
@@ -276,13 +280,11 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                       </ResponsiveContainer>
                     </div>
                     <div className="representative-comments">
-                       {/* ... 대표 댓글 ... */}
                       <p className="positive-comment"><strong>대표 긍정 댓글:</strong> {video.positiveComment}</p>
                       <p className="negative-comment"><strong>대표 부정 댓글:</strong> {video.negativeComment}</p>
                     </div>
                   </div>
                   <div className="video-summary">
-                     {/* ... 영상 요약 ... */}
                     <h5>영상 요약</h5>
                     <p>{video.summaryText}</p>
                   </div>

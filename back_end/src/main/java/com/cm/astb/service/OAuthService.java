@@ -110,7 +110,7 @@ public class OAuthService {
 		}
 		
 		User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken()); 
-		
+				
 		Credential credential = flowWithAllScopes.createAndStoreCredential(response, user.getGoogleId());
 		
         Map<String, Object> result = new HashMap<>();
