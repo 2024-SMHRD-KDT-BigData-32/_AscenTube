@@ -289,7 +289,7 @@ const VidAnalysis = () => {
                 {snippet?.thumbnails?.medium && (<div className="thumbnail-container-compact"><img className="analysis-thumbnail main-thumbnail" src={snippet.thumbnails.medium.url} alt="영상 썸네일"/></div>)}
                 <div className="text-meta-info">
                   <div className="result-item channel-name-item"><strong>채널명:</strong> <span>{snippet?.channelTitle || 'N/A'}</span>{snippet?.channelId && (<Link to={`/channel/${snippet.channelId}`} className="channel-analysis-link text-link" title="채널 분석 페이지로 이동">채널분석</Link>)}</div>
-                  <div className="result-item"><strong>게시일:</strong> {snippet?.publishedAt ? new Date(snippet.publishedAt).toLocaleString('ko-KR') : 'N/A'}</div>
+                  <div className="result-item"><strong>업로드:</strong> {snippet?.publishedAt ? new Date(snippet.publishedAt).toLocaleString('ko-KR') : 'N/A'}</div>
                   <div className="result-item"><strong>영상 ID:</strong> {id || 'N/A'}</div>
                 </div>
               </div>

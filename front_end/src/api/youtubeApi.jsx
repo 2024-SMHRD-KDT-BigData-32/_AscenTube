@@ -14,7 +14,7 @@ export const fetchTrendingVideosByPeriod = async (token, userId, categoryId, per
     categoryId,
     period,
     regionCode: 'KR',
-    maxResults: 10
+    maxResults: 50
   };
 
   // ✨ 1. 우리가 백엔드에 보내는 요청 정보를 먼저 콘솔에 찍어봅니다.
@@ -31,6 +31,10 @@ export const fetchTrendingVideosByPeriod = async (token, userId, categoryId, per
       },
       params: requestParams
     });
+
+    
+
+
     console.log('✅ API 응답 성공:', response.data); // 성공 시 데이터 출력
     return response.data;
   } catch (error) {
@@ -51,4 +55,27 @@ export const fetchTrendingVideosByPeriod = async (token, userId, categoryId, per
     }
     return null;
   }
+};
+
+export const fetchTotalViewsForCategory = async (categoryId, token, userId) => {
+    if (!token || !userId) return 0;
+
+    const API_BASE_URL = 'http://localhost:8082/AscenTube';
+    const requestUrl = `${API_BASE_URL}/data/trending`;
+    const requestParams = { userId, categoryId, regionCode: 'KR', maxResults: 10 };
+
+    try {
+        const response = await axios.get(requestUrl, {
+            headers: { 'Authorization': `Bearer ${token}` },
+            params: requestParams
+        });
+        const totalViews = response.data.reduce((sum, video) => {
+            const views = parseInt(video.statistics.viewCount, 10);
+            return sum + (isNaN(views) ? 0 : views);
+        }, 0);
+        return totalViews;
+    } catch (error) {
+        console.error(`❌ 카테고리(ID:${categoryId}) 조회수 합산 실패:`, error.response || error);
+        return 0;
+    }
 };
