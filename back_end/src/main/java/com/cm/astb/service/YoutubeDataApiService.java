@@ -98,12 +98,12 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
       }
 
       YouTube oauthYouTube = oAuthService.getYouTubeService(credential);
-      YouTube.Videos.List request = oauthYouTube.videos().list(Arrays.asList("snippet", "statistics"));
+      YouTube.Videos.List request = oauthYouTube.videos().list(Arrays.asList("snippet", "statistics", "contentDetails"));
       request.setChart("mostPopular");
       request.setRegionCode(regionCode);
       request.setVideoCategoryId(categoryId);
       request.setMaxResults(maxResults);
-
+      
       VideoListResponse response = request.execute();
       if(response.getItems() != null) {
          return response.getItems();

@@ -1,0 +1,144 @@
+/* 전체적인 디자인 테마를 변수로 관리합니다. */
+:root {
+    --primary-color: #4C82F7;         /* 구글 블루와 유사한 세련된 파란색 */
+    --border-color: #e0e0e0;          /* 더 옅고 부드러운 테두리 색상 */
+    --hover-bg-color: #f5f5f5;        /* 마우스 호버 시 배경색 */
+    --selected-bg-color: #e8f0fe;     /* 선택된 항목 배경색 */
+    --text-primary-color: #202124;    /* 기본 텍스트 색상 (거의 검은색) */
+    --text-secondary-color: #5f6368;  /* 보조 텍스트 색상 (회색) */
+}
+
+/* 드롭다운 전체 컨테이너 스타일 */
+.custom-dropdown-container {
+    position: relative;
+    width: 450px;
+    /* 사용자의 운영체제에 최적화된 깔끔한 기본 폰트를 사용합니다. */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 항상 보이는 드롭다운 헤더(선택된 값 표시부) 스타일 */
+.dropdown-header {
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* 모서리를 좀 더 둥글게 */
+    background-color: #fff;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease; /* 부드러운 전환 효과 */
+    font-weight: 500;
+    color: var(--text-primary-color);
+}
+
+/* 드롭다운이 열렸을 때 헤더에 미묘한 그림자 효과 추가 */
+.custom-dropdown-container:focus-within .dropdown-header,
+.dropdown-header:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(76, 130, 247, 0.2);
+}
+
+/* 드롭다운 목록을 감싸는 컨테이너 스타일 */
+.dropdown-list-container {
+    position: absolute;
+    width: 100%;
+    margin-top: 4px; /* 헤더와의 간격 */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px; /* 모서리를 둥글게 */
+    background-color: #fff;
+    z-index: 1000;
+    max-height: 300px;
+    overflow-y: auto;
+    /* 더 부드럽고 입체적인 그림자 효과 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    /* 나타날 때 부드럽게 펼쳐지는 애니메이션 */
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 5px; /* 목록의 상하좌우 여백 */
+}
+
+/* 목록 안의 각 항목(한 줄) 스타일 */
+.dropdown-list-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background-color 0.15s ease;
+    border-radius: 6px; /* 각 항목도 둥글게 */
+    margin: 2px 0;
+}
+
+/* 마우스를 올렸을 때 스타일 */
+.dropdown-list-item:hover {
+    background-color: var(--hover-bg-color);
+}
+
+/* 현재 선택된 항목을 강조하는 스타일 */
+.dropdown-list-item.selected {
+    background-color: var(--selected-bg-color);
+    font-weight: 600;
+}
+.dropdown-list-item.selected .item-name {
+    color: var(--primary-color);
+}
+
+.dropdown-list-item-loading {
+    padding: 10px 15px;
+    color: #888;
+    display: flex;
+    justify-content: center;
+}
+
+.item-name {
+    flex: 0 0 120px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-chart {
+    flex: 1;
+    height: 8px; /* 막대그래프를 더 얇고 세련되게 */
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.item-chart .bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.4s ease-out; /* 너비 변경 애니메이션을 더 부드럽게 */
+}
+
+.item-views {
+    flex: 0 0 70px;
+    font-size: 13px;
+    color: var(--text-secondary-color); /* 보조 텍스트 색상 적용 */
+    text-align: right;
+    font-weight: 500;
+}
+
+.arrow {
+    border: solid var(--text-secondary-color);
+    border-width: 0 1.5px 1.5px 0;
+    display: inline-block;
+    padding: 3px;
+    transition: transform 0.2s ease;
+}
+
+.arrow.down { transform: translateY(-2px) rotate(45deg); }
+.arrow.up { transform: translateY(2px) rotate(-135deg); }

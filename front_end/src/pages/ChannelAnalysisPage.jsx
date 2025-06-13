@@ -6,17 +6,30 @@ import '../styles/pages/ChannelAnalysisPage.css';
 
 const API_BASE_URL = 'http://localhost:8082/AscenTube'; 
 
-const formatFullDateTime = (isoString) => {
-  if (!isoString) return 'N/A';
-  try {
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${year}.${month}.${day} ${hours}:${minutes}`;
-  } catch (e) { return 'N/A'; }
+const formatFullDateTime = (publishedAtObject) => {
+    // 1. publishedAtObject가 객체이고, 그 안에 value 속성이 있는지 확인합니다.
+    if (!publishedAtObject || typeof publishedAtObject.value === 'undefined') {
+        return 'N/A';
+    }
+    try {
+        // 2. new Date()에 객체가 아닌, 객체 안의 숫자 값(value)을 전달합니다.
+        const date = new Date(publishedAtObject.value);
+
+        // 3. 날짜가 유효한지 한번 더 확인합니다.
+        if (isNaN(date.getTime())) { 
+            return 'N/A';
+        }
+
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${year}.${month}.${day} ${hours}:${minutes}`;
+
+    } catch (e) { 
+        return 'N/A'; 
+    }
 };
 
 function ChannelAnalysisPage() {
