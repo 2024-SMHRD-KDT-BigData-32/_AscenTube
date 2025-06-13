@@ -24,19 +24,19 @@ public class ChannelStat {
 
     @EmbeddedId
     private ChannelStatsId id;
+    
+    @Column(name = "SUBSCRIBER_GAINED")
+    private Integer subscriberGained;
 
-    @Column(name = "SUBSCRIBER_CNT")
-    private Integer subscriberCount;
+    @Column(name = "DAILY_VIEWS_CNT")
+    private Long dailyViewsCnt;
 
-    @Column(name = "VIDEOS_CNT")
-    private Integer videosCount;
-
-    @Column(name = "TOTAL_VIEWS_CNT")
-    private Long totalViewsCount;
-
-    @Column(name = "TOTAL_WATCH_TIME")
-    private Long totalWatchTime;
-
+    @Column(name = "ESTIMATED_MIN_WATCHED")
+    private Long estimatedMinWatched;
+    
+    @Column(name = "AVG_VIEW_DURATION")
+    private Long avgViewDuration;
+    
     @CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
