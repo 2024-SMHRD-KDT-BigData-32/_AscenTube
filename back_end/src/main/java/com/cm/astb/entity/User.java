@@ -50,4 +50,7 @@ public class User {
     @Lob
     @Column(name = "GOOGLE_CREDENTIAL_JSON", columnDefinition = "LONGTEXT")
     private String googleCredentialJson;
+    
+    @Column(name = "MY_CHANNEL_ID", length = 100)
+    private String myChannelId;
 }
