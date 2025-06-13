@@ -5,6 +5,9 @@
   border-radius: 6px;
   border: 1px solid #e0e7ff;
   margin-bottom: 16px;
+  /* 섹션 전체 페이드인 애니메이션 */
+  opacity: 0;
+  animation: fadeIn 0.8s forwards ease-out;
 }
 
 .section-subtitle {
@@ -22,87 +25,128 @@
   gap: 16px;
 }
 
+.video-item-wrapper {
+  /* 각 비디오 아이템이 개별적으로 나타나도록 애니메이션 적용 */
+  opacity: 0;
+  transform: translateY(20px); /* 아래에서 시작 */
+  animation: slideInFadeIn 0.6s forwards ease-out;
+  /* JavaScript에서 각 항목에 다른 animation-delay를 적용하여 순차적으로 나타나게 할 수 있습니다.
+     예: style={{ animationDelay: `${index * 0.1}s` }} */
+}
+
 .video-item-detail {
+  display: flex; /* 가로 정렬을 위해 flex로 변경 */
+  justify-content: space-between; /* 양쪽 끝으로 요소를 배치 */
+  align-items: center; /* 세로 중앙 정렬 */
+  gap: 20px; /* 좌우 콘텐츠 사이 간격 */
   background: #fafafa;
-  padding: 12px;
+  padding: 16px; /* 패딩을 조금 더 줍니다 */
   border-radius: 4px;
   border: 1px solid #e0e7ff;
 }
 
-.video-main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
 .video-info-header {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 16px; /* 썸네일과 텍스트 사이 간격 증가 */
+  align-items: flex-start; /* 상단 정렬 */
+  flex: 1; /* 남는 공간을 모두 차지하도록 설정 */
+  min-width: 0; /* flex 아이템이 넘칠 때 줄어들도록 설정 */
 }
 
 .video-thumbnail-small {
-  width: 100px;
-  height: 56px;
+  width: 140px; /* 데스크탑 기준 크기로 통일 */
+  height: 78px;
   object-fit: cover;
   border-radius: 4px;
   flex-shrink: 0;
   background-color: #f0f0f0;
-  cursor: pointer; /* 클릭 가능함 표시 */
-  transition: filter 0.2s ease; /* 호버 효과 */
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s ease; /* transform도 transition에 추가 */
 }
 
 .video-thumbnail-small:hover {
-  filter: brightness(0.95); /* 호버 시 약간 어두워짐 */
+  filter: brightness(0.95);
+  transform: scale(1.02); /* 호버 시 약간 확대 */
 }
 
 .video-text-info {
   flex: 1;
 }
 
-.video-title-small {
+/* 제목 링크 스타일 및 호버 효과 */
+.video-text-info a .video-title-small {
   margin: 0 0 6px 0;
-  font-size: 1em;
+  font-size: 1.1em;
   font-weight: 500;
   color: #333333;
-  line-height: 1.3;
+  line-height: 1.4;
+  opacity: 0; /* 초기 상태를 숨김 */
+  transform: translateX(-10px); /* 왼쪽에서 시작 */
+  animation: slideInLeft 0.5s forwards ease-out;
+  animation-delay: 0.2s; /* 썸네일/아이템 애니메이션 후 시작 */
+  text-decoration: none; /* 기본 밑줄 제거 */
+  transition: color 0.2s ease, text-decoration 0.2s ease; /* 호버 시 색상 및 밑줄 전환 */
 }
+
+.video-text-info a .video-title-small:hover {
+  color: #0056b3; /* 호버 시 파란색으로 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 추가 */
+}
+
 
 .video-meta-small {
   margin: 0;
-  font-size: 0.8em;
+  font-size: 0.85em;
   color: #666666;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-.channel-name-text {
+/* 채널 이름 링크 스타일 및 호버 효과 */
+.video-text-info a .channel-name-text {
   font-weight: 500;
   color: #333333;
+  opacity: 0; /* 초기 상태를 숨김 */
+  transform: translateX(-10px); /* 왼쪽에서 시작 */
+  animation: slideInLeft 0.5s forwards ease-out;
+  animation-delay: 0.3s; /* 제목 애니메이션 후 시작 */
+  text-decoration: none; /* 기본 밑줄 제거 */
+  transition: color 0.2s ease, text-decoration 0.2s ease; /* 호버 시 색상 및 밑줄 전환 */
 }
+
+.video-text-info a .channel-name-text:hover {
+  color: #0056b3; /* 호버 시 파란색으로 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 추가 */
+}
+
 
 .more-button-container {
   display: flex;
-  gap: 8px;
-  justify-content: flex-start;
-  margin-top: 8px;
+  gap: 8px; /* 버튼 사이 간격 */
+  flex-shrink: 0;
 }
 
 .more-button {
-  padding: 6px 12px;
+  padding: 8px 16px; /* 가로로 넓게 조정 */
   font-size: 0.85em;
-  font-weight: 400;
+  font-weight: 500;
   color: #333333;
-  background: transparent;
+  background: #ffffff;
   border: 1px solid #d0d0d0;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s ease-out; /* transform도 추가 */
   text-decoration: none;
   line-height: normal;
+  text-align: center;
 }
 
 .more-button:hover {
   background-color: #f0f0f0;
+  border-color: #b0b0b0;
+}
+
+.more-button:active {
+  transform: scale(0.98); /* 클릭 시 약간 줄어드는 효과 */
 }
 
 .video-specific-analysis-link,
@@ -122,11 +166,25 @@
   background: #ffffff;
   border-radius: 4px;
   border: 1px solid #e0e7ff;
+  /* 상세 분석 내용 토글 시 페이드인 효과 (컨테이너) */
+  animation: fadeInSummaryContainer 0.4s ease-out forwards;
 }
 
-.comment-analysis-section,
+/* 상세 분석창 내부 요소들 애니메이션 */
+.comment-analysis-section {
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInSlideUp 0.5s forwards ease-out;
+  animation-delay: 0.1s; /* 컨테이너 애니메이션 후 지연 */
+}
+
 .video-summary {
   margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInSlideUp 0.5s forwards ease-out;
+  animation-delay: 0.2s; /* 이전 섹션 후 지연 */
 }
 
 .comment-analysis-section h5,
@@ -231,9 +289,60 @@
   font-weight: 400;
 }
 
-@keyframes fadeInSummary {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* Keyframes for animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInSummaryContainer {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 768px) {
