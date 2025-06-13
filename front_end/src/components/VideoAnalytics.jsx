@@ -157,24 +157,43 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
           const sentimentChartData = [{ name: '반응', positive: video.positivePercent, negative: video.negativePercent }];
           const positiveRadius = video.negativePercent === 0 ? [4, 4, 4, 4] : [4, 0, 0, 4];
           const negativeRadius = video.positivePercent === 0 ? [0, 4, 4, 0] : [0, 4, 4, 0];
+          // 유튜브 링크를 표준 형식으로 만듭니다.
+          const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
+          const channelUrl = `https://www.youtube.com/channel/${video.channelId}`;
+
           return (
-            <div key={video.id} className="video-item-detail">
-              <div className="video-main-content">
+            <div key={video.id} className="video-item-wrapper">
+              
+              {/* --- 상단 정보 및 버튼 영역 (가로 정렬될 부분) --- */}
+              <div className="video-item-detail">
+                
+                {/* 왼쪽: 썸네일 + 영상 정보 */}
                 <div className="video-info-header">
-                  <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer">
+                  <a href={videoUrl} target="_blank" rel="noopener noreferrer">
                     <img src={video.thumbnailUrl} alt={video.title} className="video-thumbnail-small" />
                   </a>
                   <div className="video-text-info">
-                    <h4 className="video-title-small">{video.title}</h4>
+                    {/* ▼▼▼ [수정] 제목에 링크 추가 ▼▼▼ */}
+                    <a href={videoUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <h4 className="video-title-small">{video.title}</h4>
+                    </a>
+                    {/* ▼▼▼ [수정] 채널 이름 위치 변경을 위해 기존 줄에서 삭제, 설명 텍스트만 남김 ▼▼▼ */}
                     <p className="video-meta-small">
-                      <span className="channel-name-text">{video.channelName}</span>
-                      {' • 조회수 '} {video.views.toLocaleString()}회
+                      조회수 {video.views.toLocaleString()}회
                       {' • 좋아요 '} {video.likes.toLocaleString()}회
                       {' • '} {formatDuration(video.duration)}
                       {' • 업로드: '} {formatFullDateTime(video.publishedAt)}
                     </p>
+                    {/* ▼▼▼ [수정] 채널 이름, 볼드 처리 및 링크 추가하여 새 줄에 배치 ▼▼▼ */}
+                    <a href={channelUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <p className="channel-name-text">
+                            <strong>{video.channelName}</strong>
+                        </p>
+                    </a>
                   </div>
                 </div>
+
+                {/* 오른쪽: 버튼 영역 */}
                 <div className="more-button-container">
                   <button onClick={() => toggleSummary(video.id)} className="more-button">
                     {video.isSummaryVisible ? '숨기기' : '상세분석'}
@@ -184,6 +203,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                 </div>
               </div>
               
+              {/* --- 하단: 상세 분석 (토글되는 영역) --- */}
               {video.isSummaryVisible && (
                 <div className="detailed-content-wrapper">
                   <div className="comment-analysis-section">
