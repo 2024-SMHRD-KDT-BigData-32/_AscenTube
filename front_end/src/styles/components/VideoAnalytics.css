@@ -1,226 +1,359 @@
-/* src/components/VideoAnalytics.css */
+/* VideoAnalytics 컴포넌트 전용 스타일 */
+.video-analysis-section {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e0e7ff;
+  margin-bottom: 16px;
+  /* 섹션 전체 페이드인 애니메이션 */
+  opacity: 0;
+  animation: fadeIn 0.8s forwards ease-out;
+}
 
-/* 영상 분석 결과의 메타 정보 */
+.section-subtitle {
+  margin: 0 0 16px 0;
+  font-size: 1.3em;
+  color: #333333;
+  font-weight: 500;
+  border-bottom: 1px solid #e0e7ff;
+  padding-bottom: 8px;
+}
+
+.video-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.video-item-wrapper {
+  /* 각 비디오 아이템이 개별적으로 나타나도록 애니메이션 적용 */
+  opacity: 0;
+  transform: translateY(20px); /* 아래에서 시작 */
+  animation: slideInFadeIn 0.6s forwards ease-out;
+  /* JavaScript에서 각 항목에 다른 animation-delay를 적용하여 순차적으로 나타나게 할 수 있습니다.
+     예: style={{ animationDelay: `${index * 0.1}s` }} */
+}
+
+.video-item-detail {
+  display: flex; /* 가로 정렬을 위해 flex로 변경 */
+  justify-content: space-between; /* 양쪽 끝으로 요소를 배치 */
+  align-items: center; /* 세로 중앙 정렬 */
+  gap: 20px; /* 좌우 콘텐츠 사이 간격 */
+  background: #fafafa;
+  padding: 16px; /* 패딩을 조금 더 줍니다 */
+  border-radius: 4px;
+  border: 1px solid #e0e7ff;
+}
+
+.video-info-header {
+  display: flex;
+  gap: 16px; /* 썸네일과 텍스트 사이 간격 증가 */
+  align-items: flex-start; /* 상단 정렬 */
+  flex: 1; /* 남는 공간을 모두 차지하도록 설정 */
+  min-width: 0; /* flex 아이템이 넘칠 때 줄어들도록 설정 */
+}
+
+.video-thumbnail-small {
+  width: 140px; /* 데스크탑 기준 크기로 통일 */
+  height: 78px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.2s ease; /* transform도 transition에 추가 */
+}
+
+.video-thumbnail-small:hover {
+  filter: brightness(0.95);
+  transform: scale(1.02); /* 호버 시 약간 확대 */
+}
+
+.video-text-info {
+  flex: 1;
+}
+
+/* 제목 링크 스타일 및 호버 효과 */
+.video-text-info a .video-title-small {
+  margin: 0 0 6px 0;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #333333;
+  line-height: 1.4;
+  opacity: 0; /* 초기 상태를 숨김 */
+  transform: translateX(-10px); /* 왼쪽에서 시작 */
+  animation: slideInLeft 0.5s forwards ease-out;
+  animation-delay: 0.2s; /* 썸네일/아이템 애니메이션 후 시작 */
+  text-decoration: none; /* 기본 밑줄 제거 */
+  transition: color 0.2s ease, text-decoration 0.2s ease; /* 호버 시 색상 및 밑줄 전환 */
+}
+
+.video-text-info a .video-title-small:hover {
+  color: #0056b3; /* 호버 시 파란색으로 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 추가 */
+}
+
+
+.video-meta-small {
+  margin: 0;
+  font-size: 0.85em;
+  color: #666666;
+  line-height: 1.5;
+}
+
+/* 채널 이름 링크 스타일 및 호버 효과 */
+.video-text-info a .channel-name-text {
+  font-weight: 500;
+  color: #333333;
+  opacity: 0; /* 초기 상태를 숨김 */
+  transform: translateX(-10px); /* 왼쪽에서 시작 */
+  animation: slideInLeft 0.5s forwards ease-out;
+  animation-delay: 0.3s; /* 제목 애니메이션 후 시작 */
+  text-decoration: none; /* 기본 밑줄 제거 */
+  transition: color 0.2s ease, text-decoration 0.2s ease; /* 호버 시 색상 및 밑줄 전환 */
+}
+
+.video-text-info a .channel-name-text:hover {
+  color: #0056b3; /* 호버 시 파란색으로 변경 */
+  text-decoration: underline; /* 호버 시 밑줄 추가 */
+}
+
+
+.more-button-container {
+  display: flex;
+  gap: 8px; /* 버튼 사이 간격 */
+  flex-shrink: 0;
+}
+
+.more-button {
+  padding: 8px 16px; /* 가로로 넓게 조정 */
+  font-size: 0.85em;
+  font-weight: 500;
+  color: #333333;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.1s ease-out; /* transform도 추가 */
+  text-decoration: none;
+  line-height: normal;
+  text-align: center;
+}
+
+.more-button:hover {
+  background-color: #f0f0f0;
+  border-color: #b0b0b0;
+}
+
+.more-button:active {
+  transform: scale(0.98); /* 클릭 시 약간 줄어드는 효과 */
+}
+
+.video-specific-analysis-link,
+.channel-analysis-link {
+  color: #333333;
+  border: 1px solid #d0d0d0;
+}
+
+.video-specific-analysis-link:hover,
+.channel-analysis-link:hover {
+  background-color: #f0f0f0;
+}
+
+.detailed-content-wrapper {
+  margin-top: 12px;
+  padding: 12px;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid #e0e7ff;
+  /* 상세 분석 내용 토글 시 페이드인 효과 (컨테이너) */
+  animation: fadeInSummaryContainer 0.4s ease-out forwards;
+}
+
+/* 상세 분석창 내부 요소들 애니메이션 */
+.comment-analysis-section {
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInSlideUp 0.5s forwards ease-out;
+  animation-delay: 0.1s; /* 컨테이너 애니메이션 후 지연 */
+}
+
+.video-summary {
+  margin-bottom: 12px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeInSlideUp 0.5s forwards ease-out;
+  animation-delay: 0.2s; /* 이전 섹션 후 지연 */
+}
+
+.comment-analysis-section h5,
+.video-summary h5 {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #333333;
+  margin: 0 0 8px 0;
+}
+
+.sentiment-chart-container {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 8px;
+}
+
+.representative-comments p {
+  font-size: 0.85em;
+  color: #666666;
+  margin: 4px 0;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.representative-comments strong {
+  color: #333333;
+}
+
+.positive-comment {
+  background-color: #f5f5f5;
+  border-left: 2px solid #4caf50;
+}
+
+.negative-comment {
+  background-color: #f5f5f5;
+  border-left: 2px solid #ef5350;
+}
+
+.recharts-custom-tooltip {
+  background: #ffffff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #e0e7ff;
+  font-size: 0.8em;
+}
+
+.recharts-custom-tooltip div {
+  margin-bottom: 3px;
+}
+
+.recharts-custom-tooltip div:last-child {
+  margin-bottom: 0;
+}
+
+.video-analysis-section.error p {
+  color: #d32f2f;
+  text-align: center;
+  font-size: 0.9em;
+}
+
 .section-meta-info {
-  margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
-  font-size: 0.95em;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e7ff;
+  font-size: 0.9em;
 }
 
 .section-meta-info span {
   display: block;
-  margin-bottom: 10px;
-  color: #546e7a; /* 보조 텍스트 색상 */
+  margin-bottom: 8px;
+  color: #666666;
 }
+
 .section-meta-info span strong {
-  color: #263238; /* 기본 텍스트 색상 */
+  color: #333333;
   font-weight: 500;
 }
 
 .tags-analysis {
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .tags-analysis strong {
-  margin-right: 8px;
+  margin-right: 6px;
   font-weight: 500;
-  color: #263238; /* 기본 텍스트 색상 */
+  color: #333333;
 }
 
 .tags-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .tag-item {
-  background-color: #e0f2f1; /* 매우 연한 청록/하늘색 배경 (테마 색상 활용) */
-  color: #004d40;    /* 어두운 청록색 텍스트 (가독성 고려) */
-  padding: 5px 12px;
-  border-radius: 16px;
-  font-size: 0.8em;
+  background-color: #f5f5f5;
+  color: #333333;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
   font-weight: 400;
 }
 
-/* 개별 비디오 목록 컨테이너 */
-.video-list-container {
-  display: grid;
-  gap: 20px;
+/* Keyframes for animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* 각 비디오 아이템 카드 */
-.video-item-detail {
-  background-color: #ffffff; /* 카드 배경색 */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15); /* 그림자 통일 */
+@keyframes slideInFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.video-info-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+@keyframes fadeInSummaryContainer {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.video-thumbnail-small {
-  width: 120px;
-  height: 68px;
-  border-radius: 4px;
-  object-fit: cover;
-  flex-shrink: 0;
-  background-color: #eef2f9; /* 페이지 배경색과 유사한 플레이스홀더 색 */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.video-text-info {
-  flex-grow: 1;
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.video-title-small {
-  font-size: 1.05em;
-  color: #263238; /* 기본 텍스트 색상 */
-  margin-top: 0;
-  margin-bottom: 6px;
-  line-height: 1.4;
-  font-weight: 500;
-}
-
-.video-meta-small {
-  font-size: 0.8em;
-  color: #546e7a; /* 보조 텍스트 색상 */
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* 댓글 분석 섹션 */
-.comment-analysis-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
-}
-
-.comment-analysis-section h5 {
-  font-size: 0.95em;
-  color: #263238; /* 기본 텍스트 색상 */
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-/* Recharts 그래프 컨테이너 */
-.sentiment-chart-container {
-  width: 100%;
-  height: 40px;
-  margin-bottom: 8px;
-}
-
-/* Recharts 커스텀 툴팁 */
-.recharts-custom-tooltip {
-  background-color: rgba(38,50,56,0.9); /* 어두운 블루그레이, 약간 투명 */
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 0.85em;
-  color: #eceff1; /* 밝은 텍스트 */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-.recharts-custom-tooltip div {
-  margin-bottom: 4px;
-}
-.recharts-custom-tooltip div:last-child {
-  margin-bottom: 0;
-}
-
-/* 대표 댓글 */
-.representative-comments p {
-  font-size: 0.85em;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-  line-height: 1.5;
-}
-
-.positive-comment { /* 긍정 댓글 색상 유지 또는 테마에 맞게 조정 */
-  background-color: #e0f2f1; /* 연한 청록색 배경 */
-  border-left: 3px solid #4caf50; /* 기존 녹색 유지 */
-  color: #004d40; /* 어두운 청록색 텍스트 */
-}
-
-.negative-comment { /* 부정 댓글 색상 유지 또는 테마에 맞게 조정 */
-  background-color: #ffebee; /* 기존 연한 붉은색 유지 (대비 위해) */
-  border-left: 3px solid #ef5350; /* 기존 붉은색 유지 */
-  color: #b71c1c; /* 더 어두운 붉은색 텍스트 */
-}
-
-/* 버튼 컨테이너 */
-.more-button-container {
-  text-align: right;
-  margin-top: 20px;
-}
-
-/* 버튼 공통 스타일 */
-.more-button {
-  background-color: transparent;
-  color: #0277bd; /* 강조 색상 */
-  border: 1px solid #b0bec5; /* 연한 블루그레이 테두리 */
-  padding: 5px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85em;
-  font-weight: 500;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  text-decoration: none;
-  display: inline-block;
-  line-height: normal;
-}
-
-.more-button:hover {
-  background-color: rgba(2,119,189,0.05); /* 강조색의 매우 연한 배경 */
-  border-color: #0277bd; /* 강조색 테두리 */
-  color: #01579b; /* 약간 더 진한 강조색 */
-}
-
-/* 펼쳐지는 상세 분석 내용 Wrapper */
-.detailed-content-wrapper {
-  margin-top: 15px;
-}
-
-/* 영상 요약 섹션 */
-.video-summary {
-  padding-top: 20px;
-  border-top: 1px solid #cfd8dc; /* 테두리/구분선 색상 */
-  animation: fadeInSummary 0.3s ease-out;
-}
-
-.video-summary h5 {
-  font-size: 0.95em;
-  color: #263238; /* 기본 텍스트 색상 */
-  margin-top: 0;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
-.video-summary p {
-  font-size: 0.9em;
-  color: #546e7a; /* 보조 텍스트 색상 */
-  line-height: 1.6;
-  margin-bottom: 0;
-  white-space: pre-wrap;
-}
-
-@keyframes fadeInSummary {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* 채널 이름 텍스트 */
-.channel-name-text {
-  font-weight: 500;
-  color: #263238; /* 기본 텍스트 색상 (메타정보 내에서 약간 강조) */
-}
-
-/* 채널분석 링크 추가 스타일 */
-.channel-analysis-link {
-  margin-left: 8px;
+@media (min-width: 768px) {
+  .video-info-header {
+    align-items: flex-start;
+  }
+  .video-thumbnail-small {
+    width: 140px;
+    height: 78px;
+  }
+  .video-title-small {
+    font-size: 1.1em;
+  }
 }

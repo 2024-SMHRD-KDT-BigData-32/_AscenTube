@@ -9,40 +9,38 @@ import Ai from './pages/Ai';
 import Login from './pages/Login';
 import LoginCallback from './pages/LoginCallback';
 import CategoryAnalysisPage from './pages/CategoryAnalysisPage';
-import ChannelAnalysisPage from './pages/ChannelAnalysisPage'; // 🚀 새로 추가할 페이지 import
+import ChannelAnalysisPage from './pages/ChannelAnalysisPage';
+import VidAnalysis from './pages/VidAnalysis'; 
 
 import TestConnectionPage from './pages/TestConnectionPage'; // 🚀 새로 만든 테스트 페이지 import
 
 const PrivateRoute = () => {
-  // ✅ 로그인 토큰 체크: 'access_token'으로 변경
-  const isAuthenticated = !!localStorage.getItem('access_token');
-  return isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />;
+  const isAuthenticated = !!localStorage.getItem('access_token');
+  return isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />;
 };
 
 const App = () => {
-  return (
-    <Routes>
-      {/* 초기 경로를 /login으로 보내거나, 인증 상태에 따라 /index로 보낼 수 있습니다.
-          현재는 /login으로 직접 접근하거나, 인증 안된 경우 /login으로 리디렉션됩니다.
-          인증 후 PrivateRoute 내부의 /index (Dashboard)로 기본 이동합니다.
-      */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/login-callback" element={<LoginCallback />} />
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/login-callback" element={<LoginCallback />} />
 
-      {/* 인증이 필요한 라우트들 */}
-      <Route element={<PrivateRoute />}> {/* MainLayout을 PrivateRoute가 렌더링 */}
-        {/* PrivateRoute 접근 시 기본적으로 /index (Dashboard)로 이동 */}
-        <Route index element={<Navigate to="index" replace />} />
-        <Route path="index" element={<Dashboard />} />
-        <Route path="contents" element={<Contents />} />
-        <Route path="keyword" element={<Keyword />} />
-        <Route path="comment" element={<Comment />} />
-        <Route path="ai" element={<Ai />} />
-        <Route path="category-analysis" element={<CategoryAnalysisPage />} />
+      <Route element={<PrivateRoute />}>
+        <Route index element={<Navigate to="index" replace />} />
+        <Route path="index" element={<Dashboard />} />
+        <Route path="contents" element={<Contents />} />
+        <Route path="keyword" element={<Keyword />} />
+        <Route path="comment" element={<Comment />} />
+        <Route path="ai" element={<Ai />} />
+        <Route path="category-analysis" element={<CategoryAnalysisPage />} />
+        
+        {/* 핵심 수정 부분  */}
+        {/* 사이드바에서 사용하는 고정 경로와, 특정 영상에서 사용하는 동적 경로를 모두 등록합니다. */}
+        {/* 두 경로 모두 VidAnalysis 컴포넌트를 보여줍니다. */}
+        <Route path="vidanalysis" element={<VidAnalysis />} />
+        <Route path="video/:videoId" element={<VidAnalysis />} />
 
-        {/* 🚀 채널 분석 페이지 라우트 추가 */}
-        {/* 예: /channel/채널ID 와 같은 형태로 접근 */}
-        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
+        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
 
   `     {/* 🚀 테스트 페이지 라우트 추가 */}
         <Route path="admin" element={<TestConnectionPage />} />

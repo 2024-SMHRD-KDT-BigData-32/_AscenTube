@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // 로그아웃 시 필요
-import '../styles/components/TopBar.css'; // TopBar 스타일
-import ProfileDropdown from './ProfileDropdown'; // 드롭다운 컴포넌트 임포트
+import { useNavigate } from 'react-router-dom';
+import '../styles/components/TopBar.css';
+import ProfileDropdown from './ProfileDropdown';
 
 const logoPath = process.env.PUBLIC_URL + '/logo.png';
 
 const TopBar = ({ onToggleSidebar }) => {
-  const [user, setUser] = useState(null); // 사용자 정보 상태
+  const [user, setUser] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null); // 드롭다운 DOM 참조
-  const avatarRef = useRef(null); // 아바타 DOM 참조
+  const dropdownRef = useRef(null);
+  const avatarRef = useRef(null);
   const navigate = useNavigate();
 
-  // 컴포넌트 마운트 시 사용자 정보 설정 (가상) 및 토큰 확인
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     const userName = localStorage.getItem('user_name');
@@ -23,7 +22,7 @@ const TopBar = ({ onToggleSidebar }) => {
     if (token) {
       setUser({
         name: userName,
-        channelId: '@' + userChannelName, 
+        channelId: '@' + userChannelName,
         thumbnailUrl: userThumbnail,
         email: userEmail
       });
@@ -36,7 +35,6 @@ const TopBar = ({ onToggleSidebar }) => {
     setIsDropdownOpen(prev => !prev);
   };
 
-  // 드롭다운 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target) &&
@@ -52,18 +50,17 @@ const TopBar = ({ onToggleSidebar }) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_google_id');
-    localStorage.removeItem('user_name'); 
-    localStorage.removeItem('user_thumbnail'); 
-    localStorage.removeItem('user_email'); 
-    localStorage.removeItem('user_channel_name'); 
-    setUser(null); // 사용자 상태 null로
-    setIsDropdownOpen(false); // 드롭다운 닫기
-    navigate('/login'); // 로그인 페이지로 이동
-    // 필요하다면 window.location.reload(); 등으로 페이지를 완전히 새로고침
+    // LocalStorage의 모든 관련 항목 삭제
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('user_') || key.startsWith('vidAnalysis_') || key === 'access_token' || key === 'token') {
+            localStorage.removeItem(key);
+        }
+    });
+    
+    setUser(null);
+    setIsDropdownOpen(false);
+    navigate('/login');
   };
-
 
   return (
     <header className="topbar">
@@ -85,20 +82,29 @@ const TopBar = ({ onToggleSidebar }) => {
         </div>
       </div>
 
+      {/* ▼▼▼ [수정됨] 검색창 섹션 ▼▼▼ */}
       <div className="topbar-center">
-        <input type="search" placeholder="채널에서 검색하기" className="topbar-search-input" />
+        <div className="topbar-search-container">
+          <input type="search" placeholder="채널에서 검색하기" className="topbar-search-input" />
+          <button className="topbar-search-button" aria-label="검색">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <div className="topbar-right">
         <button className="topbar-action-icon" aria-label="만들기">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6m0-6V2m-6 12H0m6 0h6m6 0h6m-6-6V0m0 6v6m0 6v6"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20v-6m0-6V2m-6 12H0m6 0h6m6 0h6m-6-6V0m0 6v6m0 6v6"/></svg>
         </button>
         <button className="topbar-action-icon" aria-label="알림">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         </button>
         
-        {user && ( /* 로그인한 경우에만 프로필 아바타 표시 */
-          <div className="profile-section" ref={avatarRef}> {/* ref 추가 */}
+        {user && (
+          <div className="profile-section" ref={avatarRef}>
             <button onClick={toggleDropdown} className="topbar-profile-avatar-button">
               <img 
                 src={user.thumbnailUrl || 'https://placehold.co/32x32/7E57C2/FFFFFF?text=A&font=roboto'} 
@@ -106,7 +112,7 @@ const TopBar = ({ onToggleSidebar }) => {
               />
             </button>
             {isDropdownOpen && (
-              <div ref={dropdownRef}> {/* ref 추가 */}
+              <div ref={dropdownRef}>
                 <ProfileDropdown user={user} onLogout={handleLogout} />
               </div>
             )}

@@ -1,23 +1,22 @@
 // FavoriteChannelServiceImpl.java
 package com.cm.astb.service; // 실제 프로젝트의 서비스 패키지 경로에 맞게 수정해주세요.
 
-import com.cm.astb.dto.FavoriteChannelDto;
-import com.cm.astb.dto.FavoriteChannelRequestDto;
-import com.cm.astb.entity.FavoriteChannel;
-import com.cm.astb.repository.FavoriteChannelRepository;
-import com.google.api.services.youtube.model.Channel; // YouTube Data API 모델 클래스
+import java.io.IOException;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.cm.astb.dto.FavoriteChannelDto;
+import com.cm.astb.dto.FavoriteChannelRequestDto;
+import com.cm.astb.entity.FavoriteChannel;
+import com.cm.astb.repository.FavoriteChannelRepository;
+import com.google.api.services.youtube.model.Channel; // YouTube Data API 모델 클래스
 
 @Service
 @Transactional
@@ -34,7 +33,7 @@ public class FavoriteChannelServiceImpl implements FavoriteChannelService {
         this.favoriteChannelRepository = favoriteChannelRepository;
         this.youtubeDataApiService = youtubeDataApiService;
     }
-    
+
     /**
      * URL에서 YouTube 채널 ID 또는 @handle 추출.
      * @param channelUrl 채널 URL
@@ -49,10 +48,18 @@ public class FavoriteChannelServiceImpl implements FavoriteChannelService {
         Matcher matcher = pattern.matcher(channelUrl);
 
         if (matcher.find()) {
-            if (matcher.group(1) != null) return matcher.group(1); // UC... ID
-            if (matcher.group(4) != null) return matcher.group(4); // @handle
-            if (matcher.group(2) != null) return "@" + matcher.group(2); // /c/handle -> @handle
-            if (matcher.group(3) != null) return "@" + matcher.group(3); // /user/handle -> @handle (legacy)
+            if (matcher.group(1) != null) {
+				return matcher.group(1); // UC... ID
+			}
+            if (matcher.group(4) != null) {
+				return matcher.group(4); // @handle
+			}
+            if (matcher.group(2) != null) {
+				return "@" + matcher.group(2); // /c/handle -> @handle
+			}
+            if (matcher.group(3) != null) {
+				return "@" + matcher.group(3); // /user/handle -> @handle (legacy)
+			}
         }
         // URL 자체가 핸들이거나 ID일 경우
         if (channelUrl.startsWith("@") || (channelUrl.startsWith("UC") && channelUrl.length() == 24)) {
@@ -144,7 +151,7 @@ public class FavoriteChannelServiceImpl implements FavoriteChannelService {
 
         FavoriteChannel favoriteChannel = favoriteChannelRepository.findByFavIdAndGoogleId(favId, googleId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 관심 채널을 찾을 수 없거나 삭제 권한이 없습니다. (ID: " + favId + ")"));
-        
+
         favoriteChannelRepository.delete(favoriteChannel);
     }
 }

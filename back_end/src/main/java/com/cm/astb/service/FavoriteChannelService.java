@@ -1,11 +1,11 @@
 // FavoriteChannelService.java (Interface)
 package com.cm.astb.service; // 실제 프로젝트의 서비스 패키지 경로에 맞게 수정해주세요.
 
-import com.cm.astb.dto.FavoriteChannelDto;
-import com.cm.astb.dto.FavoriteChannelRequestDto;
-
 import java.io.IOException;
 import java.util.List;
+
+import com.cm.astb.dto.FavoriteChannelDto;
+import com.cm.astb.dto.FavoriteChannelRequestDto;
 
 public interface FavoriteChannelService {
 

@@ -1,20 +1,20 @@
 // JwtFilter.java (디버깅 로그 추가)
 package com.cm.astb.security;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
 
 //@Component
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class JwtFilter extends OncePerRequestFilter {
         Authentication authentication = null;
         try {
             jwt = jwtTokenProvider.resolveToken(request); // 요청에서 JWT 토큰 추출
-            
+
             if (StringUtils.hasText(jwt)) {
                 customLogger.info("[JwtFilter] 요청 URI: {}, JWT 발견 (앞 10자): {}", request.getRequestURI(), jwt.substring(0, Math.min(jwt.length(), 10)) + "...");
                 if (jwtTokenProvider.validateToken(jwt)) {

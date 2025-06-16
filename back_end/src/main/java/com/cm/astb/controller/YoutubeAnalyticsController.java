@@ -26,7 +26,7 @@ public class YoutubeAnalyticsController {
 
 	/**
 	 * 인증된 사용자의 채널 또는 지정된 채널의 기본 Analytics 데이터를 가져옵니다.
-	 * 
+	 *
 	 * @param startDate 시작 날짜 (YYYY-MM-DD)
 	 * @param endDate   종료 날짜 (YYYY-MM-DD)
 	 * @param channelId 채널 ID (선택 사항, 비워두면 "mine"으로 조회)
@@ -41,7 +41,7 @@ public class YoutubeAnalyticsController {
 			@RequestParam(required = false) String channelId) {
 		try {
 			QueryResponse result = youtubeAnalyticsService.getChannelBasicAnalytics(userId, startDate, endDate, channelId);
-			
+
 			Map<String, Map<String, Object>> responseData = youtubeAnalyticsService.parseAnalyticsResult(result);
 
 			return ResponseEntity.ok(responseData);

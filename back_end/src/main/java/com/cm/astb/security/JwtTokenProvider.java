@@ -44,7 +44,7 @@ public class JwtTokenProvider {
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration.minutes}") long expirationMinutes) {
         logger.info("JwtTokenProvider 생성자 호출됨.");
-        logger.info("주입받은 JWT_SECRET_KEY (환경변수 값): '{}'", secret); 
+        logger.info("주입받은 JWT_SECRET_KEY (환경변수 값): '{}'", secret);
 
         if (!StringUtils.hasText(secret)) {
             logger.error("致命的エラー: JWT_SECRET_KEY 환경변수 또는 application.properties의 jwt.secret 값이 비어있거나 null입니다. 애플리케이션을 시작할 수 없습니다.");
@@ -56,7 +56,7 @@ public class JwtTokenProvider {
             keyBytes = Decoders.BASE64.decode(secret);
             logger.info("BASE64 디코딩된 secret key 바이트 길이: {}", keyBytes.length);
 
-            if (keyBytes.length < 32) { 
+            if (keyBytes.length < 32) {
                  logger.warn("경고: JWT secret key의 디코딩된 바이트 길이가 32바이트 미만입니다 (현재 {} 바이트). 이는 보안상 매우 취약할 수 있습니다. BASE64로 인코딩된 32바이트 이상의 안전한 문자열을 사용하세요.", keyBytes.length);
             }
         } catch (IllegalArgumentException e) {
@@ -73,9 +73,8 @@ public class JwtTokenProvider {
 
         this.jwtExpirationMs = expirationMinutes * 60 * 1000;
         logger.info("JWT 토큰 만료 시간 설정: {}분 ({}ms)", expirationMinutes, jwtExpirationMs);
-        logger.info("JwtTokenProvider 초기화 완료. Key 알고리즘: {}", this.key.getAlgorithm());
     }
-    
+
 	public String generateToken(User user) {
 
 		Date now = new Date();
@@ -90,7 +89,7 @@ public class JwtTokenProvider {
 //    public String generateToken(User user) {
 //        if (user == null || !StringUtils.hasText(user.getGoogleId())) {
 //            logger.error("토큰 생성 실패: User 객체가 null이거나 Google ID가 없습니다.");
-//            return null; 
+//            return null;
 //        }
 //        logger.info("generateToken 호출됨. 사용자 Google ID: {}", user.getGoogleId());
 //        Claims claims = Jwts.claims().setSubject(user.getGoogleId());
@@ -111,7 +110,7 @@ public class JwtTokenProvider {
 //            return token;
 //        } catch (Exception e) {
 //            logger.error("JWT 토큰 생성 중 예외 발생: {}", e.getMessage(), e);
-//            return null; 
+//            return null;
 //        }
 //    }
 
@@ -128,7 +127,7 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         String googleId = this.getUserIdFromJWT(token);
         Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(new String[]{"ROLE_USER"}) 
+                Arrays.stream(new String[]{"ROLE_USER"})
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
         UserDetails principal = new org.springframework.security.core.userdetails.User(googleId, "", authorities);
@@ -150,7 +149,7 @@ public class JwtTokenProvider {
 		}
 		return false;
 	}
-    
+
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
