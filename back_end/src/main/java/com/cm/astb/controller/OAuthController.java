@@ -34,7 +34,6 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 @RestController
 @RequestMapping("/oauth")
 public class OAuthController {
-
 	private final OAuthService oAuthService;
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
@@ -84,7 +83,6 @@ public class OAuthController {
 				email = payload.getEmail();
 				nickname = (String) payload.get("name");
 				profileImg = (String) payload.get("picture");
-
 			} else {
 				System.out.println("Invalid ID Token.");
 				throw new IllegalArgumentException("Invalid ID Token received from Google callback.");
@@ -94,13 +92,11 @@ public class OAuthController {
 			if (googleId == null || email == null) {
 				throw new IllegalStateException("Critical user information (Google ID or Email) is missing after ID Token parsing");
 			}
-
 			YouTube youTube = new YouTube.Builder(httpTransport, jsonFactory, credential)
 					.build();
 			ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("snippet"))
 					.setMine(true)
 					.execute();
-
 			List<Channel> channels = channelListResponse.getItems();
 			if (channels != null && !channels.isEmpty()) {
 				channelName = channels.get(0).getSnippet().getTitle();
@@ -121,7 +117,6 @@ public class OAuthController {
 					URLEncoder.encode(user.getProfileImg() != null ? user.getProfileImg() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(channelName != null ? channelName : "", StandardCharsets.UTF_8)
 					);
-
 			return new RedirectView(redirectUrl);
 
 		} catch (IOException | GeneralSecurityException | IllegalArgumentException e) {
@@ -139,13 +134,11 @@ public class OAuthController {
 
 		}
 	}
-
 	@GetMapping("/google/analytics/authorize")
 	public RedirectView googleAnalyticsAuthorize() throws IOException {
 		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.ANALYTICS_SCOPES);
 		return new RedirectView(authorizationUrl);	// return "redirect:/" + authorizationUrl와 같은 맥락.
 	}
-
 	@GetMapping("/status")
 	public ResponseEntity<String> getOAuthStatus(@RequestParam String userId) {
 		try {
@@ -161,6 +154,5 @@ public class OAuthController {
 					.body("OAuth 상태 확인 중 오류가 발생했습니다: " + e.getMessage());
 		}
 	}
-
 }
 

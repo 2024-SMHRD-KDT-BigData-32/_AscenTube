@@ -37,7 +37,7 @@ public class GoogleApiConfig {
 
 	@Value("${spring.application.name}")
 	private String applicationName;
-
+	
 	@Value("${google.tokens.directory.path}")
 	private String tokensDirectoryPath;
 
@@ -45,19 +45,16 @@ public class GoogleApiConfig {
 	public NetHttpTransport httpTransport() throws GeneralSecurityException, IOException {
 		return GoogleNetHttpTransport.newTrustedTransport();
 	}
-
 	@Bean
 	public GsonFactory jsonFactory() {
 		return GsonFactory.getDefaultInstance();
 	}
-
 	@Bean
 	public FileDataStoreFactory fileDataStoreFactory() throws IOException {
 		return new FileDataStoreFactory(new File(tokensDirectoryPath));
 	}
 
 	// YouTube Data API 서비스를 초기화하는 Bean을 정의.
-
 	@Bean
 	@Primary public YouTube youtubeDataApi() { return new YouTube.Builder(new
 	NetHttpTransport(), new GsonFactory(), request -> {})
@@ -122,5 +119,4 @@ public class GoogleApiConfig {
 	public String getTokensDirectoryPath() {
 		return tokensDirectoryPath;
 	}
-
 }

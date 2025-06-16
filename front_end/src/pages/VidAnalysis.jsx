@@ -355,5 +355,4 @@ const VidAnalysis = () => {
     </div>
   );
 };
-
 export default VidAnalysis;
