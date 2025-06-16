@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, PieChart, Pie, Cell } from 'recharts';
 import { fetchTrendingVideosByPeriod } from '../api/youtubeApi';
 import '../styles/components/VideoAnalytics.css';
 
@@ -49,6 +49,75 @@ const formatFullDateTime = (timestamp) => {
     }
 };
 
+// 화행 분석 더미 데이터 생성 함수
+const generateSpeechActData = () => {
+    const speechActs = [
+        { name: '정보제공', value: Math.floor(Math.random() * 20) + 10, color: '#2196F3' },
+        { name: '질문', value: Math.floor(Math.random() * 15) + 5, color: '#FF9800' },
+        { name: '감정표현', value: Math.floor(Math.random() * 25) + 15, color: '#E91E63' },
+        { name: '비판', value: Math.floor(Math.random() * 15) + 5, color: '#F44336' },
+        { name: '칭찬', value: Math.floor(Math.random() * 20) + 10, color: '#4CAF50' },
+        { name: '요청', value: Math.floor(Math.random() * 10) + 5, color: '#9C27B0' },
+        { name: '기타', value: Math.floor(Math.random() * 15) + 5, color: '#607D8B' }
+    ];
+    
+    // 비율 정규화 (총합 100%가 되도록)
+    const total = speechActs.reduce((sum, act) => sum + act.value, 0);
+    return speechActs.map(act => ({
+        ...act,
+        value: Math.round((act.value / total) * 100)
+    }));
+};
+
+// 화행별 대표 댓글 생성 함수
+const generateRepresentativeComments = () => {
+    const commentExamples = {
+        '정보제공': [
+            "이 영상에서 말하는 방법 실제로 해봤는데 효과 있어요!",
+            "참고로 저기 나온 장소는 서울 강남구에 있습니다.",
+            "영상에서 사용한 제품은 A브랜드 B모델이에요."
+        ],
+        '질문': [
+            "혹시 이 방법 말고 다른 방법도 있을까요?",
+            "초보자도 따라할 수 있나요?",
+            "가격이 얼마나 되는지 알 수 있을까요?"
+        ],
+        '감정표현': [
+            "와... 정말 감동적이네요 ㅠㅠ",
+            "너무 재밌어서 시간 가는 줄 몰랐어요!",
+            "이런 영상 보면 기분이 좋아져요 😊"
+        ],
+        '비판': [
+            "설명이 좀 부족한 것 같아요.",
+            "이 방법은 현실적이지 않은 것 같은데요.",
+            "너무 광고성이 강한 것 같습니다."
+        ],
+        '칭찬': [
+            "정말 유용한 정보 감사합니다!",
+            "설명을 너무 잘해주시네요 👍",
+            "항상 좋은 콘텐츠 만들어주셔서 감사해요!"
+        ],
+        '요청': [
+            "다음에는 초급자 버전도 만들어주세요!",
+            "더 자세한 설명 영상 부탁드려요.",
+            "비슷한 주제로 더 많은 영상 올려주세요."
+        ],
+        '기타': [
+            "첫 번째!",
+            "알고리즘 떠서 왔어요",
+            "구독하고 갑니다~"
+        ]
+    };
+    
+    const result = {};
+    Object.keys(commentExamples).forEach(category => {
+        const comments = commentExamples[category];
+        result[category] = comments[Math.floor(Math.random() * comments.length)];
+    });
+    
+    return result;
+};
+
 // API 응답 데이터를 UI에 맞게 가공하는 함수
 const processApiData = (videosFromApi) => {
     if (!videosFromApi || videosFromApi.length === 0) return [];
@@ -56,6 +125,8 @@ const processApiData = (videosFromApi) => {
     return videosFromApi.map(video => {
         const publishedAtTimestamp = video.snippet.publishedAt?.value || video.snippet.publishedAt;
         const positivePercent = Math.floor(Math.random() * 91) + 5;
+        const speechActData = generateSpeechActData();
+        const representativeComments = generateRepresentativeComments();
 
         return {
             id: video.id?.videoId || video.id,
@@ -69,11 +140,17 @@ const processApiData = (videosFromApi) => {
             comments: parseInt(video.statistics?.commentCount ?? '0', 10),
             duration: video.contentDetails?.duration || 'N/A',
             isSummaryVisible: false,
-            summaryText: `[구현 예정] ${video.snippet.title.substring(0,20)}... 영상의 AI 요약 내용이 여기에 표시됩니다.`,
-            positiveComment: `[구현 예정] 대표 긍정 댓글입니다.`,
-            negativeComment: `[구현 예정] 대표 부정 댓글입니다.`,
+            summaryText: `${video.snippet.title.substring(0,20)}
+한화생명 vs T1 경기 요약:
+T1이 압도적인 경기력으로 한화생명을 3:0으로 완승했습니다.
+T1 선수들, 특히 도란, 구마유시, 페이커 선수의 활약이 돋보였습니다. [03:19:04], [03:16:59], [03:21:55]
+T1은 MSI 진출을 확정지었으며, MSI 우승에 대한 강한 의지를 보였습니다. [03:29:33], [03:22:04], [03:27:11].`,
+            positiveComment: `그냥 다 찢었다. 중요한건 중꺽마`,
+            negativeComment: `이제 재미가 많이 떨어지네..`,
             positivePercent: positivePercent,
             negativePercent: 100 - positivePercent,
+            speechActData: speechActData,
+            representativeComments: representativeComments
         };
     });
 };
@@ -108,11 +185,22 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
         return null;
     };
 
+    const SpeechActTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="recharts-custom-tooltip">
+                    <div>{`${payload[0].name}: ${payload[0].value}%`}</div>
+                </div>
+            );
+        }
+        return null;
+    };
+
     useEffect(() => {
         if (!categoryId || categoryId === '0') {
             setRegularVideos([]);
             setShortsVideos([]);
-            setIsLoading(false); // 로딩 상태를 false로 설정
+            setIsLoading(false);
             return;
         }
     
@@ -128,10 +216,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
             const rawData = await fetchTrendingVideosByPeriod(token, userId, categoryId, apiPeriod, 50);
     
             if (rawData) {
-                // =================================================================
-                // ▼▼▼ 디버깅을 위한 console.log 코드 추가 ▼▼▼
-                // =================================================================
-                console.clear(); // 이전 로그를 깨끗하게 지웁니다.
+                console.clear();
                 console.log("=============== 데이터 처리 과정 추적 ===============");
                 console.log(`[1단계] API로부터 받은 전체 동영상 개수: ${rawData.length}개`);
                 
@@ -143,7 +228,6 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                 console.log(`[2단계] 3분 미만 (숏츠 후보) 개수: %c${shorts.length}개`, "color: blue; font-weight: bold;");
                 console.log(`[3단계] 3분 이상 (일반 영상 후보) 개수: %c${regulars.length}개`, "color: green; font-weight: bold;");
                 console.log("=================================================");
-                // =================================================================
     
                 const sortByViewCount = (a, b) => b.views - a.views;
                 shorts.sort(sortByViewCount);
@@ -203,7 +287,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                 {video.isSummaryVisible && (
                     <div className="detailed-content-wrapper">
                         <div className="comment-analysis-section">
-                            <h5>댓글 분석</h5>
+                            <h5>댓글 감정 분석</h5>
                             <div className="sentiment-chart-container">
                                 <ResponsiveContainer width="100%" height={40}>
                                     <BarChart layout="vertical" data={sentimentChartData} stackOffset="expand" margin={{ top: 2, right: 5, left: 5, bottom: 2 }}>
@@ -224,7 +308,63 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                                 <p className="negative-comment"><strong>대표 부정 댓글:</strong> {video.negativeComment}</p>
                             </div>
                         </div>
-                        <div className="video-summary">
+
+                        <div className="speech-act-analysis-section" style={{ marginTop: '20px' }}>
+                            <h5>댓글 화행 분석</h5>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                                <div style={{ width: '200px', height: '200px' }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={video.speechActData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={40}
+                                                outerRadius={80}
+                                                paddingAngle={2}
+                                                dataKey="value"
+                                            >
+                                                {video.speechActData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip content={<SpeechActTooltip />} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="speech-act-legend">
+                                    {video.speechActData.map((entry, index) => (
+                                        <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
+                                            <div 
+                                                style={{ 
+                                                    width: '12px', 
+                                                    height: '12px', 
+                                                    backgroundColor: entry.color, 
+                                                    marginRight: '8px',
+                                                    borderRadius: '2px'
+                                                }}
+                                            ></div>
+                                            <span style={{ fontSize: '14px' }}>
+                                                {entry.name}: {entry.value}%
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="representative-speech-acts" style={{ marginTop: '15px' }}>
+                            <h6>화행별 대표 댓글</h6>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
+                                {Object.entries(video.representativeComments).map(([category, comment]) => (
+                                    <div key={category} style={{ padding: '8px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                                        <strong>{category}:</strong> {comment}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="video-summary" style={{ marginTop: '20px' }}>
                             <h5>영상 요약</h5>
                             <p>{video.summaryText}</p>
                         </div>

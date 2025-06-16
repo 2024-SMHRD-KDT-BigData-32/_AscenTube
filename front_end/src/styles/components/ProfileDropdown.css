@@ -1,15 +1,14 @@
-/* src/components/ProfileDropdown.css */
 .profile-dropdown {
   position: absolute;
-  top: 50px; /* TopBar 높이(56px) 바로 아래, 약간의 여유 */
-  right: 16px; /* TopBar의 오른쪽 패딩과 일치 */
+  top: 50px;
+  right: 16px;
   background-color: white;
-  border-radius: 8px; /* 유튜브 스타일 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 좀 더 진한 그림자 */
-  width: 300px; /* 드롭다운 너비 */
-  z-index: 1050; /* 다른 요소들보다 확실히 위에 */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 300px;
+  z-index: 1050;
   border: 1px solid rgba(0,0,0,0.1);
-  overflow: hidden; /* 내부 요소가 밖으로 나가지 않도록 */
+  overflow: hidden;
 }
 
 .dropdown-header {
@@ -20,7 +19,7 @@
 }
 
 .dropdown-thumbnail {
-  width: 48px; /* 썸네일 크기 */
+  width: 48px;
   height: 48px;
   border-radius: 50%;
   margin-right: 12px;
@@ -33,19 +32,19 @@
 }
 
 .dropdown-user-name {
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
   font-weight: 500;
   color: #0f0f0f;
 }
 
 .dropdown-channel-id {
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
   color: #606060;
 }
 
 .dropdown-menu {
   list-style: none;
-  padding: 8px 0; /* 메뉴 그룹 상하 패딩 */
+  padding: 8px 0;
   margin: 0;
 }
 
@@ -53,12 +52,12 @@
   border-top: 1px solid rgba(0,0,0,0.1);
 }
 
-.dropdown-menu li > * { /* Link, a, button 태그에 공통 스타일 적용 */
+.dropdown-menu li > * {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 10px 16px; /* 메뉴 아이템 패딩 */
-  font-size: 0.875rem; /* 14px */
+  padding: 10px 16px;
+  font-size: 0.875rem;
   color: #0f0f0f;
   text-decoration: none;
   background: none;
@@ -72,14 +71,156 @@
 }
 
 .dropdown-menu li svg {
-  margin-right: 16px; /* 아이콘과 텍스트 사이 간격 */
-  color: #606060; /* 아이콘 색상 */
-  width: 20px; /* 아이콘 크기 일관성 */
+  margin-right: 16px;
+  color: #606060;
+  width: 20px;
   height: 20px;
 }
 
 .dropdown-menu li .arrow {
-  margin-left: auto; /* 화살표를 오른쪽 끝으로 */
+  margin-left: auto;
   font-size: 0.8rem;
   color: #606060;
+}
+
+/* 관심 채널 모달 */
+.channel-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.channel-modal {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  z-index: 2100;
+}
+
+.channel-modal h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.2rem;
+}
+
+.channel-modal input {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.channel-modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.channel-modal-buttons button {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.channel-modal-buttons .cancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.channel-modal-buttons .submit {
+  background-color: #065fd4;
+  color: white;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+  margin-bottom: 16px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-actions button:first-of-type {
+  background-color: #065fd4;
+  color: white;
+}
+
+.modal-actions button:last-of-type {
+  background-color: #e0e0e0;
+}
+
+.dropdown-menu.channel-section {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 12px;
+  margin-top: 8px;
+  background-color: #f9f9f9; /* 살짝 다른 배경색으로 분리된 느낌 */
+}
+
+.dropdown-menu.channel-section .highlight-button {
+  font-weight: bold;
+  color: #0f0f0f;
+  background-color: #f0f0f0;
+  border-radius: 6px;
+  padding: 10px 16px;
+}
+
+.dropdown-menu.channel-section .highlight-button:hover {
+  background-color: #e0e0e0;
 }

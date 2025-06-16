@@ -1,7 +1,130 @@
 /* ===============================
-   💬 댓글 페이지 전체 레이아웃
+   🎨 7가지 댓글 유형별 색상 및 스타일 정의
+   - .cat-praise, .cat-criticism, .cat-info, .cat-question, .cat-emotion, .cat-request, .cat-etc
 =============================== */
 
+/* 칭찬 (Praise) */
+.card.cat-praise,
+.tag.cat-praise,
+.cloud-word.cat-praise {
+  background-color: #E6FFFA;
+  color: #2C7A7B;
+  border-color: #A7F3D0;
+}
+
+.bar.cat-praise {
+  background-color: #38A169;
+}
+
+.tag.cat-praise {
+  color: #38A169;
+}
+
+/* 비판 (Criticism) */
+.card.cat-criticism,
+.tag.cat-criticism,
+.cloud-word.cat-criticism {
+  background-color: #FFF5F5;
+  color: #9B2C2C;
+  border-color: #FED7D7;
+}
+
+.bar.cat-criticism {
+  background-color: #E53E3E;
+}
+
+.tag.cat-criticism {
+  color: #E53E3E;
+}
+
+/* 정보제공 (Information) */
+.card.cat-info,
+.tag.cat-info,
+.cloud-word.cat-info {
+  background-color: #EBF8FF;
+  color: #2B6CB0;
+  border-color: #BEE3F8;
+}
+
+.bar.cat-info {
+  background-color: #3182CE;
+}
+
+.tag.cat-info {
+  color: #3182CE;
+}
+
+/* 질문 (Question) */
+.card.cat-question,
+.tag.cat-question,
+.cloud-word.cat-question {
+  background-color: #FAF5FF;
+  color: #6B46C1;
+  border-color: #E9D8FD;
+}
+
+.bar.cat-question {
+  background-color: #805AD5;
+}
+
+.tag.cat-question {
+  color: #805AD5;
+}
+
+/* 감정표현 (Emotion Expression) */
+.card.cat-emotion,
+.tag.cat-emotion,
+.cloud-word.cat-emotion {
+  background-color: #FFFBEB;
+  color: #B7791F;
+  border-color: #FEEBC8;
+}
+
+.bar.cat-emotion {
+  background-color: #D69E2E;
+}
+
+.tag.cat-emotion {
+  color: #D69E2E;
+}
+
+/* 요청 (Request) */
+.card.cat-request,
+.tag.cat-request,
+.cloud-word.cat-request {
+  background-color: #F0FFF4;
+  color: #2F855A;
+  border-color: #C6F6D5;
+}
+
+.bar.cat-request {
+  background-color: #48BB78;
+}
+
+.tag.cat-request {
+  color: #48BB78;
+}
+
+/* 기타 (Etc.) */
+.card.cat-etc,
+.tag.cat-etc,
+.cloud-word.cat-etc {
+  background-color: #F7FAFC;
+  color: #4A5568;
+  border-color: #E2E8F0;
+}
+
+.bar.cat-etc {
+  background-color: #718096;
+}
+
+.tag.cat-etc {
+  color: #718096;
+}
+
+/* ===============================
+   💬 댓글 페이지 전체 레이아웃 (기존과 유사)
+=============================== */
 .comment-container {
   min-height: 100vh;
   background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
@@ -12,9 +135,8 @@
 }
 
 /* ===============================
-   🔝 헤더 영역
+   🔝 헤더 영역 (기존과 유사)
 =============================== */
-
 .comment-header {
   display: flex;
   justify-content: space-between;
@@ -45,9 +167,8 @@
 }
 
 /* ===============================
-   📦 메인 콘텐츠 영역
+   📦 메인 콘텐츠 영역 (기존과 유사)
 =============================== */
-
 .comment-main {
   padding: 1.5rem;
   display: flex;
@@ -56,9 +177,8 @@
 }
 
 /* ===============================
-   🧩 섹션 박스 (카드 스타일)
+   🧩 섹션 박스 (기존과 유사)
 =============================== */
-
 .comment-section {
   background: white;
   padding: 1.5rem;
@@ -69,7 +189,7 @@
 }
 
 .comment-section:hover {
-  transform: scale(1.02);
+  transform: translateY(-5px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -81,169 +201,8 @@
 }
 
 /* ===============================
-   📊 감정 바 차트 (간단한)
+   📶 7가지 유형 분석 바
 =============================== */
-
-.bar-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-}
-
-.bar-container {
-  height: 1rem;
-  background-color: #e5e7eb;
-  border-radius: 9999px;
-  overflow: hidden;
-  display: flex;
-}
-
-.bar-green {
-  background-color: #34d399;
-  height: 100%;
-}
-
-.bar-yellow {
-  background-color: #fbbf24;
-  height: 100%;
-}
-
-.bar-red {
-  background-color: #f87171;
-  height: 100%;
-}
-
-/* ===============================
-   🧱 카드 그리드 레이아웃
-=============================== */
-
-.card-grid {
-  display: grid;
-  gap: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .card-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* 카드 공통 스타일 */
-.card {
-  padding: 1rem;
-  border-radius: 1rem;
-  border: 1px solid;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.card:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-/* 감정별 카드 스타일 */
-.card.positive {
-  background-color: #ecfdf5;
-  border-color: #bbf7d0;
-  color: #065f46;
-}
-
-.card.neutral {
-  background-color: #fefce8;
-  border-color: #fde68a;
-  color: #92400e;
-}
-
-.card.negative {
-  background-color: #fee2e2;
-  border-color: #fecaca;
-  color: #991b1b;
-}
-
-/* 카드 내용 */
-.card h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.card p {
-  font-size: 0.875rem;
-}
-
-/* ===============================
-   📝 댓글 리스트
-=============================== */
-
-.comment-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  font-size: 0.875rem;
-}
-
-.comment-list li {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* 태그 스타일 */
-.tag {
-  font-weight: 500;
-}
-
-.tag-positive {
-  color: #22c55e;
-}
-
-.tag-neutral {
-  color: #eab308;
-}
-
-.tag-negative {
-  color: #ef4444;
-}
-
-/* ===============================
-   ☁️ 워드 클라우드 박스
-=============================== */
-
-.cloud-box {
-  width: 100%;
-  height: 16rem;
-  background-color: #e0e7ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6366f1;
-  font-size: 0.875rem;
-  border-radius: 0.5rem;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-/* ===============================
-   🎞️ 애니메이션 바 (간단)
-=============================== */
-
-.animated-segment-container {
-  display: flex;
-  width: 100%;
-  height: 1.25rem;
-  border-radius: 9999px;
-  overflow: hidden;
-  background-color: #e5e7eb;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.animated-segment {
-  height: 100%;
-  transition: width 1.6s ease-out;
-}
-
-/* ===============================
-   📶 고급 감성 애니메이션 바
-=============================== */
-
 .sentiment-bar-container {
   width: 100%;
   height: 2.5rem;
@@ -267,20 +226,88 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  /* --- ▼▼▼ 텍스트가 길어져도 한 줄로 유지되도록 아래 속성 추가 ▼▼▼ --- */
+  white-space: nowrap;
+  overflow: hidden;
+  /* 영역을 벗어나는 텍스트는 숨김 처리 */
 }
 
-/* 감정별 대비 강조 색상 */
-.positive-bar {
-  background-color: #059669;
-  z-index: 3;
+/* ===============================
+   🧱 카드 그리드 레이아웃 (반응형 열 개수 조정)
+=============================== */
+.card-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
-.neutral-bar {
-  background-color: #d97706;
-  z-index: 2;
+.card {
+  padding: 1rem;
+  border-radius: 1rem;
+  border-width: 1px;
+  border-style: solid;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.negative-bar {
-  background-color: #b91c1c;
-  z-index: 1;
+.card h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.card p {
+  font-size: 0.875rem;
+}
+
+/* ===============================
+   📝 댓글 리스트 (기존과 유사)
+=============================== */
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.comment-list li {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tag {
+  font-weight: 500;
+  flex-shrink: 0;
+  /* 태그 너비 유지 */
+}
+
+/* ===============================
+   ☁️ 워드 클라우드 (기존과 유사)
+=============================== */
+.cloud-box {
+  width: 100%;
+  min-height: 16rem;
+  background-color: white;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1rem;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.cloud-word {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  border-width: 1px;
+  border-style: solid;
+  transition: transform 0.2s ease;
+}
+
+.cloud-word:hover {
+  transform: scale(1.1);
 }

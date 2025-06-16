@@ -1,104 +1,151 @@
 import React, { useEffect, useRef } from 'react';
 import '../styles/pages/Comment.css';
 
-const AnimatedSentimentBar = ({ positive, neutral, negative }) => {
-  const posRef = useRef();
-  const neuRef = useRef();
-  const negRef = useRef();
+// 1. AnimatedSentimentBar는 이제 categoryLabels를 props로 전달받습니다.
+const AnimatedSentimentBar = ({ percentages, categoryLabels }) => {
+  const refs = {
+    praise: useRef(null),
+    criticism: useRef(null),
+    info: useRef(null),
+    question: useRef(null),
+    emotion: useRef(null),
+    request: useRef(null),
+    etc: useRef(null),
+  };
 
   useEffect(() => {
     requestAnimationFrame(() => {
-      if (posRef.current) posRef.current.style.width = `${positive}%`;
-      if (neuRef.current) neuRef.current.style.width = `${neutral}%`;
-      if (negRef.current) negRef.current.style.width = `${negative}%`;
+      for (const key in percentages) {
+        if (refs[key].current) {
+          refs[key].current.style.width = `${percentages[key]}%`;
+        }
+      }
     });
-  }, [positive, neutral, negative]);
+  }, [percentages, refs]);
+
+  const categoryOrder = ['praise', 'criticism', 'info', 'question', 'emotion', 'request', 'etc'];
 
   return (
     <div className="sentiment-bar-container">
-      <div
-        className="bar positive-bar"
-        ref={posRef}
-        style={{ width: 0 }}
-      >
-        <span className="bar-label">{positive}%</span>
-      </div>
-      <div
-        className="bar neutral-bar"
-        ref={neuRef}
-        style={{ width: 0 }}
-      >
-        <span className="bar-label">{neutral}%</span>
-      </div>
-      <div
-        className="bar negative-bar"
-        ref={negRef}
-        style={{ width: 0 }}
-      >
-        <span className="bar-label">{negative}%</span>
-      </div>
+      {categoryOrder.map(cat => {
+        const percentage = percentages[cat];
+        let labelText;
+        if (percentage > 15) {
+          labelText = `${categoryLabels[cat]} ${percentage}%`;
+        } else if (percentage > 5) {
+          labelText = `${percentage}%`;
+        } else {
+          labelText = '';
+        }
+        return (
+          <div
+            key={cat}
+            ref={refs[cat]}
+            className={`bar cat-${cat}`}
+            style={{ width: '0%' }}
+            title={`${categoryLabels[cat]} ${percentage}%`}
+          >
+            <span>{labelText}</span>
+          </div>
+        );
+      })}
     </div>
   );
 };
 
+
 const Comment = () => {
+  // 2. categoryLabels 객체를 Comment 컴포넌트에서 정의합니다.
+  const categoryLabels = {
+    praise: '칭찬',
+    criticism: '비판',
+    info: '정보',
+    question: '질문',
+    emotion: '감정',
+    request: '요청',
+    etc: '기타',
+  };
+
+  const analysisData = {
+    percentages: { praise: 30, criticism: 15, info: 20, question: 10, emotion: 10, request: 10, etc: 5, },
+    representativeComments: [
+      { category: 'praise', icon: '👍', title: '대표 칭찬 댓글', text: '설명이 귀에 쏙쏙 들어와요! 구독하고 갑니다~' },
+      { category: 'criticism', icon: '🤔', title: '대표 비판 댓글', text: '이전 영상이랑 내용이 거의 비슷한 것 같아요. 좀 아쉽네요.' },
+      { category: 'info', icon: '💡', title: '대표 정보 댓글', text: '영상에 나온 제품 정보는 더보기란에 있습니다.' },
+      { category: 'question', icon: '❓', title: '대표 질문 댓글', text: '혹시 BGM 정보 알 수 있을까요?' },
+      { category: 'emotion', icon: '😄', title: '대표 감정표현 댓글', text: 'ㅋㅋㅋㅋㅋ 너무 웃겨요!!' },
+      { category: 'request', icon: '🙏', title: '대표 요청 댓글', text: '다음엔 OO도 한번 다뤄주세요!' },
+      { category: 'etc', icon: '📋', title: '대표 기타 댓글', text: '영상 잘 보고 갑니다.' },
+    ],
+    commentList: [
+        { category: 'praise', text: '늘 좋은 영상 감사합니다. 덕분에 많이 배우고 있어요.' },
+        { category: 'info', text: '참고로 저건 OOO이라고 합니다. 찾아보시면 좋을 듯!' },
+        { category: 'question', text: '영상에서 사용하신 폰트가 뭔가요? 너무 예뻐요.' },
+        { category: 'criticism', text: '광고가 너무 많아서 흐름이 끊기는 느낌이에요.' },
+        { category: 'request', text: '시간 괜찮으시면 자막도 추가해주실 수 있을까요?' },
+    ],
+    keywords: [
+      { text: '구독', value: 80, category: 'praise' }, { text: '설명', value: 70, category: 'praise' },
+      { text: '아쉽다', value: 65, category: 'criticism' }, { text: '정보', value: 75, category: 'info' },
+      { text: 'BGM', value: 60, category: 'question' }, { text: 'ㅋㅋㅋ', value: 85, category: 'emotion' },
+      { text: '다음편', value: 68, category: 'request' }, { text: '자막', value: 55, category: 'request' },
+      { text: '광고', value: 72, category: 'criticism' }, { text: '감사합니다', value: 90, category: 'praise' },
+    ],
+  };
+
   return (
     <div className="comment-container">
       <header className="comment-header">
-        <h1>댓글 감성 분석</h1>
-        <input type="text" placeholder="댓글 검색" />
+        <h1>댓글 상세 분석</h1>
+        <input type="text" placeholder="댓글 내용, 작성자 등으로 검색" />
       </header>
 
       <main className="comment-main">
-        {/* 감성 비율 */}
         <section className="comment-section">
-          <h2>감성 비율</h2>
-          <AnimatedSentimentBar positive={72} neutral={10} negative={18} />
+          <h2>📊 댓글 유형 비율</h2>
+          {/* 3. AnimatedSentimentBar에 props로 categoryLabels를 전달합니다. */}
+          <AnimatedSentimentBar percentages={analysisData.percentages} categoryLabels={categoryLabels} />
         </section>
 
-        {/* 대표 댓글 카드 */}
-        <section className="card-grid">
-          <div className="card positive">
-            <h3>😊 대표 긍정 댓글</h3>
-            <p>“이번 영상 너무 힐링됐어요! 다음 편도 기대할게요!”</p>
-          </div>
-          <div className="card neutral">
-            <h3>😐 대표 중립 댓글</h3>
-            <p>“그냥 그랬어요. 무난한 편이네요.”</p>
-          </div>
-          <div className="card negative">
-            <h3>😠 대표 부정 댓글</h3>
-            <p>“편집이 너무 어수선해서 보기 불편했어요...”</p>
-          </div>
-        </section>
+        <div className="card-grid">
+          {analysisData.representativeComments.map(comment => (
+            <div key={comment.category} className={`card cat-${comment.category}`}>
+              <h3>{comment.icon} {comment.title}</h3>
+              <p>“{comment.text}”</p>
+            </div>
+          ))}
+        </div>
 
-        {/* 댓글 목록 */}
         <section className="comment-section">
-          <h2>댓글 목록 (최근 분석)</h2>
+          <h2>📝 최근 댓글 분석</h2>
           <ul className="comment-list">
-            <li>
-              <span className="tag tag-positive">[긍정]</span>
-              <p>진짜 유익한 영상이네요. 요약도 잘 되어 있고 최고입니다!</p>
-            </li>
-            <li>
-              <span className="tag tag-neutral">[중립]</span>
-              <p>그럭저럭 봐줄만 했습니다. 추천까지는 애매해요.</p>
-            </li>
-            <li>
-              <span className="tag tag-negative">[부정]</span>
-              <p>목소리가 너무 작아서 잘 안 들려요. 자막이라도 넣어주세요.</p>
-            </li>
+             {/* --- ▼▼▼ 바로 이 부분을 수정했습니다 ▼▼▼ --- */}
+            {analysisData.commentList.map((comment, index) => (
+                <li key={index}>
+                    {/* 4. categoryLabels 객체를 사용하여 영문 key를 한글 이름으로 변환합니다. */}
+                    <span className={`tag cat-${comment.category}`}>[{categoryLabels[comment.category]}]</span>
+                    <p>{comment.text}</p>
+                </li>
+            ))}
           </ul>
         </section>
 
-        {/* 감성 키워드 시각화 */}
         <section className="comment-section">
-          <h2>🧠 감정 키워드 분석</h2>
+          <h2>🧠 핵심 키워드 분석</h2>
           <div className="cloud-box">
-            [감성 키워드 워드클라우드 또는 빈도 시각화]
+            {analysisData.keywords.map((keyword, index) => {
+              const keywordStyle = {
+                fontSize: `${12 + keyword.value * 0.45}px`,
+                fontWeight: 400 + Math.round(keyword.value / 100 * 5) * 100,
+              };
+              return (
+                <span key={index} className={`cloud-word cat-${keyword.category}`} style={keywordStyle}>
+                  {keyword.text}
+                </span>
+              );
+            })}
           </div>
         </section>
-
       </main>
     </div>
   );
