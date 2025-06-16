@@ -2,7 +2,8 @@
 
 .channel-analysis-page {
   padding: 20px;
-  background-color: #eef2f9;
+  background-color: #f8fafc;
+  /* 더 밝고 부드러운 배경색 */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   min-height: 100vh;
 }
@@ -15,48 +16,25 @@
   color: #546e7a;
 }
 
-.channel-header {
-  background-size: cover;
-  background-position: center;
-  padding: 30px 20px;
-  text-align: center;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  position: relative;
-  color: #ffffff;
+
+/* ▼▼▼ 1. 헤더 스타일 수정 ▼▼▼ */
+.page-header {
+  background-color: #ffffff;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  margin: -20px -20px 20px -20px; /* 페이지 여백을 채우도록 조정 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.channel-header-overlay {
-  background-color: rgba(0, 0, 0, 0.5);
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.channel-profile-image {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 3px solid #ffffff;
-  margin-bottom: 15px;
-  object-fit: cover;
-  background-color: #cfd8dc;
-}
-
-.channel-name {
-  font-size: 2.2em;
+.page-header h1 {
+  font-size: 1.5rem;
   font-weight: 600;
+  color: #1e293b;
   margin: 0;
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
 }
+
+/* ▲▲▲ 1. 헤더 스타일 수정 ▲▲▲ */
+
 
 .analysis-section-grid {
   display: grid;
@@ -69,10 +47,53 @@
   background: #ffffff;
   padding: 20px 25px;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
-.channel-summary-card h2,
+
+/* ▼▼▼ 2. 채널 요약 카드 내부 스타일 추가 ▼▼▼ */
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem; /* 이미지와 텍스트 사이 간격 */
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.summary-profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.summary-title-section {
+  flex-grow: 1;
+}
+
+.summary-channel-name {
+  font-size: 1.5em; /* 채널 이름 폰트 크기 */
+  color: #1e293b;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  border-bottom: none; /* h2의 기본 밑줄 제거 */
+  padding-bottom: 0;
+}
+
+.summary-channel-id {
+  font-size: 0.85em;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ▲▲▲ 2. 채널 요약 카드 내부 스타일 추가 ▲▲▲ */
+
+
 .channel-content-card h2 {
   font-size: 1.3em;
   color: #263238;
@@ -85,58 +106,68 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  /* 간격 조정 */
   margin-bottom: 15px;
 }
+
 .stats-grid p {
-  margin: 5px 0;
+  margin: 0;
   font-size: 0.95em;
-  color: #546e7a;
+  color: #475569;
 }
+
 .stats-grid p strong {
-  color: #263238;
+  color: #1e293b;
+  display: block;
+  /* 제목과 값을 다른 줄에 표시 */
+  margin-bottom: 4px;
+  font-weight: 500;
 }
 
 .channel-description {
   font-size: 0.9em;
   line-height: 1.6;
-  color: #546e7a;
-  margin-bottom: 15px;
-}
-.channel-description strong {
-  color: #263238;
-}
-.channel-id-display {
-  font-size: 0.8em;
-  color: #78909c;
-  margin-top: 15px;
+  color: #475569;
+  margin-top: 20px;
 }
 
+.channel-description strong {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+
 .video-list {
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .video-item-preview {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  /* 수직 중앙 정렬 */
   gap: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eef2f9;
+  text-decoration: none;
+  color: inherit;
+  padding: 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
 }
-.video-item-preview:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+
+.video-item-preview:hover {
+  background-color: #f8fafc;
 }
 
 .video-thumbnail-preview {
-  width: 160px;
-  height: 90px;
+  width: 120px;
+  /* 썸네일 크기 조정 */
+  height: 68px;
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: #e0e0e0;
 }
 
 .video-info-preview {
@@ -144,148 +175,40 @@
 }
 
 .video-title-preview {
-  font-size: 1em;
+  font-size: 0.95em;
   font-weight: 500;
-  color: #263238;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
 }
 
 .video-meta-preview {
   font-size: 0.8em;
-  color: #546e7a;
+  color: #64748b;
   margin: 0;
 }
 
-/* 새로운 영상 길이 분포 가로 막대 리스트 스타일 */
-.duration-bar-list-container {
-  margin-top: 10px; /* 제목과의 간격 */
+
+.ai-analysis-section h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
 }
 
-.duration-bar-item {
-  margin-bottom: 16px; /* 각 막대 항목 간의 간격 */
-}
-.duration-bar-item:last-child {
-  margin-bottom: 0;
-}
-
-.duration-bar-header {
-  display: flex;
-  align-items: center; /* Bullet과 텍스트 수직 정렬 */
-  margin-bottom: 6px; /* 막대와의 간격 */
-}
-
-.duration-bullet {
-  font-size: 1.6em; /* Bullet 크기 */
-  line-height: 1;   /* Bullet 수직 위치 미세조정 */
-  margin-right: 8px;
-  /* 색상은 JSX에서 인라인 스타일로 적용됩니다. */
-}
-
-.duration-category-name {
-  font-size: 0.9em;
-  color: #263238; /* 카테고리 이름 색상 */
-  font-weight: 500;
-}
-
-.duration-bar-track {
-  background-color: #e0e7ee; /* 막대 트랙 배경색 (페이지 배경보다 약간 어둡게) */
-  border-radius: 4px;
-  height: 14px; /* 막대 두께 슬림하게 */
-  overflow: hidden;
-  width: 100%;
-}
-
-.duration-bar-fill {
-  height: 100%;
-  border-radius: 4px; /* 채워지는 부분도 둥글게 */
-  transition: width 0.7s cubic-bezier(0.25, 0.1, 0.25, 1); /* 너비 변경 애니메이션 */
-  /* 실제 배경색은 JSX에서 인라인 스타일로 적용됩니다. */
-}
-
-.duration-percentage-value {
-  font-size: 0.85em;
-  color: #546e7a; /* 퍼센트 값 텍스트 색상 */
-  font-weight: normal;
-  margin-top: 5px;
-}
-
-.channel-content-card ul {
+.ai-analysis-section ul {
   list-style-type: disc;
   padding-left: 20px;
-  margin-top: 10px;
+  margin-top: 0;
   font-size: 0.9em;
-  color: #546e7a;
-}
-.channel-content-card ul li {
-  margin-bottom: 5px;
-}
-.channel-content-card p i {
- color: #546e7a;
+  color: #475569;
 }
 
-.video-list {
-  display: grid;
-  gap: 20px;
+.ai-analysis-section ul li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
 }
 
-/* 🚀 이 부분 수정: video-item-preview는 이제 <a> 태그이므로 기본 링크 스타일 제거 */
-.video-item-preview {
-  display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #eef2f9;
-
-  /* 🚀 추가: 클릭 가능한 요소임을 나타내고 애니메이션 효과 준비 */
-  cursor: pointer;
-  text-decoration: none; /* 텍스트 밑줄 제거 (a 태그 기본 스타일) */
-  color: inherit; /* 상위 요소 색상 상속 (a 태그 기본 색상 변경) */
-  border: 1px solid transparent; /* 초기 테두리 투명하게 설정 */
-  border-radius: 8px; /* 약간의 둥근 모서리 추가 */
-  padding: 15px; /* 내부 여백 추가하여 hover 효과 시 깔끔하게 */
-  margin-bottom: -15px; /* border-bottom과 gap 충돌 방지 */
-  transition: all 0.2s ease-in-out; /* 모든 속성에 부드러운 전환 효과 */
+.ai-analysis-part+.ai-analysis-part {
+  margin-top: 1.5rem;
 }
-.video-item-preview:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-  margin-bottom: 0; /* 마지막 요소 margin 조정 */
-}
-
-/* 🚀 추가: 마우스 오버 시 효과 */
-.video-item-preview:hover {
-  background-color: #f5f8fb; /* 약간 밝은 배경색 */
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* 그림자 효과 */
-  transform: translateY(-3px); /* 위로 약간 이동 */
-  border-color: #cdd9e8; /* 테두리 색상 변경 */
-}
-
-
-.video-thumbnail-preview {
-  width: 160px;
-  height: 90px;
-  border-radius: 4px;
-  object-fit: cover;
-  flex-shrink: 0;
-  background-color: #e0e0e0;
-}
-
-.video-info-preview {
-  flex-grow: 1;
-}
-
-.video-title-preview {
-  font-size: 1em;
-  font-weight: 500;
-  color: #263238;
-  margin: 0 0 8px 0;
-  line-height: 1.3;
-}
-
-.video-meta-preview {
-  font-size: 0.8em;
-  color: #546e7a;
-  margin: 0;
-}
-
