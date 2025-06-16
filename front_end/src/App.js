@@ -11,6 +11,8 @@ import LoginCallback from './pages/LoginCallback';
 import CategoryAnalysisPage from './pages/CategoryAnalysisPage';
 import ChannelAnalysisPage from './pages/ChannelAnalysisPage'; // 🚀 새로 추가할 페이지 import
 
+import TestConnectionPage from './pages/TestConnectionPage'; // 🚀 새로 만든 테스트 페이지 import
+
 const PrivateRoute = () => {
   // ✅ 로그인 토큰 체크: 'access_token'으로 변경
   const isAuthenticated = !!localStorage.getItem('access_token');
@@ -41,6 +43,9 @@ const App = () => {
         {/* 🚀 채널 분석 페이지 라우트 추가 */}
         {/* 예: /channel/채널ID 와 같은 형태로 접근 */}
         <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
+
+  `     {/* 🚀 테스트 페이지 라우트 추가 */}
+        <Route path="admin" element={<TestConnectionPage />} />
 
       </Route>
 
