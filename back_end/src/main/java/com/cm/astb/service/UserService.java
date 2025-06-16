@@ -55,8 +55,8 @@ public class UserService {
 				user.setProfileImg(profileImg);
 				isChanged = true;
 			}
-			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToekn())) {
-				user.setGoogleRefreshToekn(googleRefreshToken);
+			if(googleRefreshToken != null && !googleRefreshToken.equals(user.getGoogleRefreshToken())) {
+				user.setGoogleRefreshToken(googleRefreshToken);
 				isChanged = true;
 			}
 
