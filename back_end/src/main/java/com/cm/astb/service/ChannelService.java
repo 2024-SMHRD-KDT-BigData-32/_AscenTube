@@ -92,9 +92,14 @@ public class ChannelService {
 			
 			channelInfoToSave.setTitle(apiChannel.getSnippet().getTitle());
 			channelInfoToSave.setDescription(apiChannel.getSnippet().getDescription());
-			channelInfoToSave.setChannelCustomUrl(apiChannel.getSnippet().getCustomUrl());
 			
-			if (apiChannel.getSnippet().getThumbnails() != null && apiChannel.getSnippet().getThumbnails().getDefault() != null) {
+			if (apiChannel.getSnippet().getCustomUrl() != null) {
+				channelInfoToSave.setChannelCustomUrl(apiChannel.getSnippet().getCustomUrl());
+			} else {
+				channelInfoToSave.setChannelCustomUrl("https://www.youtube.com/channel/" + apiChannel.getId());
+			}
+			
+			if (apiChannel.getSnippet().getThumbnails() != null) {
 				channelInfoToSave.setThumbnailUrl(apiChannel.getSnippet().getThumbnails().getDefault().getUrl());
 			}
 			

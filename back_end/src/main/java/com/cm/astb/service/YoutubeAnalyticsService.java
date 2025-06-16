@@ -59,7 +59,7 @@ public class YoutubeAnalyticsService {
 		request.setDimensions("day");
 		request.setSort("day");
 
-		return request.execute();
+		return request.execute();	
 	}
 
 	/**
