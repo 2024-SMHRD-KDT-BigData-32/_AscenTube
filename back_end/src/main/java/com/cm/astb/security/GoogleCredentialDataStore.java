@@ -50,7 +50,6 @@ public class GoogleCredentialDataStore extends AbstractDataStore<Serializable>{
 			oos.writeObject(value);
 			oos.close();
 			String credentialBase64 = Base64.getEncoder().encodeToString(bos.toByteArray());
-			logger.error(">>> [CRITICAL_DEBUG] Serialized Credential Base64 Length (should be < 16M for MEDIUMTEXT): {}", credentialBase64.length());
 			user.setGoogleCredentialJson(credentialBase64);
 			userRepository.save(user);
 			logger.info("Google Credential saved (Base64) for user: {}", googleId);
