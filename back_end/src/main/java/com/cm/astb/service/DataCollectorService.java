@@ -2,6 +2,7 @@ package com.cm.astb.service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.security.GeneralSecurityException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -20,8 +21,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cm.astb.entity.AgeGroup;
+import com.cm.astb.entity.AudienceStat;
+import com.cm.astb.entity.AudienceStatsId;
 import com.cm.astb.entity.ChannelStat;
 import com.cm.astb.entity.ChannelStatsId;
+import com.cm.astb.entity.DeviceAnalysis;
+import com.cm.astb.entity.DeviceAnalysisId;
+import com.cm.astb.entity.DeviceType;
+import com.cm.astb.entity.Gender;
+import com.cm.astb.entity.InflowRoute;
+import com.cm.astb.entity.InflowRouteId;
 import com.cm.astb.entity.User;
 import com.cm.astb.entity.VideoStat;
 import com.cm.astb.entity.VideoStatsId;
@@ -217,8 +227,20 @@ public class DataCollectorService {
 					logger.warn("Uploads playlist ID not found for channel {}. Skipping video data collection.",
 							channelId);
 				}
-                
-
+				
+				 logger.info("Collecting detailed Analytics stats (Audience, Inflow, Device) for user: {}, channel: {}", googleId, channelId);
+				 List<YouTubeVideo> allChannelVideos = youTubeVideoRepository.findByChannelId(channelId);
+				 for (YouTubeVideo youTubeVideo : allChannelVideos) {
+					Long videoId = youTubeVideo.getVideoId();
+					String youTubeVideoKey = youTubeVideo.getVideoKey();
+					LocalDateTime now = LocalDateTime.now();
+					
+					collectAudienceStats(googleId, youTubeVideoKey, now.format(formatter), videoId, youTubeVideo.getUploadedAt().toLocalDate());
+                    collectInflowRouteStats(googleId, youTubeVideoKey, now.format(formatter), videoId);
+                    collectDeviceAnalysisStats(googleId, youTubeVideoKey, now.format(formatter), videoId);
+				}
+				 
+				 logger.info("allChannelVideos : {}", allChannelVideos.toString());
             } catch (IOException | GeneralSecurityException e) {
                 logger.error("Error collecting data for user {}: {}", googleId, e.getMessage(), e);
             } catch (Exception e) {
@@ -228,6 +250,168 @@ public class DataCollectorService {
         logger.info("Daily data collection finished.");
 	}
 	
+	@Transactional
+	private void collectAudienceStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId, LocalDate uploadedDate) throws GeneralSecurityException, IOException {
+		logger.info("Collecting Audience Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
+		
+		LocalDateTime startDate = uploadedDate.atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+		
+		QueryResponse audienceResponse = youtubeAnalyticsService.getAudienceStats(googleId, startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), youTubeVideoKey);
+
+        if (audienceResponse == null || audienceResponse.getRows() == null || audienceResponse.getRows().isEmpty()) {
+            logger.warn("No audience data found for video {} on {}. Skipping saving.", youTubeVideoKey, dateStr);
+            return;
+        }
+        
+        LocalDateTime statsDateTime = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay();
+        
+        for (List<Object> row : audienceResponse.getRows()) {
+        	logger.debug("AudienceStats - Full Row for video {} on {}: {}", videoId, dateStr, row);
+        	
+            String genderStr = (String) row.get(0);
+            String ageGroupStr = (String) row.get(1);
+            Double watchingRatioDouble = ((BigDecimal) row.get(2)).doubleValue();
+
+            // Convert to ENUM
+            Gender gender = Gender.valueOf(genderStr.toUpperCase());
+            AgeGroup ageGroup = AgeGroup.fromDbValue(ageGroupStr);
+            logger.info("AudienceStats - API ageGroupStr: '{}', Converted AgeGroup: {}, getDbValue(): '{}'", ageGroupStr, ageGroup, ageGroup.getDbValue());
+            
+            
+            AudienceStatsId audienceStatsId = new AudienceStatsId(videoId, gender, ageGroup, statsDateTime);
+            Optional<AudienceStat> existingStat = audienceStatRepository.findById(audienceStatsId);
+            AudienceStat audienceStat = existingStat.orElseGet(AudienceStat::new);
+            
+            audienceStat.setId(audienceStatsId);
+            audienceStat.setWatchingRatio(BigDecimal.valueOf(watchingRatioDouble)); // Double -> BigDecimal
+
+            try {
+                audienceStatRepository.save(audienceStat);
+                logger.info("Saved Audience Stats for video {} on {}: Gender={}, Age={}, Ratio={}", videoId, dateStr, genderStr, ageGroupStr, watchingRatioDouble);
+            } catch (Exception dbSaveEx) {
+                logger.error("Error saving Audience Stats for video {} on {}: {}", videoId, dateStr, dbSaveEx.getMessage(), dbSaveEx);
+            }
+        }
+        
+	}
+	
+	@Transactional
+	private void collectInflowRouteStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId) throws GeneralSecurityException, IOException {
+		logger.info("Collecting Inflow Route Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
+		
+		LocalDateTime startDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(30).atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+		
+		LocalDateTime statsDateTime = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay();
+		
+		QueryResponse inflowResponse = youtubeAnalyticsService.getInflowRouteStats(googleId, startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+				youTubeVideoKey);
+
+		if (inflowResponse == null || inflowResponse.getRows() == null || inflowResponse.getRows().isEmpty()) {
+			logger.warn("No inflow route data found for video {} on {}. Skipping saving.", youTubeVideoKey, dateStr);
+			return;
+		}
+		
+		long totalInflowViewsForVideoAndDate = 0L;
+		for (List<Object> row : inflowResponse.getRows()) {
+			totalInflowViewsForVideoAndDate += ((BigDecimal) row.get(1)).longValue();
+		}
+        
+        for (List<Object> row : inflowResponse.getRows()) {
+            String trafficSourceTypeDimension = (String) row.get(0);
+            Long viewsMetric = ((BigDecimal) row.get(1)).longValue();
+            
+            InflowRouteId inflowRouteId = new InflowRouteId(videoId, trafficSourceTypeDimension, statsDateTime);
+            Optional<InflowRoute> existingStat = inflowRouteRepository.findById(inflowRouteId);
+            InflowRoute inflowRoute = existingStat.orElseGet(InflowRoute::new);
+            
+            inflowRoute.setId(inflowRouteId);
+            inflowRoute.setInflowCount(viewsMetric.intValue());
+            
+            BigDecimal inflowRate;
+            if (totalInflowViewsForVideoAndDate > 0) {
+                inflowRate = BigDecimal.valueOf(viewsMetric)
+                                          .divide(BigDecimal.valueOf(totalInflowViewsForVideoAndDate), 3, RoundingMode.HALF_UP) // 소수점 3자리까지 계산
+                                          .multiply(BigDecimal.valueOf(100));
+                inflowRate = inflowRate.setScale(1, RoundingMode.HALF_UP);
+            } else {
+                inflowRate = BigDecimal.ZERO;
+            }
+            
+            inflowRoute.setInflowRate(inflowRate);
+
+            try {
+                inflowRouteRepository.save(inflowRoute);
+                logger.info("Saved Inflow Route Stats for video {} on {}: Type={}, Count={}", videoId, dateStr, trafficSourceTypeDimension, viewsMetric);
+            } catch (Exception dbSaveEx) {
+                logger.error("Error saving Inflow Route Stats for video {} on {}: {}", videoId, dateStr, dbSaveEx.getMessage(), dbSaveEx);
+            }
+        }
+	}
+	
+	@Transactional
+	private void collectDeviceAnalysisStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId) throws IOException, GeneralSecurityException {
+        logger.info("Collecting Device Analysis Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
+        
+        LocalDateTime startDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(30).atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+		
+		LocalDateTime statsDateTime = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay();
+		
+        QueryResponse deviceResponse = youtubeAnalyticsService.getDeviceAnalysisStats(googleId, startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), 
+        		endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), youTubeVideoKey);
+        
+        if (deviceResponse == null || deviceResponse.getRows() == null || deviceResponse.getRows().isEmpty()) {
+            logger.warn("No device analysis data found for video {} on {}. Skipping saving.", youTubeVideoKey, dateStr);
+            return;
+        }
+        
+        
+        long totalDeviceViewsForVideoAndDate = 0L;
+        for (List<Object> row : deviceResponse.getRows()) {
+            totalDeviceViewsForVideoAndDate += ((BigDecimal) row.get(1)).longValue(); // 각 row의 views 메트릭 합산
+        }
+        
+        for (List<Object> row : deviceResponse.getRows()) {
+            String deviceTypeStr = (String) row.get(0);
+            Long deviceViewsMetric = ((BigDecimal) row.get(1)).longValue(); // Metrics: views (BigDecimal -> Long)
+
+            DeviceType deviceType = DeviceType.fromDbValue(deviceTypeStr);
+
+            DeviceAnalysisId currentDeviceAnalysisId = new DeviceAnalysisId(videoId, deviceType, statsDateTime);
+            Optional<DeviceAnalysis> currentExistingStat = deviceAnalysisRepository.findById(currentDeviceAnalysisId);
+            if (currentExistingStat.isPresent()) {
+                 logger.info("Device Analysis Stats already exist for video {} on {} for device type {}. Skipping saving (inner loop).", videoId, dateStr, deviceTypeStr);
+                 continue;
+            }
+
+            DeviceAnalysis deviceAnalysis = new DeviceAnalysis();
+            deviceAnalysis.setId(currentDeviceAnalysisId);
+            
+            BigDecimal watchingRatio;
+            if (totalDeviceViewsForVideoAndDate > 0) {
+                watchingRatio = BigDecimal.valueOf(deviceViewsMetric)
+                                          .divide(BigDecimal.valueOf(totalDeviceViewsForVideoAndDate), 3, RoundingMode.HALF_UP) // 소수점 3자리까지 계산
+                                          .multiply(BigDecimal.valueOf(100)); // 백분율로 변환
+
+                watchingRatio = watchingRatio.setScale(1, RoundingMode.HALF_UP);
+
+            } else {
+                watchingRatio = BigDecimal.ZERO;
+            }
+            deviceAnalysis.setWatchingRatio(watchingRatio);
+
+            try {
+                deviceAnalysisRepository.save(deviceAnalysis);
+                logger.info("Saved Device Analysis Stats for video {} on {}: Type={}, Ratio={}", videoId, dateStr, deviceTypeStr, watchingRatio);
+            } catch (Exception dbSaveEx) {
+                logger.error("Error saving Device Analysis Stats for video {} on {}: {}", videoId, dateStr, dbSaveEx.getMessage(), dbSaveEx);
+            }
+        }
+    }
+	
+
 	private Integer parseYouTubeDuration(String youtubeDuration) {
         if (youtubeDuration == null || youtubeDuration.isEmpty()) {
             return 0;
@@ -243,7 +427,6 @@ public class DataCollectorService {
         logger.info("Starting refresh of outdated channel info in TB_YT_CHANNEL...");
         LocalDateTime threshold = LocalDateTime.now().minusDays(channelUpdateDays); // N일 전 시간
 
-        // (3) N일보다 오래된 채널 정보만 조회
         List<YouTubeChannel> outdatedChannels = youTubeChannelRepository.findByUpdatedAtBefore(threshold);
 
         if (outdatedChannels.isEmpty()) {
@@ -255,7 +438,6 @@ public class DataCollectorService {
 
         for (YouTubeChannel channel : outdatedChannels) {
             try {
-                // getChannelInfoById 내부에서 API 호출 및 DB 저장/업데이트가 모두 처리됩니다.
                 logger.info("Refreshing channel info for ID: {} (last updated: {})", channel.getChannelId(), channel.getUpdatedAt());
                 channelService.getChannelInfoById(adminGoogleId, channel.getChannelId());
             } catch (IOException | GeneralSecurityException e) {
@@ -279,7 +461,6 @@ public class DataCollectorService {
 
         if (videoDetailsResponse != null && videoDetailsResponse.getItems() != null && !videoDetailsResponse.getItems().isEmpty()) {
             for (Video video : videoDetailsResponse.getItems()) {
-                // TB_VIDEO (YouTubeVideo 엔티티) 저장/업데이트
                 YouTubeVideo youTubeVideoToSave = youTubeVideoRepository.findByVideoKey(video.getId())
                                                                      .orElseGet(YouTubeVideo::new);
                 youTubeVideoToSave.setVideoKey(video.getId());

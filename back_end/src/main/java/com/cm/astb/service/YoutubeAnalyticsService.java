@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtubeAnalytics.v2.YouTubeAnalytics;
 import com.google.api.services.youtubeAnalytics.v2.model.QueryResponse;
 
@@ -180,6 +181,85 @@ public class YoutubeAnalyticsService {
 		request.setMaxResults(10);
 
 		return request.execute();
+	}
+
+	public QueryResponse getAudienceStats(String userId, String startDate, String endDate, String youTubeVideoKey) throws GeneralSecurityException, IOException {
+		Credential credential = oAuthService.getCredential(userId);
+		if (credential == null || credential.getAccessToken() == null) {
+			throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+		}
+		YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+		YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null)); // 채널 ID는 인증된 사용자 채널 또는 특정 채널
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("viewerPercentage"); // 시청 비율
+        request.setDimensions("gender,ageGroup"); // 성별, 연령대
+        request.setFilters("video==" + youTubeVideoKey); // 특정 비디오 필터링 (필수)
+        request.setSort("-viewerPercentage"); // 시청 비율 높은 순
+
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Audience Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	public QueryResponse getInflowRouteStats(String userId, String startDate, String endDate, String youTubeVideoKey) throws GeneralSecurityException, IOException {
+		Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
+        YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+        
+        YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null));
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("views");
+        request.setDimensions("insightTrafficSourceType");
+        request.setFilters("video==" + youTubeVideoKey);
+        request.setSort("-views");
+        
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Inflow Route Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	public QueryResponse getDeviceAnalysisStats(String userId, String startDate, String endDate,
+			String youTubeVideoKey) throws IOException, GeneralSecurityException {
+		Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
+        YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+        
+        YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null));
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("views");
+        request.setDimensions("deviceType");
+        request.setFilters("video==" + youTubeVideoKey);
+        request.setSort("-views");
+        
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Device Analysis Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	private String getChannelIdForAnalytics(String userId, String channelId) throws IOException, GeneralSecurityException {
+		if (channelId != null && !channelId.isEmpty()) {
+            return channelId;
+        }
+		
+		ChannelListResponse myChannelResponse = oAuthService.getYouTubeService(oAuthService.getCredential(userId))
+                .channels().list(Arrays.asList("id"))
+                .setMine(true)
+                .execute();
+		if (myChannelResponse != null && myChannelResponse.getItems() != null && !myChannelResponse.getItems().isEmpty()) {
+            return myChannelResponse.getItems().get(0).getId();
+        }
+		throw new GeneralSecurityException("Authenticated user has no YouTube channel or could not retrieve channel ID.");
 	}
 
 }
