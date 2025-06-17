@@ -21,7 +21,7 @@ public class DeviceAnalysisId implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Column(name = "VIDEO_ID", nullable = false)
-    private Integer videoId;
+    private Long videoId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "DEVICE_TYPE", nullable = false)
