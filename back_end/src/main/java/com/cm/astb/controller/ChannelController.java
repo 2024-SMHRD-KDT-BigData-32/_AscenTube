@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
+import com.cm.astb.dto.TopSubscriberContributingVideoDto;
 import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.ChannelService;
@@ -34,8 +36,7 @@ public class ChannelController {
 		this.videoAnalysisService = videoAnalysisService;
 	}
 
-	@GetMapping("/channel-info")
-	public ResponseEntity<?> getChannelInfo(@RequestParam("channelId") String channelId) {
+	public ResponseEntity<?> getChannelInfo(@RequestParam String channelId) {
 		try {
 
 			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -100,7 +101,6 @@ public class ChannelController {
 	
 	/**
      * 특정 채널의 최신 업로드 영상 성과 리스트를 반환하는 엔드포인트.
-     * 예시: GET /api/channels/{channelId}/latest-video-performance
      *
      * @param channelId 유튜브 채널 ID
      * @return 최신 영상 성과 정보 리스트
@@ -114,6 +114,42 @@ public class ChannelController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(performanceList);
+    }
+    
+    /**
+     * 특정 채널에서 구독자 증가 기여가 높은 영상 리스트를 반환하는 엔드포인트.
+     *
+     * @param channelId 유튜브 채널 ID
+     * @param limit     가져올 영상의 최대 개수 (기본값: 5)
+     * @return 구독자 증가 기여도 높은 영상 리스트
+     */
+    @GetMapping("/my-channel/top-sub-contribution")
+    public ResponseEntity<List<TopSubscriberContributingVideoDto>> getTopSubscriberVideos(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "5") int limit) {
+        List<TopSubscriberContributingVideoDto> topVideos = videoAnalysisService.getTopSubscriberContributingVideos(channelId, limit);
+        if (topVideos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(topVideos);
+    }
+    
+    /**
+     * 특정 채널에서 평균 시청 지속 시간이 높은 영상 리스트를 반환하는 엔드포인트.
+     *
+     * @param channelId 유튜브 채널 ID
+     * @param limit     가져올 영상의 최대 개수 (기본값: 5)
+     * @return 평균 시청 지속 시간 높은 영상 리스트
+     */
+    @GetMapping("/my-channel/top-avg-watch-time")
+    public ResponseEntity<List<TopAverageWatchTimeVideoDto>> getTopAverageWatchTimeVideos(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "5") int limit) {
+        List<TopAverageWatchTimeVideoDto> topVideos = videoAnalysisService.getTopAverageWatchTimeVideos(channelId, limit);
+        if (topVideos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(topVideos);
     }
 }
 
