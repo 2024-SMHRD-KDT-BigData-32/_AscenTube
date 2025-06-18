@@ -10,4 +10,5 @@ import com.cm.astb.entity.YouTubeVideo;
 public interface YouTubeVideoRepository extends JpaRepository<YouTubeVideo, Long>{
 	Optional<YouTubeVideo> findByVideoKey(String videoKey);
 	List<YouTubeVideo> findByChannelId(String channelId);
+	List<YouTubeVideo> findByChannelIdOrderByUploadedAtDesc(String channelId);
 }

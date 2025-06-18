@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.ChannelService;
+import com.cm.astb.service.VideoAnalysisService;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.Video;
@@ -25,9 +27,11 @@ import com.google.api.services.youtube.model.Video;
 public class ChannelController {
 
 	private final ChannelService channelService;
+	private final VideoAnalysisService videoAnalysisService;
 
-	public ChannelController(ChannelService channelService) {
+	public ChannelController(ChannelService channelService, VideoAnalysisService videoAnalysisService) {
 		this.channelService = channelService;
+		this.videoAnalysisService = videoAnalysisService;
 	}
 
 	@GetMapping("/channel-info")
@@ -93,5 +97,23 @@ public class ChannelController {
 					.body(Map.of("error", e.getMessage()));
 		}
 	}
+	
+	/**
+     * 특정 채널의 최신 업로드 영상 성과 리스트를 반환하는 엔드포인트.
+     * 예시: GET /api/channels/{channelId}/latest-video-performance
+     *
+     * @param channelId 유튜브 채널 ID
+     * @return 최신 영상 성과 정보 리스트
+     */
+    @GetMapping("/my-channel/latest-video-performance")
+    public ResponseEntity<List<VideoPerformanceDto>> getLatestVideoPerformance(
+    		@RequestParam String channelId,
+    		@RequestParam(defaultValue = "5") int limit) {
+        List<VideoPerformanceDto> performanceList = videoAnalysisService.getLatestUploadedVideoPerformance(channelId, limit);
+        if (performanceList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(performanceList);
+    }
 }
 
