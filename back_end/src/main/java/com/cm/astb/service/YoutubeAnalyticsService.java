@@ -247,6 +247,33 @@ public class YoutubeAnalyticsService {
         return response;
 	}
 	
+	public QueryResponse getVideoSubscriberGains(String googleId, String startDate, String endDate, String videoId)
+			throws IOException, GeneralSecurityException {
+		logger.info("Fetching subscriber gains for videoId: {}, from {} to {}", videoId, startDate, endDate);
+
+		Credential credential = oAuthService.getCredential(googleId);
+		if (credential == null) {
+			logger.error("Credential is null for user {}", googleId);
+			throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+		}
+
+		YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+		// YouTube Analytics API 쿼리 빌드
+		YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports().query()
+				.setIds("channel==mine")
+				.setStartDate(startDate).
+				setEndDate(endDate).
+				setMetrics("subscribersGained")
+				.setDimensions("video")
+				.setFilters("video==" + videoId);
+
+		QueryResponse response = query.execute();
+		logger.debug("YouTube Analytics Response (Video Subscriber Gains for {}): {}", videoId,
+				response.toPrettyString());
+		return response;
+	}
+	
 	private String getChannelIdForAnalytics(String userId, String channelId) throws IOException, GeneralSecurityException {
 		if (channelId != null && !channelId.isEmpty()) {
             return channelId;
@@ -260,6 +287,30 @@ public class YoutubeAnalyticsService {
             return myChannelResponse.getItems().get(0).getId();
         }
 		throw new GeneralSecurityException("Authenticated user has no YouTube channel or could not retrieve channel ID.");
+	}
+
+	public QueryResponse getVideoAnalyticsCumulativeMetrics(String googleId, String startDate, String endDate, String videoId, String metrics) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching cumulative analytics (metrics: {}) for videoId: {}, from {} to {}", metrics, videoId, startDate, endDate);
+
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==MINE")
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics(metrics)
+	        .setFilters("video==" + videoId);
+
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Cumulative Video Metrics for {}): {}", videoId, response.toPrettyString());
+	    return response;
 	}
 
 }

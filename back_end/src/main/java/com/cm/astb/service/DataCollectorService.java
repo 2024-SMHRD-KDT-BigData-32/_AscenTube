@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -108,7 +109,7 @@ public class DataCollectorService {
 	 * initialDelay = 10000ms (Scheduling starts in 10 seconds after application starting)
      * fixedRate = 24 * 60 * 60 * 1000ms (schedule again in 24hrs)
 	 */
-	@Scheduled(initialDelay = 10000, fixedRate = 24 * 60 * 60 * 1000)
+	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
 	@Transactional
 	public void collectDailyChannelAndVideoStats() {
 		logger.info("Starting daily data collection for YouTube Analytics");
@@ -121,8 +122,8 @@ public class DataCollectorService {
 		}
 		
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		LocalDate endDate = LocalDate.now().minusDays(3);
-        LocalDate startDate = endDate.minus(Period.ofDays(29));
+		LocalDate today = LocalDate.now();
+		LocalDate analyticsDataEndDate = today.minusDays(1);
 		
         for (User user : users) {
             String googleId = user.getGoogleId();
@@ -143,7 +144,7 @@ public class DataCollectorService {
                 }
                 Channel currentChannel = currentChannelInfoResponse.getItems().get(0);
 
-                for (LocalDate currentDate = startDate; !currentDate.isAfter(endDate); currentDate = currentDate.plusDays(1)) {
+                for (LocalDate currentDate = today.minusDays(29); !currentDate.isAfter(analyticsDataEndDate); currentDate = currentDate.plusDays(1)) {
                     String dateStr = currentDate.format(formatter);
                     LocalDateTime statsDateTime = currentDate.atStartOfDay();
 
@@ -233,14 +234,102 @@ public class DataCollectorService {
 				 for (YouTubeVideo youTubeVideo : allChannelVideos) {
 					Long videoId = youTubeVideo.getVideoId();
 					String youTubeVideoKey = youTubeVideo.getVideoKey();
-					LocalDateTime now = LocalDateTime.now();
+					LocalDate videoUploadedDate = youTubeVideo.getUploadedAt().toLocalDate();
 					
-					collectAudienceStats(googleId, youTubeVideoKey, now.format(formatter), videoId, youTubeVideo.getUploadedAt().toLocalDate());
-                    collectInflowRouteStats(googleId, youTubeVideoKey, now.format(formatter), videoId);
-                    collectDeviceAnalysisStats(googleId, youTubeVideoKey, now.format(formatter), videoId);
+					if (videoUploadedDate.isAfter(analyticsDataEndDate)) {
+	                    logger.info("Video {} uploaded date {} is after current analytics end date {}. Skipping detailed video stats collection.",
+	                                youTubeVideoKey, videoUploadedDate, analyticsDataEndDate);
+	                    continue;
+	                }
+					
+					VideoStatsId videoStatsId = new VideoStatsId(videoId, analyticsDataEndDate.atStartOfDay());
+					Optional<VideoStat> existingVideoStat = videoStatRepository.findById(videoStatsId);
+
+					VideoStat videoStatToSave = existingVideoStat.orElseGet(() -> {
+						VideoStat newStat = new VideoStat();
+						newStat.setId(videoStatsId);
+						return newStat;
+					});
+					
+					try {
+	                    YouTube.Videos.List videoDetailsRequest = youTube.videos().list(Arrays.asList("statistics"));
+	                    videoDetailsRequest.setId(Collections.singletonList(youTubeVideoKey));
+	                    VideoListResponse videoDetailsResponse = videoDetailsRequest.execute();
+
+	                    if (videoDetailsResponse != null && videoDetailsResponse.getItems() != null && !videoDetailsResponse.getItems().isEmpty()) {
+	                        Video video = videoDetailsResponse.getItems().get(0);
+	                        if (video.getStatistics() != null) {
+	                            videoStatToSave.setViewCount(video.getStatistics().getViewCount().longValue());
+	                            videoStatToSave.setLikeCount(video.getStatistics().getLikeCount() != null ? video.getStatistics().getLikeCount().intValue() : 0);
+	                            videoStatToSave.setCommentCount(video.getStatistics().getCommentCount() != null ? video.getStatistics().getCommentCount().intValue() : 0);
+	                            logger.info("Retrieved Data API Stats for video {} (Current): ViewCount={}, LikeCount={}, CommentCount={}",
+	                                        youTubeVideoKey, videoStatToSave.getViewCount(), videoStatToSave.getLikeCount(), videoStatToSave.getCommentCount());
+	                        } else {
+	                            logger.warn("No statistics found from Data API for video {}. Setting counts to 0.", youTubeVideoKey);
+	                            videoStatToSave.setViewCount(0L);
+	                            videoStatToSave.setLikeCount(0);
+	                            videoStatToSave.setCommentCount(0);
+	                        }
+	                    } else {
+	                        logger.warn("Video details not found from Data API for video {}. Skipping setting current stats.", youTubeVideoKey);
+	                        if (!existingVideoStat.isPresent()) {
+	                            videoStatToSave.setViewCount(0L);
+	                            videoStatToSave.setLikeCount(0);
+	                            videoStatToSave.setCommentCount(0);
+	                        }
+	                    }
+	                } catch (IOException e) {
+	                    logger.error("Error fetching current video statistics from Data API for video {}: {}", youTubeVideoKey, e.getMessage());
+	                    if (!existingVideoStat.isPresent()) {
+	                        videoStatToSave.setViewCount(0L);
+	                        videoStatToSave.setLikeCount(0);
+	                        videoStatToSave.setCommentCount(0);
+	                    }
+	                }
+					
+					try {
+	                    String metricsForCumulative = "subscribersGained,averageViewDuration";
+	                    QueryResponse videoAnalyticsCumulativeResponse = youtubeAnalyticsService.getVideoAnalyticsCumulativeMetrics(
+	                            googleId, videoUploadedDate.format(formatter), analyticsDataEndDate.format(formatter), youTubeVideoKey, metricsForCumulative);
+
+	                    if (videoAnalyticsCumulativeResponse != null && videoAnalyticsCumulativeResponse.getRows() != null && !videoAnalyticsCumulativeResponse.getRows().isEmpty()) {
+	                        List<Object> analyticRow = videoAnalyticsCumulativeResponse.getRows().get(0);
+	                        // Assuming order: subscribersGained, averageViewDuration
+	                        Long cumulativeSubGained = ((BigDecimal) analyticRow.get(0)).longValue();
+	                        Long cumulativeAvgDuration = ((BigDecimal) analyticRow.get(1)).longValue();
+
+	                        videoStatToSave.setAvgWatchTime(cumulativeAvgDuration.intValue());
+	                        videoStatToSave.setSubscriberGained(cumulativeSubGained.intValue());
+
+	                        logger.info("Retrieved Cumulative Analytics for video {} (Up to {}): SubGained={}, AvgDuration={}",
+	                                youTubeVideoKey, analyticsDataEndDate.format(formatter), cumulativeSubGained, cumulativeAvgDuration);
+
+	                    } else {
+	                        logger.warn("No cumulative analytics data found for video {} up to {}. Setting relevant stats to 0.", youTubeVideoKey, analyticsDataEndDate.format(formatter));
+	                        videoStatToSave.setAvgWatchTime(0);
+	                        videoStatToSave.setSubscriberGained(0);
+	                    }
+	                } catch (IOException | GeneralSecurityException e) {
+	                    logger.error("Error fetching cumulative video analytics for video {} up to {}: {}", youTubeVideoKey, analyticsDataEndDate.format(formatter), e.getMessage());
+	                    videoStatToSave.setAvgWatchTime(0);
+	                    videoStatToSave.setSubscriberGained(0);
+	                }
+
+	                // 최종 VideoStat 객체 저장/업데이트
+	                try {
+	                    videoStatRepository.save(videoStatToSave);
+	                    logger.info("Saved/Updated VideoStat for video {} on {}. Final values: ViewCount={}, LikeCount={}, CommentCount={}, AvgWatchTime={}, SubscriberGained={}",
+	                            youTubeVideoKey, today.atStartOfDay().format(formatter), videoStatToSave.getViewCount(), videoStatToSave.getLikeCount(),
+	                            videoStatToSave.getCommentCount(), videoStatToSave.getAvgWatchTime(), videoStatToSave.getSubscriberGained());
+	                } catch (Exception dbSaveEx) {
+	                    logger.error("Error saving/updating VideoStat for video {} on {}: {}", youTubeVideoKey, today.atStartOfDay().format(formatter), dbSaveEx.getMessage(), dbSaveEx);
+	                }
+					
+					collectAudienceStats(googleId, youTubeVideoKey, today.format(formatter), videoId, youTubeVideo.getUploadedAt().toLocalDate());
+                    collectInflowRouteStats(googleId, youTubeVideoKey, today.format(formatter), videoId, youTubeVideo.getUploadedAt().toLocalDate());
+                    collectDeviceAnalysisStats(googleId, youTubeVideoKey, today.format(formatter), videoId, youTubeVideo.getUploadedAt().toLocalDate());
 				}
 				 
-				 logger.info("allChannelVideos : {}", allChannelVideos.toString());
             } catch (IOException | GeneralSecurityException e) {
                 logger.error("Error collecting data for user {}: {}", googleId, e.getMessage(), e);
             } catch (Exception e) {
@@ -255,7 +344,7 @@ public class DataCollectorService {
 		logger.info("Collecting Audience Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
 		
 		LocalDateTime startDate = uploadedDate.atStartOfDay();
-		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(1).atStartOfDay();
 		
 		QueryResponse audienceResponse = youtubeAnalyticsService.getAudienceStats(googleId, startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), youTubeVideoKey);
 
@@ -281,6 +370,10 @@ public class DataCollectorService {
             
             AudienceStatsId audienceStatsId = new AudienceStatsId(videoId, gender, ageGroup, statsDateTime);
             Optional<AudienceStat> existingStat = audienceStatRepository.findById(audienceStatsId);
+            if (existingStat.isPresent()) {
+                logger.info("Audience Stats already exist for video {} on {} for device type {}. Skipping saving (inner loop).", videoId, dateStr);
+                continue;
+           }
             AudienceStat audienceStat = existingStat.orElseGet(AudienceStat::new);
             
             audienceStat.setId(audienceStatsId);
@@ -297,11 +390,11 @@ public class DataCollectorService {
 	}
 	
 	@Transactional
-	private void collectInflowRouteStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId) throws GeneralSecurityException, IOException {
+	private void collectInflowRouteStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId, LocalDate uploadedDate) throws GeneralSecurityException, IOException {
 		logger.info("Collecting Inflow Route Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
 		
-		LocalDateTime startDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(30).atStartOfDay();
-		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+		LocalDateTime startDate = uploadedDate.atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(1).atStartOfDay();
 		
 		LocalDateTime statsDateTime = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay();
 		
@@ -324,6 +417,11 @@ public class DataCollectorService {
             
             InflowRouteId inflowRouteId = new InflowRouteId(videoId, trafficSourceTypeDimension, statsDateTime);
             Optional<InflowRoute> existingStat = inflowRouteRepository.findById(inflowRouteId);
+            if (existingStat.isPresent() || viewsMetric < 1) {
+                logger.info("Inflow Route Stats already exist for video {} on {} for device type {}. Skipping saving (inner loop).", videoId, dateStr);
+                continue;
+           }
+            
             InflowRoute inflowRoute = existingStat.orElseGet(InflowRoute::new);
             
             inflowRoute.setId(inflowRouteId);
@@ -351,11 +449,11 @@ public class DataCollectorService {
 	}
 	
 	@Transactional
-	private void collectDeviceAnalysisStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId) throws IOException, GeneralSecurityException {
+	private void collectDeviceAnalysisStats(String googleId, String youTubeVideoKey, String dateStr, Long videoId, LocalDate uploadedDate) throws IOException, GeneralSecurityException {
         logger.info("Collecting Device Analysis Stats for video: {} (YouTube ID: {}) on date: {}", videoId, youTubeVideoKey, dateStr);
         
-        LocalDateTime startDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(30).atStartOfDay();
-		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(3).atStartOfDay();
+        LocalDateTime startDate = uploadedDate.atStartOfDay();
+		LocalDateTime endDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).minusDays(1).atStartOfDay();
 		
 		LocalDateTime statsDateTime = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay();
 		
@@ -481,6 +579,7 @@ public class DataCollectorService {
                 } else if (video.getSnippet().getDefaultLanguage() != null) {
                     youTubeVideoToSave.setVideoLanguage(video.getSnippet().getDefaultLanguage());
                 }
+//                logger.info("privacyStatus: {}" + video.getStatus().getPrivacyStatus());
                 if (video.getStatus() != null && video.getStatus().getPrivacyStatus() != null) {
                     youTubeVideoToSave.setPublicYn(video.getStatus().getPrivacyStatus().equals("public") ? "Y" : "N");
                 } else {
@@ -506,8 +605,8 @@ public class DataCollectorService {
                     videoStat.setLikeCount(video.getStatistics().getLikeCount() != null ? video.getStatistics().getLikeCount().intValue() : 0);
                     videoStat.setCommentCount(video.getStatistics().getCommentCount() != null ? video.getStatistics().getCommentCount().intValue() : 0);
                     
-                    videoStatRepository.save(videoStat);
-                }
+//                    videoStatRepository.save(videoStat);
+                }	
             }
         }
     }
