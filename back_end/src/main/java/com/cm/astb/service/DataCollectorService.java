@@ -100,7 +100,6 @@ public class DataCollectorService {
 			InflowRouteRepository inflowRouteRepository, DeviceAnalysisRepository deviceAnalysisRepository,
 			CommentRepository commentRepository, InsightRepository insightRepository,
 			ChannelDashboardStatRepository channelDashboardStatRepository, ObjectMapper objectMapper) {
-		super();
 		this.oAuthService = oAuthService;
 		this.userService = userService;
 		this.channelService = channelService;
@@ -123,7 +122,7 @@ public class DataCollectorService {
 	 * initialDelay = 10000ms (Scheduling starts in 10 seconds after application starting)
      * fixedRate = 24 * 60 * 60 * 1000ms (schedule again in 24hrs)
 	 */
-//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
 	@Transactional
 	public void collectDailyChannelAndVideoStats() {
 		logger.info("Starting daily data collection for YouTube Analytics");
@@ -193,6 +192,18 @@ public class DataCollectorService {
                     channelStat.setDailyViewsCnt(views);
                     channelStat.setEstimatedMinWatched(estimatedMinutesWatched);
                     channelStat.setAvgViewDuration(averageViewDuration);
+                    
+                    if (currentChannel.getStatistics() != null) {
+                        channelStat.setSubscriberCnt(currentChannel.getStatistics().getSubscriberCount().longValue());
+                        channelStat.setTotalViewsCnt(currentChannel.getStatistics().getViewCount().longValue());
+                        channelStat.setVideosCnt(currentChannel.getStatistics().getVideoCount().longValue());
+
+                    } else {
+                        logger.warn("No statistics found for channel {} from Data API. Setting total counts to 0.", channelId);
+                        channelStat.setSubscriberCnt(0L);
+                        channelStat.setTotalViewsCnt(0L);
+                        channelStat.setVideosCnt(0L);
+                    }
                     
                     try {
                         channelStatRepository.save(channelStat);
@@ -533,7 +544,7 @@ public class DataCollectorService {
     }
 	
 //	@Scheduled(cron = "0 0 1 * * ?") 
-	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
     @Transactional
     public void refreshOutdatedChannelInfo() {
         logger.info("Starting refresh of outdated channel info in TB_YT_CHANNEL...");
