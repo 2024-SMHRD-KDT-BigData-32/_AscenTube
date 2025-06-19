@@ -5,7 +5,8 @@ import axios from 'axios';
 import '../styles/pages/VidAnalysis.css';
 import '../styles/pages/Ai.css';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-
+// [추가] 스크립트를 가져오기 위한 라이브러리
+import { YoutubeTranscript } from 'youtube-transcript';
 
 // =================================================================================
 // =                            상수 및 헬퍼 함수 정의                               =
