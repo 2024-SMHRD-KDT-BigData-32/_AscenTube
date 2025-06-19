@@ -75,4 +75,8 @@ public class UserService {
 	public List<User> findAllUsers() {
 		return userRepository.findAll();
 	}
+
+	public Optional<User> findUserByChannelId(String channelId) {
+		return userRepository.findByMyChannelId(channelId);
+	}
 }

@@ -10,4 +10,5 @@ import com.cm.astb.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByGoogleId(String googleId);
+	Optional<User> findByMyChannelId(String channelId);
 }

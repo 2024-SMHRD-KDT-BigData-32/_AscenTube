@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cm.astb.dto.ChannelDashboardSummaryDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
 import com.cm.astb.dto.TopSubscriberContributingVideoDto;
 import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
+import com.cm.astb.service.ChannelAnalysisService;
 import com.cm.astb.service.ChannelService;
 import com.cm.astb.service.VideoAnalysisService;
 import com.google.api.services.youtube.model.Channel;
@@ -30,12 +33,16 @@ public class ChannelController {
 
 	private final ChannelService channelService;
 	private final VideoAnalysisService videoAnalysisService;
-
-	public ChannelController(ChannelService channelService, VideoAnalysisService videoAnalysisService) {
+	private final ChannelAnalysisService channelAnalysisService;
+	
+	public ChannelController(ChannelService channelService, VideoAnalysisService videoAnalysisService,
+			ChannelAnalysisService channelAnalysisService) {
 		this.channelService = channelService;
 		this.videoAnalysisService = videoAnalysisService;
+		this.channelAnalysisService = channelAnalysisService;
 	}
 
+	@GetMapping("/channel-info")
 	public ResponseEntity<?> getChannelInfo(@RequestParam String channelId) {
 		try {
 
@@ -136,7 +143,6 @@ public class ChannelController {
     
     /**
      * 특정 채널에서 평균 시청 지속 시간이 높은 영상 리스트를 반환하는 엔드포인트.
-     *
      * @param channelId 유튜브 채널 ID
      * @param limit     가져올 영상의 최대 개수 (기본값: 5)
      * @return 평균 시청 지속 시간 높은 영상 리스트
@@ -150,6 +156,19 @@ public class ChannelController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(topVideos);
+    }
+    
+    /**
+     * 특정 채널의 종합 대시보드 통계 데이터를 반환하는 엔드포인트.
+     * @param channelId 유튜브 채널 ID
+     * @return 채널 대시보드 종합 통계 DTO
+     */
+    @GetMapping("/my-channel/dashboard-summary")
+    public ResponseEntity<ChannelDashboardSummaryDto> getChannelDashboardSummary(@RequestParam String channelId) {
+        Optional<ChannelDashboardSummaryDto> summaryDto = channelAnalysisService.getChannelDashboardSummary(channelId);
+
+        return summaryDto.map(ResponseEntity::ok)
+                         .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
 
