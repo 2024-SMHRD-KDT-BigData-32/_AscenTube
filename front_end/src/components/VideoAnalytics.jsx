@@ -222,8 +222,8 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                 
                 const processedVideos = processApiData(rawData);
     
-                const shorts = processedVideos.filter(v => parseDurationToSeconds(v.duration) < 180);
-                const regulars = processedVideos.filter(v => parseDurationToSeconds(v.duration) >= 180);
+                const shorts = processedVideos.filter(v => parseDurationToSeconds(v.duration) <= 180);
+                const regulars = processedVideos.filter(v => parseDurationToSeconds(v.duration) > 180);
     
                 console.log(`[2단계] 3분 미만 (숏츠 후보) 개수: %c${shorts.length}개`, "color: blue; font-weight: bold;");
                 console.log(`[3단계] 3분 이상 (일반 영상 후보) 개수: %c${regulars.length}개`, "color: green; font-weight: bold;");
@@ -389,7 +389,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
             <h2 className="section-subtitle">{title}</h2>
             
             <section className="video-list-container" style={{marginBottom: '50px'}}>
-                <h3 className="list-title">인기 동영상 (3분 이상)</h3>
+                <h3 className="list-title">인기 동영상</h3>
                 {regularVideos.length > 0 ? (
                     regularVideos.map(video => renderVideoItem(video, 'regular'))
                 ) : (
@@ -398,7 +398,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
             </section>
 
             <section className="video-list-container">
-                <h3 className="list-title">인기 숏츠 (3분 미만)</h3>
+                <h3 className="list-title">인기 숏츠</h3>
                 {shortsVideos.length > 0 ? (
                     shortsVideos.map(video => renderVideoItem(video, 'shorts'))
                 ) : (
