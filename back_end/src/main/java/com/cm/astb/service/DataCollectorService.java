@@ -9,9 +9,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cm.astb.entity.AgeGroup;
 import com.cm.astb.entity.AudienceStat;
 import com.cm.astb.entity.AudienceStatsId;
+import com.cm.astb.entity.ChannelDashboardStat;
+import com.cm.astb.entity.ChannelDashboardStatsId;
 import com.cm.astb.entity.ChannelStat;
 import com.cm.astb.entity.ChannelStatsId;
 import com.cm.astb.entity.DeviceAnalysis;
@@ -39,6 +45,7 @@ import com.cm.astb.entity.VideoStatsId;
 import com.cm.astb.entity.YouTubeChannel;
 import com.cm.astb.entity.YouTubeVideo;
 import com.cm.astb.repository.AudienceStatRepository;
+import com.cm.astb.repository.ChannelDashboardStatRepository;
 import com.cm.astb.repository.ChannelStatRepository;
 import com.cm.astb.repository.CommentRepository;
 import com.cm.astb.repository.DeviceAnalysisRepository;
@@ -47,7 +54,9 @@ import com.cm.astb.repository.InsightRepository;
 import com.cm.astb.repository.VideoStatRepository;
 import com.cm.astb.repository.YouTubeChannelRepository;
 import com.cm.astb.repository.YouTubeVideoRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
@@ -75,19 +84,22 @@ public class DataCollectorService {
     private final DeviceAnalysisRepository deviceAnalysisRepository;
     private final CommentRepository commentRepository;
     private final InsightRepository insightRepository;
+    private final ChannelDashboardStatRepository channelDashboardStatRepository;
+    private final ObjectMapper objectMapper;
     
     @Value("${youtube.data-collection.admin-user-id}")
     private String adminGoogleId;
 
     @Value("${youtube.data-collection.channel-update-days}")
     private int channelUpdateDays;
-    
+	
 	public DataCollectorService(OAuthService oAuthService, UserService userService, ChannelService channelService,
 			YoutubeAnalyticsService youtubeAnalyticsService, YouTubeChannelRepository youTubeChannelRepository,
 			YouTubeVideoRepository youTubeVideoRepository, VideoStatRepository videoStatRepository,
 			ChannelStatRepository channelStatRepository, AudienceStatRepository audienceStatRepository,
 			InflowRouteRepository inflowRouteRepository, DeviceAnalysisRepository deviceAnalysisRepository,
-			CommentRepository commentRepository, InsightRepository insightRepository) {
+			CommentRepository commentRepository, InsightRepository insightRepository,
+			ChannelDashboardStatRepository channelDashboardStatRepository, ObjectMapper objectMapper) {
 		this.oAuthService = oAuthService;
 		this.userService = userService;
 		this.channelService = channelService;
@@ -101,9 +113,10 @@ public class DataCollectorService {
 		this.deviceAnalysisRepository = deviceAnalysisRepository;
 		this.commentRepository = commentRepository;
 		this.insightRepository = insightRepository;
+		this.channelDashboardStatRepository = channelDashboardStatRepository;
+		this.objectMapper = objectMapper;
 	}
-    
-	
+
 	/**
 	 * Store all of user's channel, once in a day.
 	 * initialDelay = 10000ms (Scheduling starts in 10 seconds after application starting)
@@ -179,6 +192,18 @@ public class DataCollectorService {
                     channelStat.setDailyViewsCnt(views);
                     channelStat.setEstimatedMinWatched(estimatedMinutesWatched);
                     channelStat.setAvgViewDuration(averageViewDuration);
+                    
+                    if (currentChannel.getStatistics() != null) {
+                        channelStat.setSubscriberCnt(currentChannel.getStatistics().getSubscriberCount().longValue());
+                        channelStat.setTotalViewsCnt(currentChannel.getStatistics().getViewCount().longValue());
+                        channelStat.setVideosCnt(currentChannel.getStatistics().getVideoCount().longValue());
+
+                    } else {
+                        logger.warn("No statistics found for channel {} from Data API. Setting total counts to 0.", channelId);
+                        channelStat.setSubscriberCnt(0L);
+                        channelStat.setTotalViewsCnt(0L);
+                        channelStat.setVideosCnt(0L);
+                    }
                     
                     try {
                         channelStatRepository.save(channelStat);
@@ -519,13 +544,14 @@ public class DataCollectorService {
     }
 	
 //	@Scheduled(cron = "0 0 1 * * ?") 
-	@Scheduled(initialDelay = 10000, fixedRate = 24 * 60 * 60 * 1000)
+//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
     @Transactional
     public void refreshOutdatedChannelInfo() {
         logger.info("Starting refresh of outdated channel info in TB_YT_CHANNEL...");
         LocalDateTime threshold = LocalDateTime.now().minusDays(channelUpdateDays); // N일 전 시간
 
         List<YouTubeChannel> outdatedChannels = youTubeChannelRepository.findByUpdatedAtBefore(threshold);
+        outdatedChannels.add(youTubeChannelRepository.findById("UCpP6Av1nV0uh2Ys3T7QiXPw").get());
 
         if (outdatedChannels.isEmpty()) {
             logger.info("No outdated channels found in TB_YT_CHANNEL to refresh.");
@@ -533,18 +559,208 @@ public class DataCollectorService {
         }
 
         logger.info("Found {} outdated channels to refresh using admin ID: {}", outdatedChannels.size(), adminGoogleId);
+        
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate analyticsEndDate = LocalDate.now().minusDays(1);
+        LocalDate analyticsStartDate = analyticsEndDate.minus(Period.ofDays(29));
 
+        LocalDateTime collectionDateForDashboard = LocalDate.now().minusDays(1).atStartOfDay();
+        
         for (YouTubeChannel channel : outdatedChannels) {
+            String channelId = channel.getChannelId();
+            
             try {
-                logger.info("Refreshing channel info for ID: {} (last updated: {})", channel.getChannelId(), channel.getUpdatedAt());
-                channelService.getChannelInfoById(adminGoogleId, channel.getChannelId());
+                logger.info("Refreshing channel info for ID: {} (last updated: {})", channelId, channel.getUpdatedAt());
+                channelService.getChannelInfoById(adminGoogleId, channelId);
+                
+                Optional<User> user = userService.findUserByChannelId(channelId);
+                if (user.isEmpty()) {
+                    logger.warn("No user found for channel ID: {}. Skipping dashboard stats collection for this channel.", channelId);
+                    continue;
+                }
+                User channelUser = user.get();
+                String googleId = channelUser.getGoogleId();
+                
+                // 채널 대시보드 통계 수집 (TB_CHANNEL_DASHBOARD_STATS)
+                logger.info("Collecting dashboard stats for channel: {}", channelId);
+
+                ChannelDashboardStatsId dashboardStatsId = new ChannelDashboardStatsId(channelId, collectionDateForDashboard);
+                Optional<ChannelDashboardStat> existingDashboardStat = channelDashboardStatRepository.findById(dashboardStatsId);
+                if(existingDashboardStat.isPresent()) {
+                	continue;
+                }
+                ChannelDashboardStat dashboardStatToSave = existingDashboardStat.orElseGet(ChannelDashboardStat::new);
+                dashboardStatToSave.setId(dashboardStatsId);
+
+                // 1. 성별 분포 (Gender Distribution)
+                QueryResponse genderAgeResponse = youtubeAnalyticsService.getChannelAudienceAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
+                if (genderAgeResponse != null && genderAgeResponse.getRows() != null && !genderAgeResponse.getRows().isEmpty()) {
+                    // 성별 데이터를 Map에 집계 (gender, views)
+                    Map<String, Long> genderViews = new HashMap<>();
+                    long totalViewsForGender = 0;
+                    for (List<Object> row : genderAgeResponse.getRows()) {
+                        String gender = (String) row.get(0); // gender
+                        Long views = ((BigDecimal) row.get(2)).longValue(); // views (or viewerPercentage for gender,ageGroup)
+                        genderViews.merge(gender, views, Long::sum);
+                        totalViewsForGender += views;
+                    }
+                    List<Map<String, Object>> genderList = new ArrayList<>();
+                    for (Map.Entry<String, Long> entry : genderViews.entrySet()) {
+                        double percentage = (totalViewsForGender > 0) ? (double) entry.getValue() / totalViewsForGender * 100 : 0.0;
+                        Map<String, Object> genderData = new HashMap<>();
+                        genderData.put("gender", entry.getKey());
+                        genderData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+                        genderList.add(genderData);
+                    }
+                    dashboardStatToSave.setGenderDistributionJson(objectMapper.writeValueAsString(genderList));
+                } else {
+                    logger.warn("No gender data found for channel {}", channelId);
+                    dashboardStatToSave.setGenderDistributionJson("[]");
+                }
+
+                // 2. 연령대 분포 (Age Group Distribution)
+                if (genderAgeResponse != null && genderAgeResponse.getRows() != null && !genderAgeResponse.getRows().isEmpty()) {
+                    Map<String, Long> ageGroupViews = new HashMap<>();
+                    long totalViewsForAgeGroup = 0;
+                    for (List<Object> row : genderAgeResponse.getRows()) {
+                        String ageGroup = (String) row.get(1); // ageGroup
+                        Long views = ((BigDecimal) row.get(2)).longValue(); // views
+                        ageGroupViews.merge(ageGroup, views, Long::sum);
+                        totalViewsForAgeGroup += views;
+                    }
+                    List<Map<String, Object>> ageGroupList = new ArrayList<>();
+                    for (Map.Entry<String, Long> entry : ageGroupViews.entrySet()) {
+                        // AgeGroup ENUM 변환 로직 (DB 저장 시 VARCHAR로 처리되므로 유연하게)
+                        String formattedAgeGroup = entry.getKey(); // "age13-17" -> "13-17" 등으로 변환
+                        if (formattedAgeGroup.startsWith("age")) {
+                            formattedAgeGroup = formattedAgeGroup.substring(3);
+                        }
+                        if (formattedAgeGroup.endsWith("_")) {
+                            formattedAgeGroup = formattedAgeGroup.replace("_", "+");
+                        }
+                        double percentage = (totalViewsForAgeGroup > 0) ? (double) entry.getValue() / totalViewsForAgeGroup * 100 : 0.0;
+                        Map<String, Object> ageGroupData = new HashMap<>();
+                        ageGroupData.put("ageGroup", formattedAgeGroup);
+                        ageGroupData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+                        ageGroupList.add(ageGroupData);
+                    }
+                    dashboardStatToSave.setAgeGroupDistributionJson(objectMapper.writeValueAsString(ageGroupList));
+                } else {
+                    logger.warn("No age group data found for channel {}", channelId);
+                    dashboardStatToSave.setAgeGroupDistributionJson("[]");
+                }
+
+                // 3. 국가별 시청자 (Country Distribution) - viewsCount를 받고 퍼센트 계산
+                QueryResponse countryResponse = youtubeAnalyticsService.getChannelCountryAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
+                if (countryResponse != null && countryResponse.getRows() != null && !countryResponse.getRows().isEmpty()) {
+                    long totalViewsForCountry = countryResponse.getRows().stream()
+                                                                .mapToLong(row -> ((BigDecimal) row.get(1)).longValue())
+                                                                .sum();
+                    List<Map<String, Object>> countryList = new ArrayList<>();
+                    for (List<Object> row : countryResponse.getRows()) {
+                        String countryCode = (String) row.get(0);
+                        Long viewsCount = ((BigDecimal) row.get(1)).longValue();
+                        double percentage = (totalViewsForCountry > 0) ? (double) viewsCount / totalViewsForCountry * 100 : 0.0;
+                        Map<String, Object> countryData = new HashMap<>();
+                        countryData.put("country", countryCode); // ISO 코드 (KR, US 등)
+                        countryData.put("viewsCount", viewsCount);
+                        countryData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+                        countryList.add(countryData);
+                    }
+                    dashboardStatToSave.setCountryDistributionJson(objectMapper.writeValueAsString(countryList));
+                } else {
+                    logger.warn("No country data found for channel {}", channelId);
+                    dashboardStatToSave.setCountryDistributionJson("[]");
+                }
+
+                // 4. 주요 트래픽 소스 (Traffic Source Distribution)
+                QueryResponse trafficSourceResponse = youtubeAnalyticsService.getChannelTrafficSourceAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
+                if (trafficSourceResponse != null && trafficSourceResponse.getRows() != null && !trafficSourceResponse.getRows().isEmpty()) {
+                    long totalViewsForTraffic = trafficSourceResponse.getRows().stream()
+                                                                    .mapToLong(row -> ((BigDecimal) row.get(1)).longValue())
+                                                                    .sum();
+                    List<Map<String, Object>> trafficList = new ArrayList<>();
+                    for (List<Object> row : trafficSourceResponse.getRows()) {
+                        String sourceType = (String) row.get(0);
+                        Long views = ((BigDecimal) row.get(1)).longValue();
+                        double percentage = (totalViewsForTraffic > 0) ? (double) views / totalViewsForTraffic * 100 : 0.0;
+                        Map<String, Object> trafficData = new HashMap<>();
+                        trafficData.put("sourceType", sourceType);
+                        trafficData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+                        trafficList.add(trafficData);
+                    }
+                    dashboardStatToSave.setTrafficSourceDistributionJson(objectMapper.writeValueAsString(trafficList));
+                } else {
+                    logger.warn("No traffic source data found for channel {}", channelId);
+                    dashboardStatToSave.setTrafficSourceDistributionJson("[]");
+                }
+
+                // 5. 주요 시청 시간대 (Watch Time Segment)
+//                QueryResponse watchTimeResponse = youtubeAnalyticsService.getChannelWatchTimeAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
+//                if (watchTimeResponse != null && watchTimeResponse.getRows() != null && !watchTimeResponse.getRows().isEmpty()) {
+//                    // 시간대별 그룹화 로직 (이미지 참고: 오전(10-12), 저녁(18-20), 밤(20-22), 기타)
+//                    Map<String, Long> segmentedViews = new HashMap<>();
+//                    segmentedViews.put("Morning (10-12)", 0L);
+//                    segmentedViews.put("Evening (18-20)", 0L);
+//                    segmentedViews.put("Night (20-22)", 0L);
+//                    segmentedViews.put("Other Time", 0L); // 기타 시간대
+//
+//                    long totalViewsForWatchTime = watchTimeResponse.getRows().stream()
+//                                                                    .mapToLong(row -> ((BigDecimal) row.get(1)).longValue())
+//                                                                    .sum();
+//
+//                    for (List<Object> row : watchTimeResponse.getRows()) {
+//                        Integer hour = ((BigDecimal) row.get(0)).intValue(); // hour (0-23)
+//                        Long views = ((BigDecimal) row.get(1)).longValue();
+//
+//                        if (hour >= 10 && hour < 12) {
+//                            segmentedViews.merge("Morning (10-12)", views, Long::sum);
+//                        } else if (hour >= 18 && hour < 20) {
+//                            segmentedViews.merge("Evening (18-20)", views, Long::sum);
+//                        } else if (hour >= 20 && hour < 22) {
+//                            segmentedViews.merge("Night (20-22)", views, Long::sum);
+//                        } else {
+//                            segmentedViews.merge("Other Time", views, Long::sum);
+//                        }
+//                    }
+//
+//                    List<Map<String, Object>> watchTimeList = new ArrayList<>();
+//                    for (Map.Entry<String, Long> entry : segmentedViews.entrySet()) {
+//                        double percentage = (totalViewsForWatchTime > 0) ? (double) entry.getValue() / totalViewsForWatchTime * 100 : 0.0;
+//                        Map<String, Object> timeData = new HashMap<>();
+//                        timeData.put("segment", entry.getKey());
+//                        timeData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+//                        watchTimeList.add(timeData);
+//                    }
+//                    // 이미지 순서에 맞춰 정렬 (선택 사항)
+//                    watchTimeList.sort(Comparator.comparing(m -> {
+//                        String segment = (String) m.get("segment");
+//                        switch (segment) {
+//                            case "Morning (10-12)": return 1;
+//                            case "Evening (18-20)": return 2;
+//                            case "Night (20-22)": return 3;
+//                            case "Other Time": return 4;
+//                            default: return 5;
+//                        }
+//                    }));
+//                    dashboardStatToSave.setWatchTimeSegmentJson(objectMapper.writeValueAsString(watchTimeList));
+//                } else {
+//                    logger.warn("No watch time data found for channel {}", channelId);
+//                    dashboardStatToSave.setWatchTimeSegmentJson("[]");
+//                }
+
+                // 최종 ChannelDashboardStat 저장
+                channelDashboardStatRepository.save(dashboardStatToSave);
+                logger.info("Successfully collected and saved dashboard stats for channel: {}", channelId);
+
+            } catch (TokenResponseException e) {
             } catch (IOException | GeneralSecurityException e) {
-                logger.error("Error refreshing channel info for ID {}: {}", channel.getChannelId(), e.getMessage(), e);
+                logger.error("Error collecting dashboard stats for channel {}: {}", channelId, e.getMessage(), e);
             } catch (Exception e) {
-                logger.error("Unexpected error refreshing channel info for ID {}: {}", channel.getChannelId(), e.getMessage(), e);
+                logger.error("Unexpected error during dashboard stats collection for channel {}: {}", channelId, e.getMessage(), e);
             }
         }
-        logger.info("Finished refreshing outdated channel info.");
+        logger.info("Finished refreshing outdated channel info and collecting dashboard stats.");
     }
 	
 	@Transactional
@@ -583,7 +799,7 @@ public class DataCollectorService {
                 if (video.getStatus() != null && video.getStatus().getPrivacyStatus() != null) {
                     youTubeVideoToSave.setPublicYn(video.getStatus().getPrivacyStatus().equals("public") ? "Y" : "N");
                 } else {
-                    youTubeVideoToSave.setPublicYn("N");
+                    youTubeVideoToSave.setPublicYn(null);
                 }
                 if (video.getContentDetails() != null && video.getContentDetails().getDuration() != null) {
                     youTubeVideoToSave.setVideoPlaytime(parseYouTubeDuration(video.getContentDetails().getDuration()));

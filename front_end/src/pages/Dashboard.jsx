@@ -57,10 +57,87 @@ const Dashboard = () => {
   const [contentPerformance, setContentPerformance] = useState(null);
   const [kpi, setKpi] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const loadDummyData = () => {
-      setTimeout(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setKpi({});
+        setAudience({
+            gender: {}, age: {}, country: {}, time: {}, trafficSources: {labels: [], data: []}, commentSentiment: {}
+        });
+        setStats({});
+        setGrowth({
+            labels: [], views: [], subscribers: [], avgViewsPerVideo: [], engagementRate: []
+        });
+        setContentPerformance({
+            recentVideos: [],
+            topSubscriberVideos: [],
+            topViewDurationVideos: []
+        });
+        
+        setLoading(true);
+        setError(null);
+
+        const token = localStorage.getItem('access_token');
+        // const userGoogleId = localStorage.getItem('user_google_id'); // 이제 이 대신 YouTube 채널 ID를 사용
+        const userYoutubeChannelId = localStorage.getItem('user_youtube_channel_id'); // ✨ 변경된 부분
+
+        if (!token) {
+          throw new Error('로그인 정보(JWT 토큰)가 없습니다. 다시 로그인해주세요.');
+        }
+        // ✨ 변경된 부분: userYoutubeChannelId가 없으면 오류 처리
+        if (!userYoutubeChannelId) {
+          throw new Error('로그인된 사용자의 YouTube 채널 ID를 찾을 수 없습니다. 로그인 콜백을 확인하거나 채널 연동이 필요합니다.');
+        }
+
+        console.log('localStorage에서 가져온 JWT 토큰:', token ? token.substring(0, 30) + '...' : '없음');
+        // console.log('localStorage에서 가져온 Google ID (channelId로 사용):', userGoogleId); // 이제 이 로그는 필요 없음
+        console.log('localStorage에서 가져온 YouTube Channel ID:', userYoutubeChannelId); // ✨ 변경된 로그
+
+        const dashboardApiBaseUrl = 'http://localhost:8082/AscenTube/channel/my-channel/latest-video-performance';
+        const queryParams = new URLSearchParams({
+            channelId: userYoutubeChannelId, // ✨ 변경된 부분: YouTube 채널 ID 사용
+            limit: 3
+        }).toString();
+        const recentVideosApiUrl = `${dashboardApiBaseUrl}?${queryParams}`;
+
+        const recentVideosResponse = await fetch(recentVideosApiUrl, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+
+        if (recentVideosResponse.status === 204) {
+            console.log("최근 업로드 영상 데이터 없음 (HTTP 204 No Content)");
+            setContentPerformance(prev => ({ ...prev, recentVideos: [] }));
+        } else if (!recentVideosResponse.ok) {
+            const contentType = recentVideosResponse.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const errorData = await recentVideosResponse.json();
+                throw new Error(`API 오류 (${recentVideosResponse.status}): ${errorData.message || recentVideosResponse.statusText}`);
+            } else {
+                const errorText = await recentVideosResponse.text();
+                throw new Error(`API 오류 (${recentVideosResponse.status}): ${errorText || recentVideosResponse.statusText}`);
+            }
+        } else {
+            const recentVideosData = await recentVideosResponse.json();
+            setContentPerformance(prev => ({
+                ...prev,
+                recentVideos: recentVideosData.map(video => ({
+                    id: video.videoKey,
+                    title: video.videoTitle,
+                    views: video.viewCount,
+                    avgDuration: formatAverageWatchTime(video.avgWatchTime),
+                    likes: video.likeCount,
+                    comments: video.commentCount,
+                    newSubs: video.subscriberGained,
+                }))
+            }));
+        }
+
+        // --- 다른 더미 데이터는 그대로 유지 (다음 작업에서 API 연동 예정) ---
         setKpi({ newSubscribersToday: 12, lostSubscribersToday: 3, impressions: 150000, ctr: 5.5 });
         setAudience({
           gender: { male: 60, female: 40 },
@@ -78,19 +155,43 @@ const Dashboard = () => {
             avgViewsPerVideo: [3500, 3800, 3700, 4200, 4500, 4300],
             engagementRate: [5.2, 5.5, 5.3, 5.8, 6.1, 5.9],
         });
-        setContentPerformance({
-          recentVideos: [{ id: 1, title: "최신 기술 트렌드 분석!", views: 12000, avgDuration: "5:12", likes: 560, comments: 78, newSubs: 15 }, { id: 2, title: "스프링부트 시큐리티 완벽 가이드", views: 25000, avgDuration: "12:30", likes: 1200, comments: 150, newSubs: 45 }, { id: 3, title: "리액트 상태관리 이것만 알면 끝", views: 8500, avgDuration: "8:45", likes: 320, comments: 55, newSubs: 22 },],
-          topSubscriberVideos: [{ id: 2, title: "스프링부트 시큐리티 완벽 가이드", newSubs: 45, views: 25000 }, { id: 5, title: "코딩 초보 탈출 프로젝트 (1탄)", newSubs: 38, views: 18000 }, { id: 3, title: "리액트 상태관리 이것만 알면 끝", newSubs: 22, views: 8500 },],
-          topViewDurationVideos: [{ id: 4, title: "클라우드 아키텍처 심층 인터뷰", avgDuration: "15:20 (70%)", views: 9200 }, { id: 2, title: "스프링부트 시큐리티 완벽 가이드", avgDuration: "12:30 (65%)", views: 25000 }, { id: 6, title: "데이터 분석가의 하루 (VLOG)", avgDuration: "10:05 (60%)", views: 11000 },]
-        });
+        setContentPerformance(prev => ({
+            ...prev,
+            topSubscriberVideos: [{ id: 2, title: "스프링부트 시큐리티 완벽 가이드", newSubs: 45, views: 25000 }, { id: 5, title: "코딩 초보 탈출 프로젝트 (1탄)", newSubs: 38, views: 18000 }, { id: 3, title: "리액트 상태관리 이것만 알면 끝", newSubs: 22, views: 8500 },],
+            topViewDurationVideos: [{ id: 4, title: "클라우드 아키텍처 심층 인터뷰", avgDuration: "15:20 (70%)", views: 9200 }, { id: 2, title: "스프링부트 시큐리티 완벽 가이드", avgDuration: "12:30 (65%)", views: 25000 }, { id: 6, title: "데이터 분석가의 하루 (VLOG)", avgDuration: "10:05 (60%)", views: 11000 },]
+        }));
+
+
         setLoading(false);
-      }, 800);
+      } catch (err) {
+        console.error("대시보드 데이터 로드 중 오류 발생:", err);
+        setError(err.message);
+        setLoading(false);
+      }
     };
-    loadDummyData();
+
+    fetchDashboardData();
   }, []);
 
-  if (loading || !audience || !growth || !stats || !contentPerformance || !kpi) {
+  const formatAverageWatchTime = (seconds) => {
+    if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) {
+      return "0:00";
+    }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  };
+
+  if (loading) {
     return <p>📡 유튜브 채널 대시보드 데이터를 불러오는 중입니다...</p>;
+  }
+
+  if (error) {
+    return <p className="error-message">🚨 데이터 로드 중 오류가 발생했습니다: {error}</p>;
+  }
+
+  if (!kpi || !audience || !stats || !growth || !contentPerformance) {
+    return <p className="error-message">⚠️ 필수 대시보드 데이터를 찾을 수 없습니다. 다시 시도해주세요.</p>;
   }
 
   const growthChartData = {
@@ -176,7 +277,6 @@ const Dashboard = () => {
         <section className="dashboard-section kpi-section">
           <h3 className="section-title">주요 지표</h3>
           <div className="card-grid kpi-grid">
-            {/* ▼▼▼ [핵심 수정] 화살표와 증감 숫자를 제거하고 다른 카드처럼 단순화 ▼▼▼ */}
             <div className="card subscriber-focus-card">
               <h3>총 구독자 수</h3>
               <p>{Number(stats.subscriberCount).toLocaleString()} 명</p>
@@ -196,9 +296,20 @@ const Dashboard = () => {
               <table>
                 <thead><tr><th>제목</th><th>조회수</th><th>평균시청</th><th>좋아요</th><th>댓글</th><th>신규구독</th></tr></thead>
                 <tbody>
-                  {contentPerformance.recentVideos.map(video => (
-                    <tr key={video.id}><td>{video.title}</td><td>{video.views.toLocaleString()}</td><td>{video.avgDuration}</td><td>{video.likes}</td><td>{video.comments}</td><td>{video.newSubs}</td></tr>
-                  ))}
+                  {contentPerformance.recentVideos && contentPerformance.recentVideos.length > 0 ? (
+                    contentPerformance.recentVideos.map(video => (
+                      <tr key={video.id}>
+                        <td>{video.title}</td>
+                        <td>{video.views.toLocaleString()}</td>
+                        <td>{video.avgDuration}</td>
+                        <td>{video.likes}</td>
+                        <td>{video.comments}</td>
+                        <td>{video.newSubs}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td colSpan="6">최근 업로드 영상 데이터가 없습니다.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
