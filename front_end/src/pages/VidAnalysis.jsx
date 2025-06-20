@@ -5,8 +5,9 @@ import axios from 'axios';
 import '../styles/pages/VidAnalysis.css';
 import '../styles/pages/Ai.css';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-// [수정] 프론트엔드에서 스크립트를 가져올 필요가 없으므로 아래 import를 삭제합니다.
+// [삭제] 프론트엔드에서 스크립트를 가져올 필요가 없으므로 아래 import를 삭제합니다.
 // import { YoutubeTranscript } from 'youtube-transcript';
+
 
 // =================================================================================
 // =                            상수 및 헬퍼 함수 정의                               =
@@ -167,7 +168,7 @@ const VidAnalysis = () => {
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 (yt-dlp 방식으로 수정) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 (yt-dlp 방식으로 최종 수정) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
   const handleAnalysis = async () => {
     if (loading) return;
@@ -185,9 +186,7 @@ const VidAnalysis = () => {
     }
 
     const token = localStorage.getItem('access_token');
-    // [수정] userId는 이제 API 호출에 직접 사용되지 않지만, 인증 여부 확인을 위해 남겨둡니다.
-    const userId = localStorage.getItem('user_google_id');
-    if (!token || !userId) {
+    if (!token) {
       setError("인증 정보가 없습니다. 로그인해주세요.");
       setLoading(false);
       return;
@@ -195,7 +194,7 @@ const VidAnalysis = () => {
 
     try {
       // [수정] 프론트엔드의 스크립트 추출 로직을 모두 제거하고,
-      // 백엔드에 GET 방식으로 API를 호출합니다.
+      // 백엔드에 GET 방식으로 API를 호출합니다. userId 등도 보낼 필요가 없습니다.
       const response = await axios.get(`${API_BASE_URL}/api/ai/youtube/video-analysis/${videoId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -232,7 +231,7 @@ const VidAnalysis = () => {
 
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 핵심 로직: AI 분석 핸들러 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 렌더링(JSX) 관련 함수 (이하 생략 없음) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 렌더링(JSX) 관련 함수 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
   const handleMetricChange = (metricKey) => { setSelectedMetric(metricKey); setIsMetricDropdownOpen(false); };
   const handleTimePeriodChange = (timePeriodKey) => { setSelectedTimePeriod(timePeriodKey); setIsTimePeriodDropdownOpen(false); };
@@ -242,6 +241,9 @@ const VidAnalysis = () => {
   const handleGraphPointMouseOut = () => { setTooltipData(prev => ({ ...prev, visible: false })); };
   const renderLineGraph = useCallback((data, metricKey) => { return <div>그래프 영역</div> }, [tooltipData]);
 
+  /**
+   * 분석 결과를 화면에 그리는 메인 렌더링 함수
+   */
   const renderAnalysisResults = () => {
     if (!analysisResults || !aiAnalysisResults) return null;
 
