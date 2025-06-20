@@ -5,12 +5,12 @@ import axios from 'axios';
 import '../styles/pages/VidAnalysis.css';
 import '../styles/pages/Ai.css';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
-// [추가] 스크립트를 가져오기 위한 라이브러리
-import { YoutubeTranscript } from 'youtube-transcript';
+// [수정] 프론트엔드에서 스크립트를 가져올 필요가 없으므로 아래 import를 삭제합니다.
+// import { YoutubeTranscript } from 'youtube-transcript';
 
 
 // =================================================================================
-// =                            상수 및 헬퍼 함수 정의                            =
+// =                            상수 및 헬퍼 함수 정의                               =
 // =================================================================================
 
 const API_BASE_URL = 'http://localhost:8082/AscenTube';
@@ -42,7 +42,7 @@ const extractVideoId = (url) => {
   return match ? match[1] : null;
 };
 
-// 그래프 Mock 데이터 관련 상수
+// 그래프 Mock 데이터 관련 상수 (이 부분은 나중에 실제 데이터로 교체 예정)
 const metricsOptions = [
   { key: 'views', displayName: '조회수', unit: '회' },
   { key: 'watchTime', displayName: '시청 시간 (시간)', unit: '시간' },
@@ -56,36 +56,37 @@ const timePeriodOptions = [
   { key: '90d', displayName: '최근 90일', days: 90 },
 ];
 const generateMockGraphData = (metricKey, days) => {
-  const data = []; let currentValue = 0; let dailyChange;
-  switch (metricKey) {
-    case 'views': currentValue = Math.random() * 1000 + 5000 * (days / 7); dailyChange = () => currentValue * (0.02 + Math.random() * 0.10); break;
-    case 'watchTime': currentValue = Math.random() * 10 + 50 * (days / 7); dailyChange = () => currentValue * (0.01 + Math.random() * 0.08); break;
-    case 'subscribers': currentValue = Math.random() * 5 + 20 * (days / 7); dailyChange = () => Math.floor(Math.random() * (2 + days / 15) - (1 + days / 30)); break;
-    case 'impressions': currentValue = Math.random() * 10000 + 50000 * (days / 7); dailyChange = () => currentValue * (0.02 + Math.random() * 0.1); break;
-    case 'ctr': currentValue = Math.random() * 2 + 3; dailyChange = () => (Math.random() - 0.4) * 0.3; break;
-    default: dailyChange = () => 0;
-  }
-  for (let i = 0; i <= days; i++) {
-    if (i === 0 && metricKey !== 'subscribers') {
-      data.push({ day: i, value: parseFloat(currentValue.toFixed(metricKey === 'ctr' ? 2 : 0)) });
-    } else {
-      if (metricKey === 'subscribers' && i === 0) {
-        data.push({ day: i, value: parseFloat(currentValue.toFixed(0)) });
-      } else if (metricKey === 'subscribers') {
-        currentValue += dailyChange(); data.push({ day: i, value: parseFloat(currentValue.toFixed(0)) });
-      } else {
-        currentValue += dailyChange(); currentValue = Math.max(0, currentValue);
-        if (metricKey === 'ctr') currentValue = Math.max(0.1, Math.min(15, currentValue));
+    // 이 함수는 그대로 유지합니다. 실제 데이터 연동 시에는 삭제되거나 변경됩니다.
+    const data = []; let currentValue = 0; let dailyChange;
+    switch (metricKey) {
+      case 'views': currentValue = Math.random() * 1000 + 5000 * (days / 7); dailyChange = () => currentValue * (0.02 + Math.random() * 0.10); break;
+      case 'watchTime': currentValue = Math.random() * 10 + 50 * (days / 7); dailyChange = () => currentValue * (0.01 + Math.random() * 0.08); break;
+      case 'subscribers': currentValue = Math.random() * 5 + 20 * (days / 7); dailyChange = () => Math.floor(Math.random() * (2 + days / 15) - (1 + days / 30)); break;
+      case 'impressions': currentValue = Math.random() * 10000 + 50000 * (days / 7); dailyChange = () => currentValue * (0.02 + Math.random() * 0.1); break;
+      case 'ctr': currentValue = Math.random() * 2 + 3; dailyChange = () => (Math.random() - 0.4) * 0.3; break;
+      default: dailyChange = () => 0;
+    }
+    for (let i = 0; i <= days; i++) {
+      if (i === 0 && metricKey !== 'subscribers') {
         data.push({ day: i, value: parseFloat(currentValue.toFixed(metricKey === 'ctr' ? 2 : 0)) });
+      } else {
+        if (metricKey === 'subscribers' && i === 0) {
+          data.push({ day: i, value: parseFloat(currentValue.toFixed(0)) });
+        } else if (metricKey === 'subscribers') {
+          currentValue += dailyChange(); data.push({ day: i, value: parseFloat(currentValue.toFixed(0)) });
+        } else {
+          currentValue += dailyChange(); currentValue = Math.max(0, currentValue);
+          if (metricKey === 'ctr') currentValue = Math.max(0.1, Math.min(15, currentValue));
+          data.push({ day: i, value: parseFloat(currentValue.toFixed(metricKey === 'ctr' ? 2 : 0)) });
+        }
       }
     }
-  }
-  return data;
+    return data;
 };
 
 
 // =================================================================================
-// =                          VidAnalysis 메인 컴포넌트                           =
+// =                           VidAnalysis 메인 컴포넌트                              =
 // =================================================================================
 
 const VidAnalysis = () => {
@@ -93,13 +94,12 @@ const VidAnalysis = () => {
   // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 상태 관리 (State Management) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
   const [videoUrl, setVideoUrl] = useState('');
-  const [analysisResults, setAnalysisResults] = useState(null); // YouTube API로 받은 영상 정보
-  const [aiAnalysisResults, setAiAnalysisResults] = useState(null); // Gemini API로 받은 AI 분석 결과
+  const [analysisResults, setAnalysisResults] = useState(null);
+  const [aiAnalysisResults, setAiAnalysisResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showFullDescription, setShowFullDescription] = useState(false);
 
-  // --- 그래프 및 드롭다운 UI 상태 ---
   const [selectedMetric, setSelectedMetric] = useState(metricsOptions[0].key);
   const [isMetricDropdownOpen, setIsMetricDropdownOpen] = useState(false);
   const [selectedTimePeriod, setSelectedTimePeriod] = useState(timePeriodOptions[0].key);
@@ -168,11 +168,10 @@ const VidAnalysis = () => {
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
 
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 (yt-dlp 방식으로 수정) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
   const handleAnalysis = async () => {
     if (loading) return;
-    // 상태 초기화
     setLoading(true);
     setAnalysisResults(null);
     setAiAnalysisResults(null);
@@ -187,6 +186,7 @@ const VidAnalysis = () => {
     }
 
     const token = localStorage.getItem('access_token');
+    // [수정] userId는 이제 API 호출에 직접 사용되지 않지만, 인증 여부 확인을 위해 남겨둡니다.
     const userId = localStorage.getItem('user_google_id');
     if (!token || !userId) {
       setError("인증 정보가 없습니다. 로그인해주세요.");
@@ -195,31 +195,14 @@ const VidAnalysis = () => {
     }
 
     try {
-      // [수정 1] 영상 스크립트(자막)를 가져오는 로직 추가
-      let transcript = '';
-      try {
-        const transcriptData = await YoutubeTranscript.fetchTranscript(videoId);
-        transcript = transcriptData.map(item => item.text).join(' ');
-        console.log("스크립트 추출 성공:", transcript.substring(0, 100) + "...");
-      } catch (transcriptError) {
-        console.error("스크립트를 가져올 수 없습니다:", transcriptError);
-        transcript = "해당 영상의 스크립트(자막)를 가져올 수 없습니다. 스크립트 없는 분석을 시도합니다.";
-      }
-
-      // [수정 2] 요청 본문(Body)에 보낼 데이터 객체 생성
-      const requestData = {
-        userId: userId,
-        transcript: transcript
-      };
-
-      // [수정 3] POST 방식으로, URL에 videoId를 포함하여 백엔드 API 호출
-      const response = await axios.post(`${API_BASE_URL}/api/ai/youtube/video-analysis/${videoId}`, requestData, {
+      // [수정] 프론트엔드의 스크립트 추출 로직을 모두 제거하고,
+      // 백엔드에 GET 방식으로 API를 호출합니다.
+      const response = await axios.get(`${API_BASE_URL}/api/ai/youtube/video-analysis/${videoId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       console.log("백엔드로부터 받은 분석 응답:", response.data);
 
-      // [수정 4] 응답 데이터를 상태에 저장
       if (response.data && response.data.videoInfo && response.data.aiAnalysis) {
         setAnalysisResults(response.data.videoInfo);
         setAiAnalysisResults(response.data.aiAnalysis);
@@ -230,11 +213,7 @@ const VidAnalysis = () => {
     } catch (err) {
       console.error("분석 중 오류:", err);
       if (axios.isAxiosError(err) && err.response) {
-        if (err.response.status === 404) {
-          setError("분석 API를 찾을 수 없습니다. (404 Not Found)");
-        } else {
-          setError(`분석 중 오류: ${err.response.data?.error || err.message}`);
-        }
+        setError(`분석 중 오류: ${err.response.data?.error || err.message}`);
       } else {
         setError(`분석 중 네트워크 오류: ${err.message}`);
       }
@@ -245,7 +224,6 @@ const VidAnalysis = () => {
     }
   };
 
-  // 엔터 키로 분석 시작
   const handleInputKeyDown = (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -255,10 +233,8 @@ const VidAnalysis = () => {
 
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 핵심 로직: AI 분석 핸들러 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 렌더링(JSX) 관련 함수 (이하 생략 없음) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 렌더링(JSX) 관련 함수 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-
-  // --- (그래프 및 드롭다운 관련 렌더링 함수들은 그대로 유지) ---
   const handleMetricChange = (metricKey) => { setSelectedMetric(metricKey); setIsMetricDropdownOpen(false); };
   const handleTimePeriodChange = (timePeriodKey) => { setSelectedTimePeriod(timePeriodKey); setIsTimePeriodDropdownOpen(false); };
   const getMetricDisplayNameAndUnit = (metricKey) => metricsOptions.find(opt => opt.key === metricKey)?.displayName || '';
@@ -267,17 +243,12 @@ const VidAnalysis = () => {
   const handleGraphPointMouseOut = () => { setTooltipData(prev => ({ ...prev, visible: false })); };
   const renderLineGraph = useCallback((data, metricKey) => { return <div>그래프 영역</div> }, [tooltipData]);
 
-  /**
-   * 분석 결과를 화면에 그리는 메인 렌더링 함수
-   */
   const renderAnalysisResults = () => {
     if (!analysisResults || !aiAnalysisResults) return null;
 
-    // [수정 5] status 변수 이름 충돌을 피하기 위해 videoStatus로 변경
     const { snippet, statistics, contentDetails, status: videoStatus, id } = analysisResults;
     const descriptionText = snippet?.description || '';
 
-    // [수정 6] 새로운 JSON 구조에 맞춰 AI 분석 결과 렌더링
     return (
       <>
         {/* --- 영상 기본 정보 섹션 --- */}
@@ -303,11 +274,10 @@ const VidAnalysis = () => {
           </div>
         )}
 
-        {/* --- AI 영상 분석 결과 패널 (새로운 구조로 변경) --- */}
+        {/* --- AI 영상 분석 결과 패널 --- */}
         {aiAnalysisResults && (
           <div className="ai-summary-panel">
             <h5>AI 콘텐츠 분석 결과</h5>
-
             <div className="analysis-section-inner">
               <h6>📖 콘텐츠 프로필</h6>
               <ul>
@@ -316,7 +286,6 @@ const VidAnalysis = () => {
                 <li><strong>타겟 시청자:</strong> {aiAnalysisResults.contentProfile?.assumedTargetAudience || 'N/A'}</li>
               </ul>
             </div>
-
             <div className="analysis-section-inner">
               <h6>- 서사 구조</h6>
               <ul>
@@ -325,22 +294,16 @@ const VidAnalysis = () => {
                 <li><strong>결론:</strong> {aiAnalysisResults.narrativeStructure?.conclusion || 'N/A'}</li>
               </ul>
             </div>
-
             <div className="analysis-section-inner">
               <h6>🔑 핵심 정보 (Key Takeaways)</h6>
               <ul>
-                {aiAnalysisResults.keyTakeaways?.map((item, index) => (
-                  <li key={index}>{item}</li>
-                ))}
+                {aiAnalysisResults.keyTakeaways?.map((item, index) => (<li key={index}>{item}</li>))}
               </ul>
             </div>
-
             <div className="analysis-section-inner">
               <h6>🏷️ 주요 키워드</h6>
               <div className="keyword-tags-container">
-                {aiAnalysisResults.mainKeywords?.map((keyword, index) => (
-                  <span key={index} className="keyword-tag">{keyword}</span>
-                ))}
+                {aiAnalysisResults.mainKeywords?.map((keyword, index) => (<span key={index} className="keyword-tag">{keyword}</span>))}
               </div>
             </div>
           </div>
@@ -406,18 +369,14 @@ const VidAnalysis = () => {
           </button>
         </div>
       </header>
-
       {error && <p className="error-message global-error-message">{error}</p>}
-
       <div className="results-section">
         {loading && <p className="status-message">결과를 분석 중입니다...</p>}
-        {/* analysisResults 또는 aiAnalysisResults 둘 중 하나라도 유효할 때 결과 섹션 표시 */}
         {!loading && !error && (analysisResults || aiAnalysisResults) && (
           <div className="analysis-results-content">
             {renderAnalysisResults()}
           </div>
         )}
-        {/* 로딩 중이 아니고 에러도 없으며, 아직 아무 결과도 없을 때 초기 메시지 표시 */}
         {!loading && !error && !analysisResults && !aiAnalysisResults && (
           <p className="status-message initial-message-prompt">
             분석할 영상의 URL을 입력 후 "분석 시작" 버튼을 눌러주세요.
