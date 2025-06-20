@@ -65,4 +65,7 @@ public class Comment {
     @UpdateTimestamp
     @Column(name = "UPDATED_AT", nullable = false)
     private LocalDateTime updatedAt;
+    
+    @Column(name = "PREPROCESSING_YN", length = 1)
+    private String preprocessingYn;
 }
