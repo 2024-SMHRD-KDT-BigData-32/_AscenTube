@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtubeAnalytics.v2.YouTubeAnalytics;
 import com.google.api.services.youtubeAnalytics.v2.model.QueryResponse;
 
@@ -46,10 +47,8 @@ public class YoutubeAnalyticsService {
 		if (credential == null || credential.getAccessToken() == null) {
 			throw new GeneralSecurityException("OAuth 인증이 필요합니다. /oauth/google/authorize 로 인증을 시작하세요.");
 		}
-		// 인증된 YouTubeAnalytics 서비스 객체 생성
 		YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
 
-		// Analytics API 쿼리 빌드
 		YouTubeAnalytics.Reports.Query request = analytics.reports().query();
 
 		request.setIds("channel==" + (channelId != null && !channelId.isEmpty() ? channelId : "mine"));
@@ -59,7 +58,7 @@ public class YoutubeAnalyticsService {
 		request.setDimensions("day");
 		request.setSort("day");
 
-		return request.execute();
+		return request.execute();	
 	}
 
 	/**
@@ -182,4 +181,226 @@ public class YoutubeAnalyticsService {
 		return request.execute();
 	}
 
+	public QueryResponse getAudienceStats(String userId, String startDate, String endDate, String youTubeVideoKey) throws GeneralSecurityException, IOException {
+		Credential credential = oAuthService.getCredential(userId);
+		if (credential == null || credential.getAccessToken() == null) {
+			throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+		}
+		YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+		YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null)); // 채널 ID는 인증된 사용자 채널 또는 특정 채널
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("viewerPercentage"); // 시청 비율
+        request.setDimensions("gender,ageGroup"); // 성별, 연령대
+        request.setFilters("video==" + youTubeVideoKey); // 특정 비디오 필터링 (필수)
+        request.setSort("-viewerPercentage"); // 시청 비율 높은 순
+
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Audience Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	public QueryResponse getInflowRouteStats(String userId, String startDate, String endDate, String youTubeVideoKey) throws GeneralSecurityException, IOException {
+		Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
+        YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+        
+        YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null));
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("views");
+        request.setDimensions("insightTrafficSourceType");
+        request.setFilters("video==" + youTubeVideoKey);
+        request.setSort("-views");
+        
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Inflow Route Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	public QueryResponse getDeviceAnalysisStats(String userId, String startDate, String endDate,
+			String youTubeVideoKey) throws IOException, GeneralSecurityException {
+		Credential credential = oAuthService.getCredential(userId);
+        if (credential == null || credential.getAccessToken() == null) {
+            throw new GeneralSecurityException("OAuth 인증이 필요합니다.");
+        }
+        YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
+        
+        YouTubeAnalytics.Reports.Query request = analytics.reports().query();
+        request.setIds("channel==" + getChannelIdForAnalytics(userId, null));
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setMetrics("views");
+        request.setDimensions("deviceType");
+        request.setFilters("video==" + youTubeVideoKey);
+        request.setSort("-views");
+        
+        QueryResponse response = request.execute();
+        logger.debug("YouTube Analytics API Device Analysis Stats Response for video {}: {}", youTubeVideoKey, response.toPrettyString());
+        return response;
+	}
+	
+	public QueryResponse getVideoSubscriberGains(String googleId, String startDate, String endDate, String videoId)
+			throws IOException, GeneralSecurityException {
+		logger.info("Fetching subscriber gains for videoId: {}, from {} to {}", videoId, startDate, endDate);
+
+		Credential credential = oAuthService.getCredential(googleId);
+		if (credential == null) {
+			logger.error("Credential is null for user {}", googleId);
+			throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+		}
+
+		YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+		// YouTube Analytics API 쿼리 빌드
+		YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports().query()
+				.setIds("channel==mine")
+				.setStartDate(startDate).
+				setEndDate(endDate).
+				setMetrics("subscribersGained")
+				.setDimensions("video")
+				.setFilters("video==" + videoId);
+
+		QueryResponse response = query.execute();
+		logger.debug("YouTube Analytics Response (Video Subscriber Gains for {}): {}", videoId,
+				response.toPrettyString());
+		return response;
+	}
+	
+	private String getChannelIdForAnalytics(String userId, String channelId) throws IOException, GeneralSecurityException {
+		if (channelId != null && !channelId.isEmpty()) {
+            return channelId;
+        }
+		
+		ChannelListResponse myChannelResponse = oAuthService.getYouTubeService(oAuthService.getCredential(userId))
+                .channels().list(Arrays.asList("id"))
+                .setMine(true)
+                .execute();
+		if (myChannelResponse != null && myChannelResponse.getItems() != null && !myChannelResponse.getItems().isEmpty()) {
+            return myChannelResponse.getItems().get(0).getId();
+        }
+		throw new GeneralSecurityException("Authenticated user has no YouTube channel or could not retrieve channel ID.");
+	}
+
+	public QueryResponse getVideoAnalyticsCumulativeMetrics(String googleId, String startDate, String endDate, String videoId, String metrics) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching cumulative analytics (metrics: {}) for videoId: {}, from {} to {}", metrics, videoId, startDate, endDate);
+
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==MINE")
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics(metrics)
+	        .setFilters("video==" + videoId);
+
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Cumulative Video Metrics for {}): {}", videoId, response.toPrettyString());
+	    return response;
+	}
+	
+	
+	// 채널 전체의 성별 및 연령대 데이터를 가져오는 메서드
+	public QueryResponse getChannelAudienceAnalytics(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching channel audience analytics (gender, ageGroup) for channel: {}, from {} to {}", channelId, startDate, endDate);
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+	    // metrics는 viewerPercentage (성별/연령대별 시청 비율)
+	    // dimensions는 gender,ageGroup
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==" + channelId)
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics("viewerPercentage")
+	        .setDimensions("gender,ageGroup"); // 성별과 연령대 디멘션
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Channel Audience for {}): {}", channelId, response.toPrettyString());
+	    return response;
+	}
+
+	// 채널 전체의 국가별 데이터를 가져오는 메서드
+	public QueryResponse getChannelCountryAnalytics(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching channel country analytics for channel: {}, from {} to {}", channelId, startDate, endDate);
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+	    // metrics는 views (국가별 조회수)
+	    // dimensions는 country
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==" + channelId)
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics("views")
+	        .setDimensions("country"); // 국가 디멘션
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Channel Country for {}): {}", channelId, response.toPrettyString());
+	    return response;
+	}
+
+	// 채널 전체의 트래픽 소스 데이터를 가져오는 메서드
+	public QueryResponse getChannelTrafficSourceAnalytics(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching channel traffic source analytics for channel: {}, from {} to {}", channelId, startDate, endDate);
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+	    // metrics는 views (트래픽 소스별 조회수)
+	    // dimensions는 trafficSourceType
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==" + channelId)
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics("views")
+	        .setDimensions("insightTrafficSourceType"); // 트래픽 소스 타입 디멘션
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Channel Traffic Source for {}): {}", channelId, response.toPrettyString());
+	    return response;
+	}
+
+	// 채널 전체의 시청 시간대 데이터를 가져오는 메서드 (hour 디멘션 사용)
+	public QueryResponse getChannelWatchTimeAnalytics(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching channel watch time analytics (by hour) for channel: {}, from {} to {}", channelId, startDate, endDate);
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+	    // metrics는 views (시간대별 조회수) 또는 estimatedMinutesWatched (시간대별 시청 시간)
+	    // dimensions는 hour
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==" + channelId)
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics("views") // 시청 시간대별 조회수 (가장 일반적인 지표)
+	        .setDimensions("hour"); // 시간 디멘션 (0-23)
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Channel Watch Time by Hour for {}): {}", channelId, response.toPrettyString());
+	    return response;
+	}
 }

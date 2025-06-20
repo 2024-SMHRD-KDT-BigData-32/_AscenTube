@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
 import '../styles/pages/Keyword.css';
-
+import WordCloudBox from '../components/WordCloudBox';
 // 더미 데이터는 변경없이 그대로 유지됩니다.
 const initialDummyWordCloudData = [
     { text: 'React', value: 90 }, { text: 'Spring Boot', value: 85 },
@@ -117,13 +117,13 @@ const Keyword = () => {
                     <section className='keyword-section-lable'>
                         <h2>채널 영상 키워드</h2>
                         <section className="keyword-section-wordcloud">
-                            <WordCloudComponent wordsData={sortedVideoWords} containerId="video-cloud" />
+                            <WordCloudBox words={initialDummyWordCloudData} />
                         </section>
                     </section>
                     <section className='keyword-section-lable'>
                         <h2>채널 키워드</h2>
                         <section className="keyword-section-wordcloud">
-                            <WordCloudComponent wordsData={sortedChannelWords} containerId="channel-cloud" />
+                            <WordCloudBox words={initialDummyWordCloudData} />
                         </section>
                     </section>
                     <section className="keyword-section keyword-section1">

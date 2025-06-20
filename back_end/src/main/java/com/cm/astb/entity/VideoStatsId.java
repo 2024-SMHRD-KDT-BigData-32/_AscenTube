@@ -19,7 +19,7 @@ public class VideoStatsId implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	@Column(name = "VIDEO_ID", nullable = false)
-    private Integer videoId;
+    private Long videoId;
 
     @Column(name = "STATS_DATE", nullable = false)
     private LocalDateTime statsDate;

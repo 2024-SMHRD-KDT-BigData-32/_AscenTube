@@ -20,6 +20,8 @@ desktop.ini             # Windows system files
 
 # Spring Boot build artifacts & generated files
 /back_end/target/
+/back_end/-.ko.vtt
+/back_end/-.en.vtt
 *.jar
 *.war
 /back_end/bin/        

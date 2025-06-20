@@ -1,0 +1,407 @@
+/* src/styles/pages/FavoriteChannels.css - 블랙 톤 테이블 레이아웃 디자인 */
+
+:root {
+    /* 블랙 톤 팔레트 */
+    --main-bg-color: #F0F2F5; /* 밝은 회색 배경 */
+    --card-bg-color: #FFFFFF; /* 카드 및 테이블 배경 */
+    --header-bg-color: #FAFAFA; /* 테이블 헤더 배경 */
+    --text-primary: #212121; /* 진한 텍스트 (거의 검정) */
+    --text-secondary: #616161; /* 중간 회색 텍스트 */
+    --border-light: #E0E0E0; /* 옅은 테두리 */
+    --border-medium: #BDBDBD; /* 중간 테두리 */
+    --accent-black: #000000; /* 주요 액센트 색상 (검정) */
+    --accent-gray: #424242; /* 보조 액센트 색상 (진한 회색) */
+    --hover-gray: #EEEEEE; /* 행 호버 색상 */
+    --link-color: #007bff; /* 링크 색상 (기존 파란색 유지) */
+    --link-hover-color: #0056b3;
+
+    /* 버튼 색상 */
+    --button-primary-bg: #212121;
+    --button-primary-hover: #000000;
+    --button-add-bg: #28A745;
+    --button-add-hover: #218838;
+
+    /* 그림자 효과 */
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 4px 10px rgba(0, 0, 0, 0.1);
+    --shadow-heavy: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+body {
+    font-family: 'Apple SD Gothic Neo', 'Roboto', 'Noto Sans KR', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--main-bg-color);
+}
+
+.favorite-channels-container {
+    padding: 30px;
+    background-color: var(--main-bg-color);
+    min-height: calc(100vh - 60px);
+    color: var(--text-primary);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 페이지 헤더 */
+.page-header {
+    margin-bottom: 40px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.page-title {
+    color: var(--text-primary);
+    font-size: 2.2em;
+    font-weight: 700;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+/* 카드 공통 스타일 */
+.card {
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-medium);
+    margin-bottom: 30px;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-heavy);
+}
+
+/* ✅ 채널 검색 및 추가 섹션 전체를 감싸는 컨테이너 */
+.search-and-add-section-wrapper {
+    display: flex;
+    align-items: flex-start;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+/* ✅ 채널 검색 및 추가 제목 (세로 정렬 - 글씨 똑바로) */
+.search-section-title {
+    /* 기존: writing-mode: vertical-lr; text-orientation: mixed; transform: rotate(180deg); */
+    writing-mode: vertical-rl; /* ✅ 글자가 위에서 아래로, 오른쪽에서 왼쪽으로. 글씨는 똑바로 보임 */
+    text-orientation: upright; /* ✅ 한글 글자가 바로 서도록 설정 */
+    transform: none; /* ✅ 추가적인 회전 제거 */
+    font-size: 1.8em;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 25px 0 0;
+    padding: 0;
+    border: none;
+    flex-shrink: 0;
+    display: flex; /* 아이콘과 텍스트 정렬을 위해 flex 사용 */
+    flex-direction: column; /* 세로 정렬이므로 아이콘 아래 텍스트 */
+    align-items: center; /* 수평 중앙 정렬 (세로 텍스트 기준) */
+    gap: 5px; /* 아이콘과 텍스트 간격 */
+}
+.search-section-title svg {
+    font-size: 1.5em; /* 아이콘 크기 더 키움 */
+    margin: 0;
+    transform: none; /* 아이콘 회전 제거 */
+}
+
+
+/* 검색 컨트롤 및 결과 영역 */
+.search-controls-and-results {
+    flex-grow: 1;
+}
+
+/* 검색 입력창과 버튼 컨테이너 */
+.search-input-group-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px; /* ✅ 검색창 아래 메모 필드와의 간격 */
+}
+
+.search-input-field {
+    flex-grow: 1;
+    padding: 12px 15px;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    font-size: 1em;
+    outline: none;
+    background-color: var(--card-bg-color);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input-field:focus {
+    border-color: var(--accent-black);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ 메모 입력 필드 스타일 */
+.memo-input-group {
+    margin-bottom: 15px; /* ✅ 메모 필드 아래 검색 결과 테이블과의 간격 */
+}
+
+.memo-field {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    font-size: 0.95em;
+    outline: none;
+    background-color: var(--card-bg-color);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.memo-field::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.memo-field:focus {
+    border-color: var(--accent-black);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 검색 결과 표시 영역 스타일 */
+.search-results-display {
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
+/* 테이블 공통 스타일 */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+    background-color: var(--card-bg-color);
+}
+
+table th, table td {
+    padding: 10px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+    vertical-align: middle;
+    font-size: 0.95em;
+}
+
+table th {
+    background-color: var(--header-bg-color);
+    color: var(--text-primary);
+    font-weight: 600;
+    white-space: nowrap;
+    border-top: 1px solid var(--border-light);
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+table tbody tr:hover {
+    background-color: var(--hover-gray);
+}
+
+/* 검색 결과 테이블 전용 스타일 */
+.search-result-table th, .search-result-table td {
+    border-top: none;
+}
+
+.search-result-table .cell-search-name { font-weight: 600; }
+.search-result-table .cell-search-url a {
+    color: var(--link-color);
+    text-decoration: none;
+    word-break: break-all;
+}
+.search-result-table .cell-search-url a:hover {
+    text-decoration: underline;
+    color: var(--link-hover-color);
+}
+.search-result-table .cell-search-description { color: var(--text-secondary); }
+
+/* 이미지에 맞춰 검색 결과 테이블 컬럼 너비 조정 */
+.search-result-table .column-search-name { width: 20%; }
+.search-result-table .column-search-url { width: 35%; }
+.search-result-table .column-search-description { width: 35%; }
+.search-result-table .column-search-action { width: 10%; text-align: center; }
+.search-result-table td.cell-search-action { text-align: center; }
+
+
+/* 등록된 채널 테이블 전용 스타일 */
+.registered-channels-section h3 {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-light);
+}
+.registered-channel-table th,
+.registered-channel-table td {
+    font-size: 1.0em;
+}
+
+.registered-channel-table .column-number { width: 5%; text-align: center; }
+.registered-channel-table .column-channel-name { width: 20%; text-align: left; }
+.registered-channel-table .column-url { width: 35%; text-align: left; }
+.registered-channel-table .column-description { width: 30%; text-align: left; }
+.registered-channel-table .column-action { width: 10%; text-align: center; }
+
+.registered-channel-table .cell-number { font-weight: bold; }
+.registered-channel-table .cell-channel-name { font-weight: 600; }
+.registered-channel-table .cell-url a {
+    color: var(--link-color);
+    text-decoration: none;
+    word-break: break-all;
+}
+.registered-channel-table .cell-url a:hover {
+    text-decoration: underline;
+    color: var(--link-hover-color);
+}
+.registered-channel-table .cell-description { color: var(--text-secondary); }
+
+.action-link {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+.action-link:hover {
+    color: var(--link-hover-color);
+    text-decoration: underline;
+}
+.action-divider {
+    color: var(--text-secondary);
+    margin: 0 5px;
+}
+
+
+/* 액션 버튼 */
+.icon-button {
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.search-button {
+    background-color: var(--accent-black);
+    color: white;
+}
+.search-button:hover {
+    background-color: var(--accent-gray);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.add-button {
+    background-color: var(--button-add-bg);
+    color: white;
+}
+.add-button:hover {
+    background-color: var(--button-add-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+
+/* 빈 목록 메시지 */
+.no-results-message, .no-favorites-message {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 30px;
+    font-style: italic;
+    font-size: 1em;
+    padding: 20px;
+    border: 1px dashed var(--border-light);
+    border-radius: 6px;
+    background-color: var(--card-bg-color);
+}
+
+/* Sidebar.css의 .sidebar-nav .nav-item.active 에 매칭되도록 조정 */
+.sidebar-nav .nav-item.active {
+    background-color: var(--hover-gray);
+    color: var(--accent-black);
+    border-left: 5px solid var(--accent-black);
+}
+
+/* 작은 화면 대응 */
+@media (max-width: 1024px) {
+    .favorite-channels-container { padding: 20px; }
+    .search-and-add-section-wrapper { flex-direction: column; align-items: stretch; padding: 20px; }
+    .search-section-title { 
+        writing-mode: horizontal-tb; /* 가로로 다시 */
+        transform: none; /* 회전 제거 */
+        margin: 0 0 20px 0; /* 하단 여백 추가 */
+        border-bottom: 1px solid var(--border-light); /* 하단 구분선 */
+        padding-bottom: 10px;
+        font-size: 1.6em; /* 크기 조정 */
+        justify-content: center; /* 중앙 정렬 */
+    }
+    .search-section-title svg { transform: none; margin-right: 5px; } /* 아이콘 회전 제거 */
+
+    table th, table td { padding: 10px 8px; font-size: 0.85em; }
+    .icon-button { padding: 6px 10px; font-size: 0.8em; }
+    .registered-channel-table .column-channel-name { width: 25%; }
+    .registered-channel-table .column-url { width: 30%; }
+    .registered-channel-table .column-description { width: 30%; }
+    .registered-channel-table .column-action { width: 15%; }
+}
+
+@media (max-width: 768px) {
+    .page-title { font-size: 1.8em; }
+    .card { padding: 20px; }
+    .card h3 { font-size: 1.4em; }
+    .search-input-group-container { flex-direction: column; }
+    .search-input-field { width: 100%; }
+    .icon-button { width: 100%; justify-content: center; }
+
+    /* 테이블 모바일 스택형 */
+    .table-container { border: 1px solid var(--border-light); border-radius: 8px; }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead tr { position: absolute; top: -9999px; left: -9999px; }
+    tr { margin-bottom: 10px; background-color: var(--card-bg-color); border-bottom: none; }
+    td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+        border-bottom: 1px dashed var(--border-light);
+    }
+    td:last-child { border-bottom: none; }
+    td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-align: left;
+    }
+
+    /* 모바일 테이블 레이블 */
+    .registered-channel-table .cell-number:before { content: "번호"; }
+    .registered-channel-table .cell-channel-name:before { content: "채널 이름"; }
+    .registered-channel-table .cell-url:before { content: "URL"; }
+    .registered-channel-table .cell-description:before { content: "설명"; }
+    .registered-channel-table .cell-action:before { content: "액션"; }
+
+    .search-result-table .cell-search-name:before { content: "채널 이름"; }
+    .search-result-table .cell-search-url:before { content: "URL"; }
+    .search-result-table .cell-search-description:before { content: "설명"; }
+    .search-result-table .cell-search-action:before { content: "액션"; }
+
+    /* 특정 셀 조정 */
+    .cell-channel-name, .cell-url, .cell-description, .cell-search-name, .cell-search-url, .cell-search-description {
+        text-align: left !important;
+    }
+    .cell-number, .cell-search-action, .cell-action {
+        text-align: right;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .cell-number:before { content: "번호"; }
+}

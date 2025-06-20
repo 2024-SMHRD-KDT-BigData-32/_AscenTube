@@ -41,7 +41,6 @@ public class YoutubeAnalyticsController {
 			@RequestParam(required = false) String channelId) {
 		try {
 			QueryResponse result = youtubeAnalyticsService.getChannelBasicAnalytics(userId, startDate, endDate, channelId);
-
 			Map<String, Map<String, Object>> responseData = youtubeAnalyticsService.parseAnalyticsResult(result);
 
 			return ResponseEntity.ok(responseData);

@@ -11,7 +11,8 @@ import {
   MdComment,
   MdSmartToy,
   MdCategory,
-  MdAnalytics
+  MdAnalytics,
+  MdStar, // ✅ MdStar 아이콘 추가
 } from 'react-icons/md';
 
 const Sidebar = ({ isOpen }) => {
@@ -24,7 +25,8 @@ const Sidebar = ({ isOpen }) => {
     { to: '/comment', label: '댓글', icon: <MdComment /> },
     { to: '/ai', label: 'AI', icon: <MdSmartToy /> },
     { to: '/category-analysis', label: '카테고리 분석', icon: <MdCategory /> },
-    { to: '/vidanalysis', label: '영상분석', icon: <MdAnalytics /> }, // ✅ 경로에서 하이픈 제거
+    { to: '/vidanalysis', label: '영상분석', icon: <MdAnalytics /> },
+    { to: '/favorite-channels', label: '관심채널', icon: <MdStar /> }, // ✅ 관심채널 메뉴 추가
   ];
 
   return (
@@ -45,14 +47,6 @@ const Sidebar = ({ isOpen }) => {
           ))}
         </ul>
       </nav>
-    <div className="sidebar-profile">
-        <img
-          src="글씨만.png" // public 폴더 기준 상대경로
-          alt="프로필"
-          className="profile-image"
-        />
-        <span className={`profile-name ${isOpen ? 'show' : 'hide'}`}>야비킴</span>
-      </div>
     </aside>
   );
 };

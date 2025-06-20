@@ -38,5 +38,12 @@ public enum DeviceType {
                     .orElse(UNKNOWN);
         }
     }
+
+    public static DeviceType fromDbValue(String dbData) {
+        return Arrays.stream(DeviceType.values())
+                     .filter(deviceType -> deviceType.getDbValue().equals(dbData))
+                     .findFirst()
+                     .orElse(UNKNOWN);
+    }
 	
 }

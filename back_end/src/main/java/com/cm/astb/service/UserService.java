@@ -1,5 +1,6 @@
 package com.cm.astb.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -69,5 +70,13 @@ public class UserService {
 
 	public Optional<User> findByGoogleId(String googleId) {
 		return userRepository.findByGoogleId(googleId);
+	}
+
+	public List<User> findAllUsers() {
+		return userRepository.findAll();
+	}
+
+	public Optional<User> findUserByChannelId(String channelId) {
+		return userRepository.findByMyChannelId(channelId);
 	}
 }

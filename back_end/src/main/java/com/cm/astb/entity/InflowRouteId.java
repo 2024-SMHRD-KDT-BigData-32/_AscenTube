@@ -19,7 +19,7 @@ public class InflowRouteId implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Column(name = "VIDEO_ID", nullable = false)
-	private Integer videoId;
+	private Long videoId;
 
 	@Column(name = "INFLOW_TYPE", length = 100, nullable = false)
 	private String inflowType;

@@ -28,7 +28,7 @@ public class YouTubeVideo {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "VIDEO_ID", length = 100)
+	@Column(name = "VIDEO_ID")
 	private Long videoId;
 
 	@Column(name = "VIDEO_KEY", length = 50, nullable = false, unique = true)

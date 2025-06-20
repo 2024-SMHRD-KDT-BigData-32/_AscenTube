@@ -21,13 +21,12 @@ public class AudienceStatsId implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
 	@Column(name = "VIDEO_ID", nullable = false)
-    private Integer videoId;
+    private Long videoId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "GENDER", nullable = false)
     private Gender gender;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "AGE_GROUP", nullable = false)
     private AgeGroup ageGroup;
 
