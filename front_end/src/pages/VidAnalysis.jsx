@@ -241,9 +241,6 @@ const VidAnalysis = () => {
   const handleGraphPointMouseOut = () => { setTooltipData(prev => ({ ...prev, visible: false })); };
   const renderLineGraph = useCallback((data, metricKey) => { return <div>그래프 영역</div> }, [tooltipData]);
 
-  /**
-   * 분석 결과를 화면에 그리는 메인 렌더링 함수
-   */
   const renderAnalysisResults = () => {
     if (!analysisResults || !aiAnalysisResults) return null;
 
