@@ -7,8 +7,8 @@ import org.springframework.cache.annotation.EnableCaching; // 캐싱 활성화 i
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-// @EnableScheduling
-@EnableCaching // 캐싱 기능 활성화 어노테이션 추가
+@EnableScheduling
+@EnableCaching
 public class AscenTubeApplication {
 
 	public static void main(String[] args) {

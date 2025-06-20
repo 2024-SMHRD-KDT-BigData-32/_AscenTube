@@ -18,8 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cm.astb.dto.ChannelDashboardSummaryDto;
 import com.cm.astb.dto.ChannelKeyMetricsDto;
+import com.cm.astb.dto.DayOfWeekViewsDto;
+import com.cm.astb.dto.HourOfDayViewsDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
 import com.cm.astb.dto.TopSubscriberContributingVideoDto;
+import com.cm.astb.dto.VideoLengthViewsDto;
 import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.ChannelAnalysisService;
@@ -184,6 +187,64 @@ public class ChannelController {
 
         return keyMetricsDto.map(ResponseEntity::ok)
                             .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+    
+    /**
+     * 특정 채널의 영상을 업로드한 요일별 총 조회수 데이터를 DB에서 집계하여 반환하는 엔드포인트.
+     * @param channelId 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 요일별 총 조회수 리스트
+     */
+    @GetMapping("/my-channel/upload-views-by-day-of-week")
+    public ResponseEntity<List<DayOfWeekViewsDto>> getUploadViewsByDayOfWeek(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "month") String period) {
+
+        List<DayOfWeekViewsDto> result = channelAnalysisService.getChannelViewsByDayOfWeekFromDB(channelId, period);
+
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 특정 채널의 영상을 업로드한 시간대별 총 조회수 데이터를 DB에서 집계하여 반환하는 엔드포인트.
+     * @param channelId 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 시간대별 총 조회수 리스트
+     */
+    @GetMapping("/my-channel/upload-views-by-hour-of-day")
+    public ResponseEntity<List<HourOfDayViewsDto>> getUploadViewsByHourOfDay(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "month") String period) {
+
+        List<HourOfDayViewsDto> result = channelAnalysisService.getChannelViewsByHourFromDB(channelId, period);
+
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 특정 채널의 영상 길이별 조회수 데이터를 DB에서 집계하여 반환하는 엔드포인트.
+     * 백분율은 채널의 총 조회수 대비 계산됩니다.
+     * @param channelId 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 영상 길이별 조회수 리스트
+     */
+    @GetMapping("/my-channel/views-by-video-length")
+    public ResponseEntity<List<VideoLengthViewsDto>> getViewsByVideoLength(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "month") String period) {
+
+        List<VideoLengthViewsDto> result = channelAnalysisService.getViewsByVideoLength(channelId, period);
+
+        if (result.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(result);
     }
 }
 

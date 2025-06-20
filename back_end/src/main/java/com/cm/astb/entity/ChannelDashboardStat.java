@@ -47,9 +47,9 @@ public class ChannelDashboardStat implements Serializable {
     private String trafficSourceDistributionJson;
 
     @Lob
-    @Column(name = "WATCH_TIME_SEGMENT_JSON", columnDefinition = "LONGTEXT") // columnDefinition 추가
-    private String watchTimeSegmentJson;
-
+    @Column(name = "DEVICE_DISTRIBUTION_JSON", columnDefinition = "LONGTEXT")
+    private String deviceDistributionJson;
+    
     @CreationTimestamp
     @Column(name = "CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;

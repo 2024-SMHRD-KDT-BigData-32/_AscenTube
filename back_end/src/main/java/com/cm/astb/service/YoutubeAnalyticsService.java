@@ -390,8 +390,6 @@ public class YoutubeAnalyticsService {
 	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
 	    }
 	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
-	    // metrics는 views (시간대별 조회수) 또는 estimatedMinutesWatched (시간대별 시청 시간)
-	    // dimensions는 hour
 	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
 	        .query()
 	        .setIds("channel==" + channelId)
@@ -401,6 +399,27 @@ public class YoutubeAnalyticsService {
 	        .setDimensions("hour"); // 시간 디멘션 (0-23)
 	    QueryResponse response = query.execute();
 	    logger.debug("YouTube Analytics Response (Channel Watch Time by Hour for {}): {}", channelId, response.toPrettyString());
+	    return response;
+	}
+	
+	// 채널 전체의 기기 유형별 데이터를 가져오는 메서드
+	public QueryResponse getChannelDeviceAnalytics(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+	    logger.info("Fetching channel device analytics for channel: {}, from {} to {}", channelId, startDate, endDate);
+	    Credential credential = oAuthService.getCredential(googleId);
+	    if (credential == null) {
+	        logger.error("Credential is null for user {}", googleId);
+	        throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+	    }
+	    YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+	    YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+	        .query()
+	        .setIds("channel==" + channelId)
+	        .setStartDate(startDate)
+	        .setEndDate(endDate)
+	        .setMetrics("views")
+	        .setDimensions("deviceType"); // 기기 유형 디멘션
+	    QueryResponse response = query.execute();
+	    logger.debug("YouTube Analytics Response (Channel Device Analytics for {}): {}", channelId, response.toPrettyString());
 	    return response;
 	}
 }
