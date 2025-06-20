@@ -1,6 +1,7 @@
 package com.cm.astb.controller;
 
-import com.cm.astb.dto.GeminiAnalysisDto; // 1. 새로 만든 DTO를 import 합니다.
+// [수정] GeminiAnalysisDto는 더 이상 사용하지 않으므로 import를 제거하거나 주석 처리합니다.
+// import com.cm.astb.dto.GeminiAnalysisDto; 
 import com.cm.astb.service.GeminiAnalysisService;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +28,7 @@ public class GeminiAnalysisController {
     }
 
     // =================================================================================
-    // =                            채널 분석 엔드포인트                             =
+    // =                             채널 분석 엔드포인트 (기존과 동일)                      =
     // =================================================================================
     
     @GetMapping("/youtube/channel-analysis")
@@ -38,7 +39,7 @@ public class GeminiAnalysisController {
         try {
             String aiResultJson = aiAnalysisService.analyzeChannelWithAi(userId, channelId, myChannelTopic);
             final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.setContentType(MediaType.APPLICATION_JSON_UTF8);
+            httpHeaders.setContentType(MediaType.APPLICATION_JSON);
             return new ResponseEntity<>(aiResultJson, httpHeaders, HttpStatus.OK);
         } catch (Exception e) {
             return handleException(e);
@@ -47,28 +48,22 @@ public class GeminiAnalysisController {
 
 
     // =================================================================================
-    // =                            영상 분석 엔드포인트                             =
+    // =                      영상 분석 엔드포인트 (yt-dlp 방식으로 수정됨)                =
     // =================================================================================
     
     /**
-     * [수정됨] 지정된 유튜브 동영상의 스크립트 등을 바탕으로 '콘텐츠 중심 분석'을 요청합니다.
+     * [수정] 지정된 유튜브 동영상의 ID를 받아 백엔드에서 직접 스크립트를 추출하고 AI 분석을 수행합니다.
      *
      * @param videoId 분석할 동영상 ID (URL 경로에서 가져옴)
-     * @param requestDto 요청 본문 (userId와 transcript 포함 DTO)
      * @return Map<String, Object> 유튜브 동영상 정보와 AI 분석 결과를 포함하는 JSON
      */
-    @PostMapping("/youtube/video-analysis/{videoId}")
+    @GetMapping("/youtube/video-analysis/{videoId}") // [수정] POST -> GET
     public ResponseEntity<?> getAiVideoAnalysis(
-            @PathVariable String videoId,
-            @RequestBody GeminiAnalysisDto requestDto) { // [수정] Map 대신 GeminiAnalysisDto로 받음
+            @PathVariable String videoId) { // [수정] RequestBody와 userId 파라미터 제거
 
         try {
-            // [수정] DTO의 Getter 메소드를 사용하여 안전하게 값을 가져옴
-            Map<String, Object> aiVideoAnalysisResultMap = aiAnalysisService.analyzeVideoWithAi(
-                    requestDto.getUserId(),
-                    videoId,
-                    requestDto.getTranscript()
-            );
+            // [수정] 서비스 호출 시 videoId만 전달
+            Map<String, Object> aiVideoAnalysisResultMap = aiAnalysisService.analyzeVideoWithAi(videoId);
 
             return ResponseEntity.ok(aiVideoAnalysisResultMap);
 
@@ -82,22 +77,27 @@ public class GeminiAnalysisController {
         e.printStackTrace();
         if (e instanceof IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body(Map.of("error", "클라이언트 요청 오류: " + e.getMessage()));
+                    .body(Map.of("error", "클라이언트 요청 오류: " + e.getMessage()));
         } else if (e instanceof GoogleJsonResponseException gje) {
             if (gje.getStatusCode() == HttpStatus.FORBIDDEN.value() && gje.getDetails() != null &&
                 gje.getDetails().getErrors() != null && !gje.getDetails().getErrors().isEmpty() &&
                 "quotaExceeded".equals(gje.getDetails().getErrors().get(0).getReason())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                     .body(Map.of("error", "YouTube API 할당량을 초과했습니다. 잠시 후 다시 시도해주세요."));
+                        .body(Map.of("error", "YouTube API 할당량을 초과했습니다. 잠시 후 다시 시도해주세요."));
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(Map.of("error", "YouTube API 호출 중 오류 발생: " + gje.getMessage()));
+                    .body(Map.of("error", "YouTube API 호출 중 오류 발생: " + gje.getMessage()));
         } else if (e instanceof IOException || e instanceof GeneralSecurityException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(Map.of("error", "AI 분석 중 백엔드 오류 발생: " + e.getMessage()));
+                    .body(Map.of("error", "AI 분석 중 백엔드 오류 발생: " + e.getMessage()));
+        // [신규] yt-dlp 프로세스 대기 중 발생할 수 있는 InterruptedException 처리 추가
+        } else if (e instanceof InterruptedException) {
+             Thread.currentThread().interrupt(); // 스레드 인터럽트 상태를 다시 설정
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "스크립트 분석 프로세스 처리 중 예기치 않은 중단이 발생했습니다."));
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .body(Map.of("error", "AI 분석 중 예상치 못한 오류 발생: " + e.getMessage()));
+                    .body(Map.of("error", "AI 분석 중 예상치 못한 오류 발생: " + e.getMessage()));
         }
     }
 }
