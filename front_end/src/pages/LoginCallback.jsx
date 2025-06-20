@@ -16,6 +16,7 @@ const LoginCallback = () => {
         const googleId = params.get('googleId'); // 백엔드에서 googleId도 보내고 있으므로 추가
         const userThumbnailUrl = params.get('userThumbnailUrl'); // 백엔드에서 현재 보내지 않음
         const userChannelName = params.get('userChannelName');   // 백엔드에서 현재 보내지 않음
+        const userChannelId = params.get('userChannelId');
         const error = params.get('error');
 
         // 각 파라미터 값을 개별적으로 로깅
@@ -48,6 +49,10 @@ const LoginCallback = () => {
             if (userChannelName) {
                 localStorage.setItem('user_channel_name', userChannelName);
             }
+            if (userChannelId) {
+                localStorage.setItem('user_channel_id', userChannelId);
+            }
+
 
             // 백그라운드로 토큰 및 사용자 정보 전송을 위한 커스텀 이벤트 발생
             window.dispatchEvent(new CustomEvent('ascenTubeTokenStored'));

@@ -69,6 +69,7 @@ public class OAuthController {
 		String nickname = null;
 		String profileImg = null;
 		String channelName = null;
+		String channelId = null;
 
 		try {
 			Map<String, Object> googleTokenResponse = oAuthService.exchangeCodeForTokens(code);
@@ -100,6 +101,7 @@ public class OAuthController {
 			List<Channel> channels = channelListResponse.getItems();
 			if (channels != null && !channels.isEmpty()) {
 				channelName = channels.get(0).getSnippet().getTitle();
+				channelId = channels.get(0).getId();
 			} else {
 				System.out.println("No YouTube Channel found for this user");
 			}
@@ -108,14 +110,15 @@ public class OAuthController {
 
 			String jwtToken = jwtTokenProvider.generateToken(user);
 
-			String redirectUrl = String.format("%s?jwtToken=%s&userGoogleId=%s&userName=%s&userEmail=%s&userThumbnailUrl=%s&userChannelName=%s",
+			String redirectUrl = String.format("%s?jwtToken=%s&userGoogleId=%s&userName=%s&userEmail=%s&userThumbnailUrl=%s&userChannelName=%s&userChannelId=%s",
 					googleApiConfig.getFrontendRedirectUrl(),
 					URLEncoder.encode(jwtToken, StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getGoogleId() != null ? user.getGoogleId() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getNickname() != null ? user.getNickname() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getEmail() != null ? user.getEmail() : "", StandardCharsets.UTF_8),
 					URLEncoder.encode(user.getProfileImg() != null ? user.getProfileImg() : "", StandardCharsets.UTF_8),
-					URLEncoder.encode(channelName != null ? channelName : "", StandardCharsets.UTF_8)
+					URLEncoder.encode(channelName != null ? channelName : "", StandardCharsets.UTF_8),
+					URLEncoder.encode(channelId != null ? channelId : "", StandardCharsets.UTF_8)
 					);
 			return new RedirectView(redirectUrl);
 
