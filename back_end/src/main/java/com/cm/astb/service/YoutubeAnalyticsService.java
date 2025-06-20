@@ -47,10 +47,8 @@ public class YoutubeAnalyticsService {
 		if (credential == null || credential.getAccessToken() == null) {
 			throw new GeneralSecurityException("OAuth 인증이 필요합니다. /oauth/google/authorize 로 인증을 시작하세요.");
 		}
-		// 인증된 YouTubeAnalytics 서비스 객체 생성
 		YouTubeAnalytics analytics = oAuthService.getYouTubeAnalyticsService(credential);
 
-		// Analytics API 쿼리 빌드
 		YouTubeAnalytics.Reports.Query request = analytics.reports().query();
 
 		request.setIds("channel==" + (channelId != null && !channelId.isEmpty() ? channelId : "mine"));

@@ -52,7 +52,7 @@ const TopBar = ({ onToggleSidebar }) => {
   const handleLogout = () => {
     // LocalStorage의 모든 관련 항목 삭제
     Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('user_') || key.startsWith('vidAnalysis_') || key === 'access_token' || key === 'token') {
+        if (key.startsWith('google_') || key.startsWith('user_') || key.startsWith('vidAnalysis_') || key === 'access_token' || key === 'token') {
             localStorage.removeItem(key);
         }
     });

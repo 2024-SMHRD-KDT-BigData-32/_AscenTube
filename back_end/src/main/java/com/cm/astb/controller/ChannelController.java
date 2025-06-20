@@ -11,11 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cm.astb.dto.ChannelDashboardSummaryDto;
+import com.cm.astb.dto.ChannelKeyMetricsDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
 import com.cm.astb.dto.TopSubscriberContributingVideoDto;
 import com.cm.astb.dto.VideoPerformanceDto;
@@ -169,6 +171,19 @@ public class ChannelController {
 
         return summaryDto.map(ResponseEntity::ok)
                          .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+    
+    /**
+     * 특정 채널의 주요 지표 데이터를 반환하는 엔드포인트.
+     * @param channelId 유튜브 채널 ID
+     * @return 채널 주요 지표 DTO
+     */
+    @GetMapping("/my-channel/key-metrics")
+    public ResponseEntity<ChannelKeyMetricsDto> getChannelKeyMetrics(@RequestParam String channelId) {
+        Optional<ChannelKeyMetricsDto> keyMetricsDto = channelAnalysisService.getChannelKeyMetrics(channelId);
+
+        return keyMetricsDto.map(ResponseEntity::ok)
+                            .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
 
