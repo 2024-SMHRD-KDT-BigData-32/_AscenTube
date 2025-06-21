@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import '../styles/pages/Dashboard.css';
-import { Line, Doughnut } from 'react-chartjs-2';
+import { Doughnut, Radar } from 'react-chartjs-2'; // Radar 임포트 추가
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -12,21 +12,22 @@ import {
   Tooltip,
   Legend,
   Filler,
+  RadialLinearScale, // Radar 차트를 위한 Scale 임포트
 } from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { fetchDashboardData } from '../api/dashboardApi';
 
+// Chart.js 모듈 등록
 ChartJS.register(
-  CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler,
-  ChartDataLabels
+  CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Tooltip, Legend, Filler, ChartDataLabels, RadialLinearScale // RadialLinearScale 등록
 );
 
+// HorizontalStatBar 컴포넌트
 const HorizontalStatBar = ({ category, percentage, barColor = '#4f46e5' }) => {
   const barRef = useRef(null);
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (barRef.current) {
-        barRef.current.style.width = `${percentage}%`;
-      }
+      if (barRef.current) barRef.current.style.width = `${percentage}%`;
     }, 100);
     return () => clearTimeout(timer);
   }, [percentage]);
@@ -39,11 +40,7 @@ const HorizontalStatBar = ({ category, percentage, barColor = '#4f46e5' }) => {
       </div>
       <div className="stat-bar-container">
         <div className="stat-bar-track">
-          <div
-            className="stat-bar-fill"
-            ref={barRef}
-            style={{ backgroundColor: barColor, width: '0%' }}
-          ></div>
+          <div className="stat-bar-fill" ref={barRef} style={{ backgroundColor: barColor, width: '0%' }}></div>
         </div>
       </div>
     </div>
@@ -51,220 +48,151 @@ const HorizontalStatBar = ({ category, percentage, barColor = '#4f46e5' }) => {
 };
 
 const Dashboard = () => {
-  const [audience, setAudience] = useState(null);
-  const [growth, setGrowth] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [contentPerformance, setContentPerformance] = useState(null);
-  const [kpi, setKpi] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const loadData = async () => {
       try {
-        setKpi({});
-        setAudience({
-            gender: {}, age: {}, country: {}, time: {}, trafficSources: {labels: [], data: []}, commentSentiment: {}
-        });
-        setStats({});
-        setGrowth({
-            labels: [], views: [], subscribers: [], avgViewsPerVideo: [], engagementRate: []
-        });
-        setContentPerformance({
-            recentVideos: [],
-            topSubscriberVideos: [],
-            topViewDurationVideos: []
-        });
-        
         setLoading(true);
         setError(null);
-
-        const token = localStorage.getItem('access_token');
-        // const userGoogleId = localStorage.getItem('user_google_id'); // 이제 이 대신 YouTube 채널 ID를 사용
-        const userYoutubeChannelId = localStorage.getItem('user_youtube_channel_id'); // ✨ 변경된 부분
-
-        if (!token) {
-          throw new Error('로그인 정보(JWT 토큰)가 없습니다. 다시 로그인해주세요.');
-        }
-        // ✨ 변경된 부분: userYoutubeChannelId가 없으면 오류 처리
-        if (!userYoutubeChannelId) {
-          throw new Error('로그인된 사용자의 YouTube 채널 ID를 찾을 수 없습니다. 로그인 콜백을 확인하거나 채널 연동이 필요합니다.');
-        }
-
-        console.log('localStorage에서 가져온 JWT 토큰:', token ? token.substring(0, 30) + '...' : '없음');
-        // console.log('localStorage에서 가져온 Google ID (channelId로 사용):', userGoogleId); // 이제 이 로그는 필요 없음
-        console.log('localStorage에서 가져온 YouTube Channel ID:', userYoutubeChannelId); // ✨ 변경된 로그
-
-        const dashboardApiBaseUrl = 'http://localhost:8082/AscenTube/channel/my-channel/latest-video-performance';
-        const queryParams = new URLSearchParams({
-            channelId: userYoutubeChannelId, // ✨ 변경된 부분: YouTube 채널 ID 사용
-            limit: 3
-        }).toString();
-        const recentVideosApiUrl = `${dashboardApiBaseUrl}?${queryParams}`;
-
-        const recentVideosResponse = await fetch(recentVideosApiUrl, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-        });
-
-        if (recentVideosResponse.status === 204) {
-            console.log("최근 업로드 영상 데이터 없음 (HTTP 204 No Content)");
-            setContentPerformance(prev => ({ ...prev, recentVideos: [] }));
-        } else if (!recentVideosResponse.ok) {
-            const contentType = recentVideosResponse.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await recentVideosResponse.json();
-                throw new Error(`API 오류 (${recentVideosResponse.status}): ${errorData.message || recentVideosResponse.statusText}`);
-            } else {
-                const errorText = await recentVideosResponse.text();
-                throw new Error(`API 오류 (${recentVideosResponse.status}): ${errorText || recentVideosResponse.statusText}`);
-            }
-        } else {
-            const recentVideosData = await recentVideosResponse.json();
-            setContentPerformance(prev => ({
-                ...prev,
-                recentVideos: recentVideosData.map(video => ({
-                    id: video.videoKey,
-                    title: video.videoTitle,
-                    views: video.viewCount,
-                    avgDuration: formatAverageWatchTime(video.avgWatchTime),
-                    likes: video.likeCount,
-                    comments: video.commentCount,
-                    newSubs: video.subscriberGained,
-                }))
-            }));
-        }
-
-        // --- 다른 더미 데이터는 그대로 유지 (다음 작업에서 API 연동 예정) ---
-        setKpi({ newSubscribersToday: 12, lostSubscribersToday: 3, impressions: 150000, ctr: 5.5 });
-        setAudience({
-          gender: { male: 60, female: 40 },
-          age: { '13-17': 10, '18-24': 25, '25-34': 30, '35-44': 20, '45+': 15 },
-          country: { '대한민국': 75, '미국': 10, '일본': 5, '기타': 10 },
-          time: { '오전(10-12)': 15, '저녁(18-20)': 40, '밤(20-22)': 30, '기타 시간': 15 },
-          trafficSources: { labels: ['YouTube 검색', '추천 동영상', '외부 채널', '탐색 기능', '기타'], data: [45, 25, 15, 10, 5] },
-          commentSentiment: { '칭찬': 30, '정보제공': 25, '질문': 18, '감정표현': 12, '요청': 8, '비판': 4, '기타': 3, },
-        });
-        setStats({ viewCount: "2345678", subscriberCount: "12345", averageViewDuration: "3:45" });
-        setGrowth({
-            labels: ['1월', '2월', '3월', '4월', '5월', '6월'],
-            views: [15000, 17000, 16000, 19000, 22000, 21000],
-            subscribers: [100, 120, 150, 180, 220, 250],
-            avgViewsPerVideo: [3500, 3800, 3700, 4200, 4500, 4300],
-            engagementRate: [5.2, 5.5, 5.3, 5.8, 6.1, 5.9],
-        });
-        setContentPerformance(prev => ({
-            ...prev,
-            topSubscriberVideos: [{ id: 2, title: "스프링부트 시큐리티 완벽 가이드", newSubs: 45, views: 25000 }, { id: 5, title: "코딩 초보 탈출 프로젝트 (1탄)", newSubs: 38, views: 18000 }, { id: 3, title: "리액트 상태관리 이것만 알면 끝", newSubs: 22, views: 8500 },],
-            topViewDurationVideos: [{ id: 4, title: "클라우드 아키텍처 심층 인터뷰", avgDuration: "15:20 (70%)", views: 9200 }, { id: 2, title: "스프링부트 시큐리티 완벽 가이드", avgDuration: "12:30 (65%)", views: 25000 }, { id: 6, title: "데이터 분석가의 하루 (VLOG)", avgDuration: "10:05 (60%)", views: 11000 },]
-        }));
-
-
-        setLoading(false);
+        const data = await fetchDashboardData();
+        setDashboardData(data);
       } catch (err) {
-        console.error("대시보드 데이터 로드 중 오류 발생:", err);
+        console.error("대시보드 데이터 로드 중 컴포넌트 오류:", err);
         setError(err.message);
+        setDashboardData(null);
+      } finally {
         setLoading(false);
       }
     };
-
-    fetchDashboardData();
+    loadData();
   }, []);
 
-  const formatAverageWatchTime = (seconds) => {
-    if (typeof seconds !== 'number' || isNaN(seconds) || seconds < 0) {
-      return "0:00";
-    }
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
-
-  if (loading) {
-    return <p>📡 유튜브 채널 대시보드 데이터를 불러오는 중입니다...</p>;
+  if (loading) return <p>📡 유튜브 채널 대시보드 데이터를 불러오는 중입니다...</p>;
+  if (error) return <p className="error-message">🚨 데이터 로드 중 오류가 발생했습니다: {error}</p>;
+  if (!dashboardData || !dashboardData.stats || !dashboardData.contentPerformance || !dashboardData.audience || !dashboardData.radarData) {
+    return <p className="error-message">⚠️ 대시보드 데이터를 표시할 수 없습니다. 백엔드 API 상태를 확인해주세요.</p>;
   }
 
-  if (error) {
-    return <p className="error-message">🚨 데이터 로드 중 오류가 발생했습니다: {error}</p>;
-  }
-
-  if (!kpi || !audience || !stats || !growth || !contentPerformance) {
-    return <p className="error-message">⚠️ 필수 대시보드 데이터를 찾을 수 없습니다. 다시 시도해주세요.</p>;
-  }
-
-  const growthChartData = {
-    labels: growth.labels,
-    datasets: [
-      { label: '조회수', data: growth.views, borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.2)', tension: 0.3, fill: true, },
-      { label: '구독자 증감', data: growth.subscribers, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', tension: 0.3, fill: true, },
-    ],
-  };
-  const growthChartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top', labels: { color: '#3730a3' } },
-      tooltip: { mode: 'index', intersect: false }
-    },
-    scales: {
-      x: { ticks: { color: '#6b7280' }, grid: { display: false } },
-      y: { type: 'linear', display: true, position: 'left', ticks: { color: '#6b7280' }, beginAtZero: true, grid: { color: '#e5e7eb' } }
-    },
-  };
+  const { stats, contentPerformance, audience, radarData } = dashboardData;
 
   const trafficSourceChartData = {
     labels: audience.trafficSources.labels,
     datasets: [{
-      label: '트래픽 소스',
       data: audience.trafficSources.data,
-      backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'],
-      borderColor: 'white',
+      backgroundColor: ['#5A67D8', '#4299E1', '#38B2AC', '#48BB78', '#F56565', '#ED8936', '#ECC94B', '#9F7AEA', '#ED64A6', '#A0AEC0'],
+      borderColor: '#ffffff',
       borderWidth: 2,
     }],
   };
 
-  const sentimentChartData = {
-    labels: Object.keys(audience.commentSentiment),
-    datasets: [{
-      label: '댓글 유형 분석',
-      data: Object.values(audience.commentSentiment),
-      backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#ef4444', '#6b7280'],
-      borderColor: 'white',
-      borderWidth: 2,
-    }],
-  };
-
-  const doughnutChartOptions = {
+  const trafficDoughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: { padding: { top: 60, bottom: 60, left: 30, right: 30, } },
+    events: ['mousemove', 'mouseout', 'click', 'touchstart', 'touchmove'],
+    onHover: null, hover: { mode: null }, animation: { duration: 0 },
     plugins: {
-      legend: {
-        display: false,
+      legend: { display: false },
+      tooltip: {
+        enabled: true, backgroundColor: 'rgba(0, 0, 0, 0.8)', padding: 12, titleFont: { size: 0 },
+        bodyFont: { size: 15, weight: 'bold' }, bodySpacing: 5, displayColors: false,
+        callbacks: {
+          label: (tooltipItem) => `${tooltipItem.label || ''}  ${(tooltipItem.raw || 0).toFixed(2)}%`
+        }
       },
       datalabels: {
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        borderRadius: 4,
-        color: 'white',
-        font: {
-          weight: 'bold',
-          size: 11,
-        },
-        padding: {
-          top: 4,
-          bottom: 2,
-          left: 6,
-          right: 6,
-        },
         formatter: (value, context) => {
+          if (value < 3) return null;
           const label = context.chart.data.labels[context.dataIndex];
-          if (value < 5) return '';
-          return `${label} ${value}%`;
+          return `${label} ${value.toFixed(1)}%`;
         },
+        anchor: 'end', offset: 35,
+        align: (context) => {
+          const T = Math.PI, p = context.chart.getDatasetMeta(0).data[context.dataIndex];
+          if (!p) return 'center';
+          const a = (p.startAngle + p.endAngle) / 2;
+          return a > T * 0.5 && a < T * 1.5 ? "start" : "end";
+        },
+        textAlign: 'center',
+        font: { size: 13, weight: '700', family: 'Pretendard' },
+        color: '#1E293B', textStrokeColor: 'white', textStrokeWidth: 4,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderColor: (context) => context.dataset.backgroundColor,
+        borderWidth: 2, borderRadius: 5, padding: 6,
       }
     },
   };
+
+  const healthRadarData = {
+    labels: radarData.labels,
+    datasets: [
+      {
+        label: '채널 건강 점수',
+        data: radarData.scores,
+        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+        borderColor: '#4F46E5',
+        borderWidth: 2,
+        pointBackgroundColor: '#4F46E5',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#4F46E5',
+      },
+    ],
+  };
+
+  const healthRadarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => `${context.label}: ${context.raw}점`
+        }
+      }
+    },
+    scales: {
+      r: {
+        angleLines: { color: '#E2E8F0' },
+        grid: { color: '#E2E8F0' },
+        min: 0,
+        max: 100,
+        ticks: {
+          stepSize: 25,
+          backdropColor: 'rgba(255, 255, 255, 0.75)',
+          color: '#64748B',
+        },
+        pointLabels: {
+          font: { size: 14, weight: '600', family: 'Pretendard' },
+          color: '#334155'
+        },
+      },
+    },
+  };
+
+  const generateAnalysis = () => {
+    const scores = radarData.scores.map(Number);
+    const insights = [];
+    const overallScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+    if (scores[0] < 50) insights.push(<>채널의 <strong>신규 구독자</strong> 확보 능력이 다소 아쉽습니다. 구독을 유도할 수 있는 콘텐츠 기획이 필요해 보입니다.</>);
+    if (scores[1] < 50) insights.push(<>시청자를 영상에 오래 머물게 하는 <strong>콘텐츠 흡입력</strong>이 부족합니다. 영상 초반 30초의 구성과 편집을 점검해보세요.</>);
+    if (scores[2] < 50) insights.push(<>조회수 대비 시청자들의 <strong>좋아요, 댓글 참여</strong>가 저조합니다. 영상 마지막에 질문을 던지거나 의견을 유도해보세요.</>);
+    if (scores[3] < 60) insights.push(<><strong>트래픽이 한두 소스에 집중</strong>되어 있어 위험합니다. YouTube 검색이나 외부 유입 등 새로운 경로를 개척할 필요가 있습니다.</>);
+    if (scores[4] < 60) insights.push(<>채널의 <strong>핵심 시청자 타겟</strong>이 명확하지 않습니다. 채널의 정체성을 강화하여 팬덤을 구축하는 전략을 추천합니다.</>);
+    if (scores[5] < 50) insights.push(<>아직 채널의 <strong>절대적인 규모</strong>가 작습니다. 꾸준한 업로드를 통해 구독자 기반을 단단히 다지는 것이 중요합니다.</>);
+
+    if (insights.length === 0) {
+      insights.push(<>모든 지표가 안정적입니다! 현재 채널은 매우 <strong>균형 잡힌 성장</strong>을 하고 있습니다. 지금처럼 꾸준히 운영해주세요.</>);
+    }
+
+    return { overallScore, insights };
+  };
+
+  const analysis = generateAnalysis();
 
   return (
     <div className="dashboard-container">
@@ -277,14 +205,11 @@ const Dashboard = () => {
         <section className="dashboard-section kpi-section">
           <h3 className="section-title">주요 지표</h3>
           <div className="card-grid kpi-grid">
-            <div className="card subscriber-focus-card">
-              <h3>총 구독자 수</h3>
-              <p>{Number(stats.subscriberCount).toLocaleString()} 명</p>
-            </div>
-            <div className="card"><h3>총 조회수</h3><p>{Number(stats.viewCount).toLocaleString()}</p></div>
+            <div className="card subscriber-focus-card"><h3>총 구독자 수</h3><p>{stats.subscriberCount.toLocaleString()} 명</p></div>
+            <div className="card"><h3>총 조회수</h3><p>{stats.viewCount.toLocaleString()} 회</p></div>
             <div className="card"><h3>평균 시청 지속 시간</h3><p>{stats.averageViewDuration}</p></div>
-            <div className="card"><h3>총 노출수</h3><p>{kpi.impressions.toLocaleString()}</p></div>
-            <div className="card"><h3>클릭률 (CTR)</h3><p>{kpi.ctr}%</p></div>
+            <div className="card"><h3>총 영상 수</h3><p>{stats.totalVideos.toLocaleString()} 개</p></div>
+            <div className="card"><h3>평균 업로드 주기</h3><p>{stats.averageUploadInterval}</p></div>
           </div>
         </section>
 
@@ -296,31 +221,33 @@ const Dashboard = () => {
               <table>
                 <thead><tr><th>제목</th><th>조회수</th><th>평균시청</th><th>좋아요</th><th>댓글</th><th>신규구독</th></tr></thead>
                 <tbody>
-                  {contentPerformance.recentVideos && contentPerformance.recentVideos.length > 0 ? (
+                  {contentPerformance.recentVideos.length > 0 ? (
                     contentPerformance.recentVideos.map(video => (
                       <tr key={video.id}>
-                        <td>{video.title}</td>
-                        <td>{video.views.toLocaleString()}</td>
-                        <td>{video.avgDuration}</td>
-                        <td>{video.likes}</td>
-                        <td>{video.comments}</td>
-                        <td>{video.newSubs}</td>
+                        <td>{video.title}</td><td>{video.views.toLocaleString()}</td><td>{video.avgDuration}</td>
+                        <td>{video.likes.toLocaleString()}</td><td>{video.comments.toLocaleString()}</td><td>{video.newSubs}</td>
                       </tr>
                     ))
-                  ) : (
-                    <tr><td colSpan="6">최근 업로드 영상 데이터가 없습니다.</td></tr>
-                  )}
+                  ) : (<tr><td colSpan="6">최근 업로드 영상 데이터가 없습니다.</td></tr>)}
                 </tbody>
               </table>
             </div>
             <div className="side-by-side-content-wrapper">
               <div className="content-box top-subscriber-videos">
                 <h4>구독자 증가 기여 Top 영상</h4>
-                <ul>{contentPerformance.topSubscriberVideos.map(video => (<li key={video.id}><strong>{video.title}</strong> (구독 {video.newSubs}명, 조회 {video.views.toLocaleString()}회)</li>))}</ul>
+                <ul>
+                  {contentPerformance.topSubscriberVideos.length > 0 ? (
+                    contentPerformance.topSubscriberVideos.map(video => (<li key={video.id}><strong>{video.title}</strong> (구독 {video.newSubs}명, 조회 {video.views.toLocaleString()}회)</li>))
+                  ) : (<li>구독자 증가 기여 영상 데이터가 없습니다.</li>)}
+                </ul>
               </div>
               <div className="content-box top-duration-videos">
                 <h4>평균 시청 지속 시간 Top 영상</h4>
-                <ul>{contentPerformance.topViewDurationVideos.map(video => (<li key={video.id}><strong>{video.title}</strong> ({video.avgDuration}, 조회 {video.views.toLocaleString()}회)</li>))}</ul>
+                <ul>
+                  {contentPerformance.topViewDurationVideos.length > 0 ? (
+                    contentPerformance.topViewDurationVideos.map(video => (<li key={video.id}><strong>{video.title}</strong> ({video.avgDuration}, 조회 {video.views.toLocaleString()}회)</li>))
+                  ) : (<li>평균 시청 지속 시간 Top 영상 데이터가 없습니다.</li>)}
+                </ul>
               </div>
             </div>
           </div>
@@ -331,50 +258,57 @@ const Dashboard = () => {
           <div className="stats-grid audience-analysis-grid">
             <div className="stat-box">
               <h4>성별 비율</h4>
-              {audience.gender ? (<> <HorizontalStatBar category="남성" percentage={audience.gender.male} barColor="#6366f1" /> <HorizontalStatBar category="여성" percentage={audience.gender.female} barColor="#ec4899" /> </>) : (<p className="no-data-message">데이터 없음</p>)}
+              {audience.gender ? (<><HorizontalStatBar category="남성" percentage={audience.gender.male} barColor="#6366f1" /><HorizontalStatBar category="여성" percentage={audience.gender.female} barColor="#ec4899" /></>) : <p className="no-data-message">데이터 없음</p>}
             </div>
             <div className="stat-box">
               <h4>연령대 분포</h4>
-              {audience.age && Object.keys(audience.age).length > 0 ? (Object.entries(audience.age).map(([range, percent]) => (<HorizontalStatBar key={range} category={`${range}세`} percentage={percent} barColor="#22d3ee" />))) : (<p className="no-data-message">데이터 없음</p>)}
+              {audience.age && Object.keys(audience.age).length > 0 ? (Object.entries(audience.age).map(([range, percent]) => (<HorizontalStatBar key={range} category={`${range}세`} percentage={percent} barColor="#22d3ee" />))) : <p className="no-data-message">데이터 없음</p>}
             </div>
             <div className="stat-box">
               <h4>국가별 시청자</h4>
-              {audience.country ? (Object.entries(audience.country).map(([countryName, percent]) => (<HorizontalStatBar key={countryName} category={countryName} percentage={percent} barColor="#a855f7" />))) : (<p className="no-data-message">데이터 없음</p>)}
-            </div>
-            <div className="stat-box">
-              <h4>주요 시청 시간대</h4>
-              {audience.time ? (Object.entries(audience.time).map(([timeRange, percent]) => (<HorizontalStatBar key={timeRange} category={timeRange} percentage={percent} barColor="#f59e0b" />))) : (<p className="no-data-message">데이터 없음</p>)}
+              {audience.country && Object.keys(audience.country).length > 0 ? (Object.entries(audience.country).map(([countryName, percent]) => (<HorizontalStatBar key={countryName} category={countryName} percentage={percent} barColor="#a855f7" />))) : <p className="no-data-message">데이터 없음</p>}
             </div>
             <div className="stat-box traffic-sources-chart">
               <h4>주요 트래픽 소스</h4>
-              <div style={{ height: '12rem', position: 'relative', marginTop: '1rem' }}>
-                <Doughnut data={trafficSourceChartData} options={doughnutChartOptions} />
+              <div className="doughnut-chart-container">
+                {audience.trafficSources && audience.trafficSources.labels.length > 0 ? (<Doughnut data={trafficSourceChartData} options={trafficDoughnutOptions} />) : (<p className="no-data-message">데이터 없음</p>)}
               </div>
             </div>
-            <div className="stat-box comment-sentiment-box">
-              <h4>댓글 유형 분석 <span className="section-subtitle">*AI 기반</span></h4>
-              {audience.commentSentiment ? (
-                <div style={{ height: '12rem', position: 'relative', marginTop: '1rem' }}>
-                  <Doughnut data={sentimentChartData} options={doughnutChartOptions} />
+            <div className="stat-box comment-analysis-full-width">
+              <h4>댓글 유형 분석 <span className="section-subtitle">*AI 기반 (UI Preview)</span></h4>
+              <div className="comment-analysis-container">
+                <div className="comment-chart-container">
+                  <p className="no-data-message">댓글 분석 기능은 준비 중입니다.</p>
                 </div>
-              ) : (<p className="no-data-message">감정 분석 데이터 없음</p>)}
+                <div className="comment-details-container">
+                  <h5>대표 댓글 분석</h5>
+                  <div className="representative-comment"><p>"와, 이번 영상 퀄리티 정말 좋네요! 다음 편도 기대하겠습니다."</p><span>긍정적 피드백</span></div>
+                  <div className="representative-comment"><p>"혹시 영상에서 사용하신 BGM 정보 알 수 있을까요?"</p><span>정보 문의</span></div>
+                  <div className="representative-comment"><p>"편집 방식이 살짝 아쉬워요. 조금 더 속도감 있으면 좋을 것 같아요."</p><span>개선 제안</span></div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="dashboard-section growth-monitoring-section">
-          <h3 className="section-title">채널 성장 추이 (월별)</h3>
-          <div style={{ width: '100%', height: '20rem', position: 'relative' }}>
-            <Line data={growthChartData} options={growthChartOptions} />
-          </div>
-          <div className="stats-grid additional-growth-metrics" style={{ marginTop: '1.5rem' }}>
-            <div className="stat-box">
-              <h4>월별 평균 조회수/영상 (최근)</h4>
-              <p className="highlight-stat-value">{growth.avgViewsPerVideo[growth.avgViewsPerVideo.length - 1].toLocaleString()}</p>
+        <section className="dashboard-section">
+          <h3 className="section-title">채널 건강 진단</h3>
+          <div className="channel-health-container">
+            <div className="radar-chart-panel">
+              <Radar data={healthRadarData} options={healthRadarOptions} />
             </div>
-            <div className="stat-box">
-              <h4>월별 상호작용률 (최근)</h4>
-              <p className="highlight-stat-value">{growth.engagementRate[growth.engagementRate.length - 1]}%</p>
+            <div className="radar-analysis-panel">
+              <h4 className="analysis-title">종합 분석 및 제안</h4>
+              <p className="analysis-subtitle">채널의 강점과 약점을 바탕으로 다음 성장 전략을 세워보세요.</p>
+              <div className="analysis-overall-score">
+                <span className="score-value">{analysis.overallScore.toFixed(0)}</span>
+                <span className="score-label">/ 100점</span>
+              </div>
+              <div className="analysis-insight-list">
+                {analysis.insights.map((insight, index) => (
+                  <p key={index} className="analysis-insight-item">{insight}</p>
+                ))}
+              </div>
             </div>
           </div>
         </section>

@@ -16,6 +16,9 @@ import java.security.GeneralSecurityException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -118,12 +121,12 @@ public class GeminiAnalysisService {
       return prompt.toString();
    }
 
-   // =================================================================================
-   // = 영상 분석 관련 메소드 (yt-dlp 방식으로 수정됨) =
-   // =================================================================================
-   
-   public Map<String, Object> analyzeVideoWithAi(String videoId)
-         throws GeneralSecurityException, IOException, InterruptedException {
+	// =================================================================================
+	// = 영상 분석 관련 메소드 (Python 스크립트 방식으로 수정됨) =
+	// =================================================================================
+	
+	public Map<String, Object> analyzeVideoWithAi(String videoId)
+			throws GeneralSecurityException, IOException, InterruptedException {
 
       logger.info("Starting Content-Centric AI analysis for video: {}", videoId);
       
@@ -135,185 +138,172 @@ public class GeminiAnalysisService {
       }
       logger.info("Successfully fetched video info for ID: {}", videoId);
 
-      String transcript = fetchTranscriptWithYtDlp(videoId);
-      if (transcript.isEmpty()) {
-         logger.warn("No suitable transcript found for video ID: {}. Analysis will proceed without script.", videoId);
-      }
+		// Python 스크립트를 호출하여 스크립트 내용을 가져옵니다.
+		String transcript = fetchTranscriptWithPython(videoId); 
+		if (transcript.isEmpty()) {
+			logger.warn("No suitable transcript found for video ID: {}. Analysis will proceed without script.", videoId);
+		} else {
+            logger.info("Successfully fetched transcript for video ID: {}. Transcript length: {} characters.", videoId, transcript.length());
+        }
 
-      String prompt = createPromptForContentAnalysis(videoInfo, transcript);
-      logger.info("Generated Prompt for Gemini (Content-Centric Video Analysis): \n{}", prompt);
+		// AI 프롬프트를 생성합니다.
+		String prompt = createPromptForContentAnalysis(videoInfo, transcript);
+		logger.info("Generated Prompt for Gemini (Content-Centric Video Analysis): \n{}", prompt);
 
-      String aiResponseRawString = geminiService.getAnalysisFromGemini(prompt);
-      logger.info("Received AI Response Raw String: {}", aiResponseRawString);
-      JsonNode aiAnalysisJsonNode = parseAiResponse(aiResponseRawString);
+		// Gemini AI에 분석을 요청하고 응답을 받습니다.
+		String aiResponseRawString = geminiService.getAnalysisFromGemini(prompt);
+		logger.info("Received AI Response Raw String: {}", aiResponseRawString);
+		JsonNode aiAnalysisJsonNode = parseAiResponse(aiResponseRawString);
 
-      Map<String, Object> responseMap = new LinkedHashMap<>();
-      responseMap.put("videoInfo", videoInfo);
-      responseMap.put("aiAnalysis", aiAnalysisJsonNode);
+		// 프론트엔드로 보낼 응답 맵을 구성합니다.
+		Map<String, Object> responseMap = new LinkedHashMap<>();
+		responseMap.put("videoInfo", videoInfo);
+		responseMap.put("aiAnalysis", aiAnalysisJsonNode);
+		// [추가] 스크립트 원본 내용을 응답 맵에 추가합니다.
+		responseMap.put("fullTranscript", transcript);
 
-      return responseMap;
-   }
-   
-   /**
-    * 영상 분석용('콘텐츠 중심 분석') 프롬프트를 한국어로 생성하는 헬퍼 메소드. (Private Helper Method)
-    */
-   private String createPromptForContentAnalysis(Video video, String transcript) {
-      StringBuilder prompt = new StringBuilder();
+		return responseMap;
+	}
 
-      // [수정] AI의 역할과 임무를 더 구체적으로 지시합니다.
-      prompt.append("당신은 미디어 콘텐츠를 객관적으로 분석하고, 그 구조와 핵심 메시지를 파악하는 전문 미디어 분석가입니다. "
-            + "당신의 가장 중요한 임무는 아래에 제공된 '스크립트'의 내용을 깊이 있게 분석하여 영상의 실제 내용을 파악하는 것입니다. "
-            + "제목과 설명은 보조적인 정보로만 활용하세요.\n\n");
+	private String createPromptForContentAnalysis(Video video, String transcript) {
+		StringBuilder prompt = new StringBuilder();
 
-      prompt.append("### 제공된 영상 데이터\n");
-      prompt.append("- 제목: ").append(video.getSnippet().getTitle()).append("\n");
-      prompt.append("- 설명: \"\"\"").append(video.getSnippet().getDescription()).append("\"\"\"\n");
+		prompt.append(
+				"당신은 주어진 텍스트의 핵심 내용을 사실에 기반하여 간결하게 요약하는 '텍스트 요약 전문 AI'입니다. " +
+				"추측이나 예상을 배제하고, 제공된 '스크립트' 내용만을 바탕으로 답변을 생성하세요.\n\n");
 
-      if (transcript != null && !transcript.isEmpty()) {
-         prompt.append("- 스크립트: \"\"\"").append(transcript).append("\"\"\"\n\n");
-      } else {
-         prompt.append("- 스크립트: (사용 가능한 스크립트 없음)\n\n");
-      }
-
-      // [수정] 다른 메타데이터 제공 부분을 제거하거나 주석 처리하여 AI가 스크립트에 더 집중하게 할 수도 있습니다.
-      // (이 부분은 선택사항입니다. 우선은 그대로 두고 테스트해보세요.)
-      /*
-       * prompt.append("- 채널명: ").append(video.getSnippet().getChannelTitle()).append(
-       * "\n");
-       * prompt.append("- 게시일: ").append(video.getSnippet().getPublishedAt()).append(
-       * "\n"); if (video.getSnippet().getTags() != null &&
-       * !video.getSnippet().getTags().isEmpty()) {
-       * prompt.append("- 태그: ").append(String.join(", ",
-       * video.getSnippet().getTags())).append("\n"); } ...
-       */
+		prompt.append("### 원본 데이터\n");
+		prompt.append("- 제목: ").append(video.getSnippet().getTitle()).append("\n");
+		if (transcript != null && !transcript.isEmpty()) {
+			prompt.append("- 스크립트: \"\"\"").append(transcript).append("\"\"\"\n\n");
+		} else {
+			prompt.append("- 스크립트: (사용 가능한 스크립트 없음)\n\n");
+			prompt.append("스크립트가 없으므로, 제목과 영상 설명만으로 분석합니다.\n");
+			prompt.append("- 설명: \"\"\"").append(video.getSnippet().getDescription()).append("\"\"\"\n\n");
+		}
 
       prompt.append("--- \n\n");
 
-      // [수정] 분석 요청 사항을 더 명확하게 변경합니다.
-      prompt.append("### 콘텐츠 중심 분석 요청\n");
-      prompt.append(
-            "반드시 위 '스크립트' 내용을 기반으로 다음 객관적인 분석을 수행해주세요. 스크립트 내용이 없다면, 제목과 설명을 바탕으로 추론해주세요. 답변은 반드시 아래 명시된 JSON 형식으로만 생성해야 하며, 다른 어떤 설명도 추가하지 마세요.\n\n");
-      prompt.append("1.  **콘텐츠 프로필:** 영상의 핵심 주제, 주요 메시지, 그리고 타겟 시청자를 요약해주세요.\n");
-      prompt.append("2.  **서사 구조:** 영상의 논리적 또는 이야기 구조를 설명해주세요. (예: 도입, 전개, 결론)\n");
-      prompt.append("3.  **핵심 정보:** 시청자가 이 영상을 통해 얻게 될 가장 중요한 정보나 팁 3가지를 추출해주세요.\n");
-      prompt.append("4.  **주요 키워드:** 영상 전반에 걸쳐 논의되는 주요 키워드와 컨셉을 식별해주세요.\n\n");
+		prompt.append("### 분석 요청\n");
+		prompt.append("제공된 '스크립트' 내용을 바탕으로 다음 항목들을 채워주세요. 각 항목은 반드시 스크립트에 언급된 내용만을 기반으로 사실적으로 작성해야 합니다. 답변은 반드시 아래 명시된 JSON 형식으로만 생성해야 합니다.\n\n");
 
-      prompt.append("```json\n");
-      prompt.append("{\n");
-      prompt.append("  \"contentProfile\": {\n");
-      prompt.append("    \"coreSummary\": \"(스크립트 기반의 핵심 주제와 메시지를 1~2 문장으로 요약)\",\n");
-      prompt.append("    \"keyTheme\": \"(스크립트를 관통하는 주요 테마나 아이디어)\",\n");
-      prompt.append("    \"assumedTargetAudience\": \"(스크립트의 내용과 어조를 바탕으로 추정한 타겟 시청자)\"\n");
-      prompt.append("  },\n");
-      prompt.append("  \"narrativeStructure\": {\n");
-      prompt.append("    \"introduction\": \"(스크립트의 도입부에서 시청자의 관심과 문제를 어떻게 이끌어내는지에 대한 설명)\",\n");
-      prompt.append("    \"development\": \"(스크립트의 본론에서 정보를 전달하거나 스토리를 발전시키는 방식)\",\n");
-      prompt.append("    \"conclusion\": \"(스크립트의 결론부에서 핵심 메시지를 요약하거나 다음 행동을 유도하는 방식)\"\n");
-      prompt.append("  },\n");
-      prompt.append("  \"keyTakeaways\": [\n");
-      prompt.append("    \"(스크립트에서 얻을 수 있는 핵심 정보/팁 1)\",\n");
-      prompt.append("    \"(스크립트에서 얻을 수 있는 핵심 정보/팁 2)\",\n");
-      prompt.append("    \"(스크립트에서 얻을 수 있는 핵심 정보/팁 3)\"\n");
-      prompt.append("  ],\n");
-      prompt.append("  \"mainKeywords\": [\n");
-      prompt.append("    \"(스크립트에서 가장 많이 언급되는 주요 키워드 1)\",\n");
-      prompt.append("    \"(주요 키워드 2)\",\n");
-      prompt.append("    \"(주요 키워드 3)\",\n");
-      prompt.append("    \"(주요 키워드 4)\"\n");
-      prompt.append("  ]\n");
-      prompt.append("}\n");
-      prompt.append("```\n");
+		// NOTE: 이 JSON 스키마는 프론트엔드의 aiAnalysisResults 렌더링 부분과 일치해야 합니다.
+		// 현재 프론트엔드는 contentSummary, keyTakeaways, mainKeywords 필드를 예상하고 있습니다.
+		prompt.append("```json\n");
+		prompt.append("{\n");
+		prompt.append("  \"contentSummary\": {\n");
+		prompt.append("    \"mainTopic\": \"(스크립트의 핵심 주제)\",\n");
+		prompt.append("    \"summaryPoints\": [\n");
+		prompt.append("      \"(스크립트의 첫 번째 핵심 내용 요약)\",\n");
+		prompt.append("      \"(스크립트의 두 번째 핵심 내용 요약)\",\n");
+		prompt.append("      \"(스크립트의 세 번째 핵심 내용 요약)\"\n");
+		prompt.append("    ]\n");
+		prompt.append("  },\n");
+		prompt.append("  \"keyTakeaways\": [\n");
+		prompt.append("    \"(시청자가 얻게 될 사실 정보 또는 주장 1)\",\n");
+		prompt.append("    \"(시청자가 얻게 될 사실 정보 또는 주장 2)\",\n");
+		prompt.append("    \"(시청자가 얻게 될 사실 정보 또는 주장 3)\"\n");
+		prompt.append("  ],\n");
+		prompt.append("  \"mainKeywords\": [\n");
+		prompt.append("    \"(스크립트에서 가장 많이 언급되는 주요 키워드 1)\",\n");
+		prompt.append("    \"(주요 키워드 2)\",\n");
+		prompt.append("    \"(주요 키워드 3)\",\n");
+		prompt.append("    \"(주요 키워드 4)\"\n");
+		prompt.append("  ]\n");
+		prompt.append("}\n");
+		prompt.append("```\n");
 
-      return prompt.toString();
-   }
-   // =================================================================================
-   // = 신규 헬퍼 메소드 (yt-dlp) =
-   // =================================================================================
-   
-   /**
-    * [신규] yt-dlp를 사용하여 스크립트를 가져오는 헬퍼 메소드.
-    */
-   private String fetchTranscriptWithYtDlp(String videoId) throws IOException, InterruptedException {
-       logger.info("Fetching captions for video ID using yt-dlp: {}", videoId);
-       
-       // [수정] 하드코딩된 절대 경로 대신, 프로젝트 기준 상대 경로를 동적으로 생성합니다.
-       String projectPath = System.getProperty("user.dir");
-       String separator = System.getProperty("file.separator");
-       String ytDlpPath = projectPath + separator + "tools" + separator + "yt-dlp.exe";
+		return prompt.toString();
+	}
+	
+	// yt-dlp 대신 아래 메소드를 사용하여 Python 스크립트를 호출합니다.
+    private String fetchTranscriptWithPython(String videoId) throws IOException, InterruptedException {
+        logger.info("Python 스크립트를 사용하여 비디오 ID의 캡션 가져오기 시작: {}", videoId);
+        
+        String projectPath = System.getProperty("user.dir"); // 현재 프로젝트의 루트 경로를 가져옵니다.
+        String separator = System.getProperty("file.separator"); // 운영체제에 맞는 파일 구분자(/ 또는 \\)를 가져옵니다.
+        
+        // 스크린샷에서 확인된 파일 이름 'Youtube_Transcript_Api.py'를 반영합니다.
+        String scriptFileName = "Youtube_Transcript_Api.py";
+        String scriptPath = projectPath + separator + "tools" + separator + scriptFileName;
 
-       // 생성된 경로를 로그로 확인해봅니다.
-       logger.info("Relative path to yt-dlp: {}", ytDlpPath);
+        logger.info("파이썬 스크립트 경로: {}", scriptPath);
 
+        // ProcessBuilder를 사용하여 외부 파이썬 스크립트를 실행합니다.
+        ProcessBuilder processBuilder = new ProcessBuilder(
+                "python",     // 파이썬 실행 명령어
+                scriptPath,   // 실행할 파이썬 스크립트 파일의 전체 경로
+                videoId       // 파이썬 스크립트에 전달할 인자 (유튜브 영상 ID)
+        );
+        
+        // 자식 프로세스(파이썬 스크립트)의 표준 에러(stderr)와 표준 출력(stdout)을
+        // 부모 프로세스(Java 애플리케이션)의 표준 출력으로 합쳐서 읽을 수 있게 합니다.
+        // 이를 통해 파이썬 스크립트의 에러 메시지도 Java에서 읽을 수 있습니다.
+        processBuilder.redirectErrorStream(true);
+        Process process = processBuilder.start(); // 파이썬 스크립트 실행
 
-       ProcessBuilder processBuilder = new ProcessBuilder(
-               ytDlpPath, // 수정된 경로 변수 사용
-               "--write-auto-sub",
-               "--sub-lang", "ko,en",
-               "--skip-download",
-               "-o", "-",
-               "https://www.youtube.com/watch?v=" + videoId
-       );
-       Process process = processBuilder.start();
+        // 파이썬 스크립트의 표준 출력을 읽어옵니다 (이것이 바로 자막 내용입니다).
+        String transcript;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"))) {
+            // 스크립트에서 출력된 모든 라인을 읽어서 하나의 문자열로 합칩니다.
+            transcript = reader.lines().collect(Collectors.joining("\n"));
+        }
 
-       String transcript;
-       try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"))) {
-           transcript = reader.lines().collect(Collectors.joining("\n"));
-       }
+        // 파이썬 스크립트 프로세스가 완료될 때까지 기다립니다.
+        // 최대 대기 시간을 설정하여 무한정 기다리는 것을 방지할 수 있습니다.
+        boolean finished = process.waitFor(60, TimeUnit.SECONDS); // 60초 대기
+        
+        if (!finished) {
+            process.destroy(); // 시간 초과 시 프로세스 강제 종료
+            logger.error("파이썬 스크립트 실행 시간 초과: {}", videoId);
+            return ""; // 또는 예외 처리: throw new IOException("Python script execution timed out");
+        }
+        
+        // 파이썬 스크립트의 종료 코드를 확인하여 성공 여부를 판단할 수도 있습니다.
+        int exitCode = process.exitValue();
+        if (exitCode != 0) {
+            logger.error("파이썬 스크립트가 오류와 함께 종료되었습니다. 종료 코드: {}", exitCode);
+            // 에러 스트림을 통해 파이썬 스크립트의 상세 에러 메시지를 로그할 수 있습니다.
+            // (processBuilder.redirectErrorStream(true) 설정 시)
+        }
 
-       String errorOutput;
-       try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), "UTF-8"))) {
-           errorOutput = errorReader.lines().collect(Collectors.joining("\n"));
-       }
+        logger.info("파이썬 스크립트 실행 완료 (비디오 ID: {}). 종료 코드: {}", videoId, exitCode);
+        
+        // 이 방식은 VTT 파싱이 필요 없으므로 cleanVtt 호출을 하지 않습니다.
+        // 파이썬에서 합쳐서 넘겨준 스크립트 문자열의 앞뒤 공백을 제거하여 반환합니다.
+        return transcript.trim();
+    }
 
-       int exitCode = process.waitFor();
-       
-       if (exitCode != 0 || (transcript.isEmpty() && !errorOutput.isEmpty())) {
-           logger.error("yt-dlp process exited with code: {}. Error Output: {}", exitCode, errorOutput);
-       }
-       
-       return cleanVtt(transcript);
-   }
+    /**
+     * AI 응답 문자열에서 JSON 블록을 추출하고 파싱합니다.
+     * AI 응답이 '```json' 과 '```'으로 감싸져 있을 것으로 예상합니다.
+     * @param rawResponse AI 원본 응답 문자열
+     * @return 파싱된 JsonNode 객체
+     * @throws IOException JSON 파싱 중 오류 발생 시
+     */
+    private JsonNode parseAiResponse(String rawResponse) throws IOException {
+        String cleanJsonString = rawResponse;
+        
+        // '```json' 과 '```' 사이에 있는 JSON 블록을 정규식을 사용하여 추출합니다.
+        // Pattern.DOTALL 플래그는 '.'이 개행 문자도 포함하도록 합니다.
+        Pattern pattern = Pattern.compile("```json\\s*([\\s\\S]*?)\\s*```");
+        Matcher matcher = pattern.matcher(rawResponse);
 
-   /**
-    * [신규] VTT 형식의 자막에서 타임스탬프 등을 제거하고 순수 텍스트만 추출합니다.
-    */
-   private String cleanVtt(String vttContent) {
-      if (vttContent == null || vttContent.isEmpty()) {
-         return "";
-      }
-      StringBuilder cleanedText = new StringBuilder();
-      Map<String, Boolean> linesMap = new LinkedHashMap<>();
+        if (matcher.find()) {
+            cleanJsonString = matcher.group(1).trim(); // 첫 번째 그룹(JSON 내용)을 추출하고 공백 제거
+            logger.debug("Extracted JSON string from AI response:\n{}", cleanJsonString);
+        } else {
+            logger.warn("AI response did not contain expected markdown JSON block. Attempting to parse raw string.");
+            // 마크다운 블록이 없으면, 전체 응답을 JSON으로 파싱 시도 (가장 최후의 수단)
+            cleanJsonString = rawResponse.trim();
+        }
 
-      String[] lines = vttContent.split("\\r?\\n");
-      for (String line : lines) {
-         if (!line.trim().isEmpty() && !line.contains("-->") && !line.trim().equals("WEBVTT") && !line.matches("^\\d+$")) {
-            linesMap.put(line.trim(), true);
-         }
-      }
-      
-      for (String key : linesMap.keySet()) {
-         cleanedText.append(key).append(" ");
-      }
-      return cleanedText.toString().trim();
-   }
-
-   /**
-    * Gemini AI의 응답(JSON 문자열)에서 마크다운 코드 블록을 제거하고 파싱합니다.
-    */
-   private JsonNode parseAiResponse(String rawResponse) throws IOException {
-      String cleanJsonString = rawResponse;
-      int jsonStartIndex = cleanJsonString.indexOf("```json");
-      int jsonEndIndex = cleanJsonString.lastIndexOf("```");
-      if (jsonStartIndex != -1 && jsonEndIndex != -1 && jsonStartIndex < jsonEndIndex) {
-         cleanJsonString = cleanJsonString.substring(jsonStartIndex + "```json".length(), jsonEndIndex).trim();
-      } else {
-         logger.warn("AI response did not contain expected markdown JSON block. Attempting to parse raw string.");
-      }
-      try {
-         return objectMapper.readTree(cleanJsonString);
-      } catch (Exception e) {
-         logger.error("Failed to parse AI response JSON string: {}", cleanJsonString, e);
-         throw new IOException("AI 분석 결과 파싱 실패: " + e.getMessage(), e);
-      }
-   }
+        try {
+            // ObjectMapper를 사용하여 JSON 문자열을 JsonNode로 파싱합니다.
+            return objectMapper.readTree(cleanJsonString);
+        } catch (Exception e) {
+            logger.error("AI 분석 결과 JSON 파싱 실패! 원본 응답: [{}], 파싱 시도 문자열: [{}]", rawResponse, cleanJsonString, e);
+            throw new IOException("AI 분석 결과 파싱 실패: " + e.getMessage() + ". 파싱 시도 문자열: " + cleanJsonString, e);
+        }
+    }
 }

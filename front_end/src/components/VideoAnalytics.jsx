@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom'; // useLocation 추가
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList, PieChart, Pie, Cell } from 'recharts';
 import { fetchTrendingVideosByPeriod } from '../api/youtubeApi';
 import '../styles/components/VideoAnalytics.css';
+import { FiThumbsUp, FiMessageSquare, FiPlay } from 'react-icons/fi'; // 아이콘 추가
 
 // 헬퍼 함수: ISO 8601 형식의 재생시간을 총 초(second)로 변환
 const parseDurationToSeconds = (isoDuration) => {
@@ -247,6 +248,8 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
         fetchData();
     }, [categoryId, timePeriod]);
 
+// src/pages/VideoAnalytics.jsx (두 번째 부분)
+
     const renderVideoItem = (video, listType) => {
         const sentimentChartData = [{ name: '반응', positive: video.positivePercent, negative: video.negativePercent }];
         const positiveRadius = video.negativePercent === 0 ? [4, 4, 4, 4] : [4, 0, 0, 4];
@@ -280,7 +283,8 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                         <button onClick={() => toggleSummary(video.id, listType)} className="more-button">
                             {video.isSummaryVisible ? '숨기기' : '상세분석'}
                         </button>
-                        <Link to={`/video/${video.id}`} className="more-button video-specific-analysis-link">영상분석</Link>
+                        {/* 영상분석 링크 수정: videoId 쿼리 파라미터로 전달 */}
+                        <Link to={`/video-analysis?videoId=${video.id}`} className="more-button video-specific-analysis-link">영상분석</Link>
                         <Link to={`/channel/${video.channelId}`} className="more-button channel-analysis-link">채널분석</Link>
                     </div>
                 </div>
@@ -350,17 +354,6 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="representative-speech-acts" style={{ marginTop: '15px' }}>
-                            <h6>화행별 대표 댓글</h6>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
-                                {Object.entries(video.representativeComments).map(([category, comment]) => (
-                                    <div key={category} style={{ padding: '8px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                                        <strong>{category}:</strong> {comment}
-                                    </div>
-                                ))}
                             </div>
                         </div>
 
