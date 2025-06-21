@@ -14,6 +14,8 @@ import ChannelAnalysisPage from './pages/ChannelAnalysisPage';
 import VidAnalysis from './pages/VidAnalysis';
 import FavoriteChannels from './pages/FavoriteChannels'; // ✅ FavoriteChannels 컴포넌트 임포트
 
+import TestConnectionPage from './pages/TestConnectionPage'; // 🚀 새로 만든 테스트 페이지 import
+
 const PrivateRoute = () => {
   const isAuthenticated = !!localStorage.getItem('access_token');
   return isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />;
@@ -40,11 +42,22 @@ const App = () => {
         <Route path="vidanalysis" element={<VidAnalysis />} />
         <Route path="video/:videoId" element={<VidAnalysis />} />
 
-        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
-        <Route path="favorite-channels" element={<FavoriteChannels />} /> {/* ✅ 관심 채널 라우트 추가 */}
+        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
+
+  `     {/* 🚀 테스트 페이지 라우트 추가 */}
+        <Route path="admin" element={<TestConnectionPage />} />
+
       </Route>
 
-      <Route path="/" element={<Navigate to="/index" replace />} />
+      {/* 만약 "/" 경로로 접근 시 바로 /index로 보내고 싶다면,
+          하지만 PrivateRoute가 "/"를 감싸고 있으므로,
+          인증되지 않았다면 /login으로, 인증되었다면 PrivateRoute 내부의 index -> /index로 가게 됩니다.
+          별도의 "/" 핸들링이 필요하다면 PrivateRoute 바깥에 정의해야 합니다.
+          현재 구조에서는 특별히 필요 없어 보입니다.
+      */}
+        <Route path="/" element={<Navigate to="/index" replace />} />
+
+
     </Routes>
   );
 };

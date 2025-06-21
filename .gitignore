@@ -163,3 +163,11 @@ desktop.ini             # Windows system files
 # Logs not covered by backend/frontend specific
 *.log
 /.metadata/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# 환경변수
+.env
+**/.env

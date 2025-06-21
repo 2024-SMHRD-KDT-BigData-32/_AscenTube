@@ -1,0 +1,28 @@
+# requirements.txt
+
+# Web Framework
+fastapi
+uvicorn
+
+# Scheduling
+APScheduler
+
+# .env & Config
+python-dotenv
+
+# Database
+mysql-connector-python
+
+# Google API
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+
+# Datetime Handling
+python-dateutil
+isodate
+
+# Machine Learning
+torch
+transformers
+sentencepiece
