@@ -13,4 +13,5 @@ public interface VideoStatRepository extends JpaRepository<VideoStat, VideoStats
 	
 	List<VideoStat> findById_VideoIdOrderById_StatsDateDesc(Integer videoId);
 	Optional<VideoStat> findById_VideoIdAndId_StatsDate(Integer videoId, LocalDateTime statsDate);
+	List<VideoStat> findByIdVideoIdInAndIdStatsDate(List<Long> videoIds, LocalDateTime statsDate);
 }

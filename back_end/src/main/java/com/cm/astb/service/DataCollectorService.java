@@ -331,13 +331,13 @@ public class DataCollectorService {
 
 	                    } else {
 	                        logger.warn("No cumulative analytics data found for video {} up to {}. Setting relevant stats to 0.", youTubeVideoKey, analyticsDataEndDate.format(formatter));
-	                        videoStatToSave.setAvgWatchTime(0);
-	                        videoStatToSave.setSubscriberGained(0);
+	                        videoStatToSave.setAvgWatchTime(null);
+	                        videoStatToSave.setSubscriberGained(null);
 	                    }
 	                } catch (IOException | GeneralSecurityException e) {
 	                    logger.error("Error fetching cumulative video analytics for video {} up to {}: {}", youTubeVideoKey, analyticsDataEndDate.format(formatter), e.getMessage());
-	                    videoStatToSave.setAvgWatchTime(0);
-	                    videoStatToSave.setSubscriberGained(0);
+	                    videoStatToSave.setAvgWatchTime(null);
+	                    videoStatToSave.setSubscriberGained(null);
 	                }
 
 	                // 최종 VideoStat 객체 저장/업데이트
@@ -544,7 +544,7 @@ public class DataCollectorService {
     }
 	
 //	@Scheduled(cron = "0 0 1 * * ?") 
-//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
     @Transactional
     public void refreshOutdatedChannelInfo() {
         logger.info("Starting refresh of outdated channel info in TB_YT_CHANNEL...");
@@ -694,61 +694,31 @@ public class DataCollectorService {
                     logger.warn("No traffic source data found for channel {}", channelId);
                     dashboardStatToSave.setTrafficSourceDistributionJson("[]");
                 }
-
-                // 5. 주요 시청 시간대 (Watch Time Segment)
-//                QueryResponse watchTimeResponse = youtubeAnalyticsService.getChannelWatchTimeAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
-//                if (watchTimeResponse != null && watchTimeResponse.getRows() != null && !watchTimeResponse.getRows().isEmpty()) {
-//                    // 시간대별 그룹화 로직 (이미지 참고: 오전(10-12), 저녁(18-20), 밤(20-22), 기타)
-//                    Map<String, Long> segmentedViews = new HashMap<>();
-//                    segmentedViews.put("Morning (10-12)", 0L);
-//                    segmentedViews.put("Evening (18-20)", 0L);
-//                    segmentedViews.put("Night (20-22)", 0L);
-//                    segmentedViews.put("Other Time", 0L); // 기타 시간대
-//
-//                    long totalViewsForWatchTime = watchTimeResponse.getRows().stream()
-//                                                                    .mapToLong(row -> ((BigDecimal) row.get(1)).longValue())
-//                                                                    .sum();
-//
-//                    for (List<Object> row : watchTimeResponse.getRows()) {
-//                        Integer hour = ((BigDecimal) row.get(0)).intValue(); // hour (0-23)
-//                        Long views = ((BigDecimal) row.get(1)).longValue();
-//
-//                        if (hour >= 10 && hour < 12) {
-//                            segmentedViews.merge("Morning (10-12)", views, Long::sum);
-//                        } else if (hour >= 18 && hour < 20) {
-//                            segmentedViews.merge("Evening (18-20)", views, Long::sum);
-//                        } else if (hour >= 20 && hour < 22) {
-//                            segmentedViews.merge("Night (20-22)", views, Long::sum);
-//                        } else {
-//                            segmentedViews.merge("Other Time", views, Long::sum);
-//                        }
-//                    }
-//
-//                    List<Map<String, Object>> watchTimeList = new ArrayList<>();
-//                    for (Map.Entry<String, Long> entry : segmentedViews.entrySet()) {
-//                        double percentage = (totalViewsForWatchTime > 0) ? (double) entry.getValue() / totalViewsForWatchTime * 100 : 0.0;
-//                        Map<String, Object> timeData = new HashMap<>();
-//                        timeData.put("segment", entry.getKey());
-//                        timeData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
-//                        watchTimeList.add(timeData);
-//                    }
-//                    // 이미지 순서에 맞춰 정렬 (선택 사항)
-//                    watchTimeList.sort(Comparator.comparing(m -> {
-//                        String segment = (String) m.get("segment");
-//                        switch (segment) {
-//                            case "Morning (10-12)": return 1;
-//                            case "Evening (18-20)": return 2;
-//                            case "Night (20-22)": return 3;
-//                            case "Other Time": return 4;
-//                            default: return 5;
-//                        }
-//                    }));
-//                    dashboardStatToSave.setWatchTimeSegmentJson(objectMapper.writeValueAsString(watchTimeList));
-//                } else {
-//                    logger.warn("No watch time data found for channel {}", channelId);
-//                    dashboardStatToSave.setWatchTimeSegmentJson("[]");
-//                }
-
+                
+             // --- 5. 기기 유형별 시청 비율 (Device Distribution) ---
+                QueryResponse deviceResponse = youtubeAnalyticsService.getChannelDeviceAnalytics(googleId, analyticsStartDate.format(formatter), analyticsEndDate.format(formatter), channelId);
+                if (deviceResponse != null && deviceResponse.getRows() != null && !deviceResponse.getRows().isEmpty()) {
+                    long totalViewsForDevice = deviceResponse.getRows().stream()
+                                                            .mapToLong(row -> ((BigDecimal) row.get(1)).longValue())
+                                                            .sum();
+                    List<Map<String, Object>> deviceList = new ArrayList<>();
+                    for (List<Object> row : deviceResponse.getRows()) {
+                        String deviceTypeStr = (String) row.get(0); // 예: "COMPUTER", "MOBILE"
+                        Long views = ((BigDecimal) row.get(1)).longValue();
+                        double percentage = (totalViewsForDevice > 0) ? (double) views / totalViewsForDevice * 100 : 0.0;
+                        Map<String, Object> deviceData = new HashMap<>();
+                        deviceData.put("deviceType", deviceTypeStr);
+                        deviceData.put("viewsCount", views); // 조회수도 함께 저장
+                        deviceData.put("percentage", BigDecimal.valueOf(percentage).setScale(2, RoundingMode.HALF_UP).doubleValue());
+                        deviceList.add(deviceData);
+                    }
+                    dashboardStatToSave.setDeviceDistributionJson(objectMapper.writeValueAsString(deviceList));
+                } else {
+                    logger.warn("No device data found for channel {}", channelId);
+                    dashboardStatToSave.setDeviceDistributionJson("[]");
+                }
+                
+                
                 // 최종 ChannelDashboardStat 저장
                 channelDashboardStatRepository.save(dashboardStatToSave);
                 logger.info("Successfully collected and saved dashboard stats for channel: {}", channelId);

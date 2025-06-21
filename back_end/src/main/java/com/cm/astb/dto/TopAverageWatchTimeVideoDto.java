@@ -14,5 +14,6 @@ public class TopAverageWatchTimeVideoDto {
     private Integer avgWatchTime;
     private Long viewCount;
     private LocalDateTime uploadedAt;
+    private Integer videoDuration;
     private Integer videoPlaytime;
 }
