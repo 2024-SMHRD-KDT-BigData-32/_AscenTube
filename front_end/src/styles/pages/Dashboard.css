@@ -71,7 +71,6 @@
   gap: 1.5rem;
   align-items: stretch;
 }
-*/
 
 .kpi-grid>.card {
   flex: 1;
@@ -84,7 +83,6 @@
   flex: 1.5;
 }
 
-/* ▼▼▼ [핵심 수정] 카드 내부 레이아웃 및 스타일 변경 ▼▼▼ */
 .card {
   background: white;
   padding: 1.25rem 1.75rem;
@@ -118,9 +116,6 @@
   margin: 0;
   text-align: left;
 }
-
-/* ▲▲▲ [핵심 수정] 종료 ▲▲▲ */
-
 
 /* ===============================
      📝 콘텐츠 분석 섹션
@@ -250,8 +245,9 @@
 /* HorizontalStatBar 스타일 */
 .image-style-stat-bar {
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
   margin-bottom: 1rem;
+  width: 100%;
 }
 
 .image-style-stat-bar:last-child {
@@ -260,34 +256,32 @@
 
 .stat-info {
   display: flex;
-  flex-direction: column;
-  margin-right: 0.75rem;
-  flex-shrink: 0;
-  width: 90px;
+  justify-content: space-between;
+  align-items: baseline;
+  width: 100%;
+  margin-bottom: 0.375rem;
 }
 
 .stat-category {
   font-weight: 500;
   color: #374151;
   font-size: 0.875rem;
-  line-height: 1.2;
 }
 
 .stat-value {
   font-weight: 600;
   color: #1f2937;
   font-size: 0.875rem;
-  line-height: 1.2;
 }
 
 .stat-bar-container {
-  flex-grow: 1;
+  width: 100%;
 }
 
 .stat-bar-track {
   background-color: #e5e7eb;
   border-radius: 0.375rem;
-  height: 1rem;
+  height: 0.5rem;
   overflow: hidden;
 }
 
@@ -297,52 +291,143 @@
   transition: width 1.5s ease-out;
 }
 
-.comment-sentiment-box h4 .section-subtitle {
-  font-size: 0.75em;
-  color: #6b7280;
-  font-weight: normal;
-  margin-left: 0.25rem;
+/* 댓글 분석 섹션 스타일 */
+.comment-analysis-full-width {
+  grid-column: span 2;
 }
 
-.sentiment-chart-container {
-  height: 12rem;
-  position: relative;
-  margin-top: 1rem;
+@media (max-width: 623px) {
+  .comment-analysis-full-width {
+    grid-column: span 1;
+  }
 }
 
+.comment-analysis-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 2rem;
+}
 
-/* ===============================
-     📉 차트 영역 (Chart.js) - 채널 성장 추이
- =============================== */
-.additional-growth-metrics .stat-box {}
+.comment-chart-container {
+  flex: 1;
+  min-width: 200px;
+}
 
-.additional-growth-metrics .highlight-stat-value {
-  font-size: 1.5rem;
+.comment-details-container {
+  flex: 2;
+  min-width: 250px;
+}
+
+.representative-comment {
+  background-color: #f9fafb;
+  border-left: 3px solid #6366f1;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0 4px 4px 0;
+}
+
+.representative-comment p {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.representative-comment span {
+  font-size: 0.8rem;
   font-weight: bold;
-  margin-top: 0.25rem;
-  display: block;
   color: #4f46e5;
 }
 
-.additional-growth-metrics .stat-box:nth-child(2) .highlight-stat-value {
-  color: #10b981;
+/* 도넛 차트 컨테이너 */
+.doughnut-chart-container {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  margin-top: 1rem;
 }
 
 /* ===============================
-     📶 진행률 바 (다른 곳에서 사용될 수 있음)
+     🩺 채널 건강 진단 섹션 (신규 추가)
  =============================== */
-.progress-bar-container {
-  background-color: #e0e7ff;
-  border-radius: 9999px;
-  overflow: hidden;
-  height: 1rem;
-  margin-top: 0.25rem;
+.channel-health-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: center;
 }
 
-.progress-bar {
-  height: 100%;
-  background-color: #6366f1;
-  width: 0;
-  transition: width 1.5s ease-out;
-  border-radius: 9999px;
+.radar-chart-panel {
+  flex: 1;
+  min-width: 320px;
+  height: 400px;
+  position: relative;
+}
+
+.radar-analysis-panel {
+  flex: 1.5;
+  min-width: 320px;
+  padding-left: 2rem;
+  border-left: 1px solid #e2e8f0;
+}
+
+.analysis-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.analysis-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.analysis-overall-score {
+  margin-bottom: 2rem;
+}
+
+.analysis-overall-score .score-value {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+  line-height: 1;
+}
+
+.analysis-overall-score .score-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4f46e5;
+  margin-left: 0.5rem;
+}
+
+.analysis-insight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.analysis-insight-item {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #334155;
+  padding-left: 1rem;
+  border-left: 3px solid #cbd5e0;
+}
+
+.analysis-insight-item strong {
+  font-weight: 700;
+  color: #4338ca;
+}
+
+/* 반응형: 화면이 992px보다 작아지면 세로로 쌓임 */
+@media (max-width: 992px) {
+  .radar-analysis-panel {
+    padding-left: 0;
+    border-left: none;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+  }
 }

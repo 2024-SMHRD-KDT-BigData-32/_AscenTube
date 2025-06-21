@@ -36,10 +36,12 @@ const App = () => {
         <Route path="ai" element={<Ai />} />
         <Route path="category-analysis" element={<CategoryAnalysisPage />} />
 
-        {/* 핵심 수정 부분 */}
-        {/* 사이드바에서 사용하는 고정 경로와, 특정 영상에서 사용하는 동적 경로를 모두 등록합니다. */}
-        {/* 두 경로 모두 VidAnalysis 컴포넌트를 보여줍니다. */}
-        <Route path="vidanalysis" element={<VidAnalysis />} />
+        {/* 핵심 수정 부분: 'vidanalysis' 경로를 'video-analysis'로 변경하여 Link와 일치시킵니다. */}
+        {/* 이렇게 하면 Link to="/video-analysis?videoId=..." 요청을 VidAnalysis 컴포넌트가 받게 됩니다. */}
+        <Route path="video-analysis" element={<VidAnalysis />} />
+        
+        {/* 만약 /video/VIDEO_ID 형태의 직접적인 경로도 필요하다면 유지합니다. */}
+        {/* 이 경우 VidAnalysis 컴포넌트 내에서 useParams를 사용하여 videoId를 가져와야 합니다. */}
         <Route path="video/:videoId" element={<VidAnalysis />} />
 
         <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
@@ -49,15 +51,8 @@ const App = () => {
 
       </Route>
 
-      {/* 만약 "/" 경로로 접근 시 바로 /index로 보내고 싶다면,
-          하지만 PrivateRoute가 "/"를 감싸고 있으므로,
-          인증되지 않았다면 /login으로, 인증되었다면 PrivateRoute 내부의 index -> /index로 가게 됩니다.
-          별도의 "/" 핸들링이 필요하다면 PrivateRoute 바깥에 정의해야 합니다.
-          현재 구조에서는 특별히 필요 없어 보입니다.
-      */}
-        <Route path="/" element={<Navigate to="/index" replace />} />
-
-
+      {/* 루트 경로 ('/')로 접근 시 인증 여부에 따라 'index' 또는 'login'으로 리다이렉트 */}
+      <Route path="/" element={<Navigate to="/index" replace />} />
     </Routes>
   );
 };

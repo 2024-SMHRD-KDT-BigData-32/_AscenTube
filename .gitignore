@@ -118,6 +118,7 @@ desktop.ini             # Windows system files
 
 # Node modules
 /front_end/node_modules/
+/node_modules
 
 # Production build output
 /front_end/build/       # Create React App default build output
