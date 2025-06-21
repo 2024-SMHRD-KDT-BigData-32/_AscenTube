@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cm.astb.dto.ChannelDailyMetricsDataDto;
 import com.cm.astb.dto.ChannelDashboardSummaryDto;
 import com.cm.astb.dto.ChannelKeyMetricsDto;
+import com.cm.astb.dto.ChannelKeywordDto;
 import com.cm.astb.dto.DayOfWeekViewsDto;
 import com.cm.astb.dto.HourOfDayViewsDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
@@ -27,6 +29,7 @@ import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.ChannelAnalysisService;
 import com.cm.astb.service.ChannelService;
+import com.cm.astb.service.KeywordAnalysisService;
 import com.cm.astb.service.VideoAnalysisService;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
@@ -39,12 +42,15 @@ public class ChannelController {
 	private final ChannelService channelService;
 	private final VideoAnalysisService videoAnalysisService;
 	private final ChannelAnalysisService channelAnalysisService;
+	private final KeywordAnalysisService keywordAnalysisService;
 	
 	public ChannelController(ChannelService channelService, VideoAnalysisService videoAnalysisService,
-			ChannelAnalysisService channelAnalysisService) {
+			ChannelAnalysisService channelAnalysisService, KeywordAnalysisService keywordAnalysisService) {
+		super();
 		this.channelService = channelService;
 		this.videoAnalysisService = videoAnalysisService;
 		this.channelAnalysisService = channelAnalysisService;
+		this.keywordAnalysisService = keywordAnalysisService;
 	}
 
 	@GetMapping("/channel-info")
@@ -245,6 +251,45 @@ public class ChannelController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 특정 채널의 일일 조회수, 시청 시간, 평균 시청 지속 시간, 구독자 증가량 시계열 데이터를 반환하는 엔드포인트.
+     * 프론트엔드에서 그래프를 그릴 데이터 묶음을 직접 전달합니다.
+     * @param channelId 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 일일 채널 성과 추이 데이터 DTO 리스트
+     */
+    @GetMapping("/my-channel/daily-metrics-trend")
+    public ResponseEntity<List<ChannelDailyMetricsDataDto>> getDailyMetricsTrend(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "month") String period) {
+
+        List<ChannelDailyMetricsDataDto> trendData = channelAnalysisService.getChannelDailyMetricsData(channelId, period); // 반환 타입 변경
+
+        if (trendData.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(trendData);
+    }
+    
+    /**
+     * 특정 채널의 워드클라우드용 키워드 데이터를 반환하는 엔드포인트.
+     * 이제 KeywordAnalysisService가 이 로직을 담당합니다.
+     *
+     * @param channelId 조회할 유튜브 채널 ID
+     * @param limit     반환할 키워드의 최대 개수 (기본값: 50)
+     * @return 키워드 및 빈도수 리스트
+     */
+    @GetMapping("/my-channel/keywords")
+    public ResponseEntity<List<ChannelKeywordDto>> getChannelKeywords(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "10") int limit) {
+        List<ChannelKeywordDto> keywords = keywordAnalysisService.getChannelKeywordsForWordCloud(channelId, limit); // <--- 서비스 호출 변경
+        if (keywords.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(keywords);
     }
 }
 
