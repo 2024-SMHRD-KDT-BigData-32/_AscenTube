@@ -15,6 +15,7 @@ const CATEGORIES_TO_ANALYZE = [
     { name: '애완동물 및 동물', id: '15' },
     { name: '스포츠', id: '17' },
     { name: '게임', id: '20' },
+    { name: '인물 및 블로그', id: '22' },
     { name: '코미디', id: '23' },
     { name: '엔터테인먼트', id: '24' },
     { name: '뉴스 및 정치', id: '25' },
