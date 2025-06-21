@@ -1,6 +1,6 @@
 // src/pages/VidAnalysis.jsx
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // useLocation 추가
+import React, { useState, useEffect, useCallback } from 'react'; // useCallback 추가
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/pages/VidAnalysis.css';
 import '../styles/pages/Ai.css';
@@ -8,7 +8,7 @@ import { FiThumbsUp, FiMessageSquare, FiPlay } from 'react-icons/fi'; // 아이�
 
 
 // =================================================================================
-// =                             상수 및 헬퍼 함수 정의                             =
+// =                             상수 및 헬퍼 함수 정의                               =
 // =================================================================================
 
 const API_BASE_URL = 'http://localhost:8082/AscenTube';
@@ -42,7 +42,7 @@ const extractVideoId = (url) => {
 
 
 // =================================================================================
-// =                          VidAnalysis 메인 컴포넌트                            =
+// =                            VidAnalysis 메인 컴포넌트                           =
 // =================================================================================
 
 const VidAnalysis = () => {
@@ -59,127 +59,16 @@ const VidAnalysis = () => {
   const [showFullTranscript, setShowFullTranscript] = useState(false);
   const [isInitialAnalysisTriggered, setIsInitialAnalysisTriggered] = useState(false); // 초기 분석 트리거 여부
 
-
   // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 상태 관리 (State Management) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
   const location = useLocation(); // URL 정보 가져오기
 
 
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 (useCallback으로 최적화) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
-  const isLongDescription = (text, limit = 200) => text && text.length > limit;
-  const isLongTranscript = (text, limit = 500) => text && text.length > limit;
-
-  const handleInputChange = (event) => {
-    setVideoUrl(event.target.value);
-    // 수동 입력 시 초기 분석 플래그 초기화
-    if (isInitialAnalysisTriggered) {
-      setIsInitialAnalysisTriggered(false);
-    }
-  };
-
-  // --- LocalStorage 연동: 페이지를 새로고침해도 이전 상태 유지 ---
-  useEffect(() => {
-    // --- 여기서부터 추가할 코드 ---
-    const queryParams = new URLSearchParams(window.location.search);
-    const urlFromQuery = queryParams.get('videoUrl');
-
-    if (urlFromQuery) {
-      // 주소에 URL이 있으면, 입력창에 채우고 바로 분석 시작
-      setVideoUrl(urlFromQuery);
-      handleAnalysis(urlFromQuery); // 수정된 handleAnalysis에 URL 직접 전달
-
-      // URL에서 ?videoUrl=... 부분을 지워서 주소창을 깔끔하게 만듦 (선택사항)
-      window.history.replaceState(null, '', window.location.pathname);
-      
-      // URL을 성공적으로 처리했으니, 아래 localStorage 로직은 건너뜀
-      return; 
-    }
-    // --- 여기까지 추가할 코드 ---
-
-    // --- 기존 코드는 그대로 둡니다 ---
-    const persistedVideoUrl = localStorage.getItem('vidAnalysis_videoUrl');
-    if (persistedVideoUrl) {
-      setVideoUrl(persistedVideoUrl);
-    }
-
-    const persistedAnalysisResults = localStorage.getItem('vidAnalysis_results');
-    if (persistedAnalysisResults) {
-      try { setAnalysisResults(JSON.parse(persistedAnalysisResults)); }
-      catch (e) { console.error("저장된 일반 분석 결과 파싱 오류:", e); localStorage.removeItem('vidAnalysis_results'); }
-    }
-
-    const persistedAiResults = localStorage.getItem('vidAnalysis_ai_results');
-    if (persistedAiResults) {
-      try { setAiAnalysisResults(JSON.parse(persistedAiResults)); }
-      catch (e) { console.error("저장된 AI 분석 결과 파싱 오류:", e); localStorage.removeItem('vidAnalysis_ai_results'); }
-    }
-    const persistedTranscript = localStorage.getItem('vidAnalysis_fullTranscript');
-    if (persistedTranscript) {
-        setFullTranscript(persistedTranscript);
-    }
-    const persistedShowFullTranscript = localStorage.getItem('vidAnalysis_showFullTranscript');
-    if (persistedShowFullTranscript) {
-        setShowFullTranscript(JSON.parse(persistedShowFullTranscript));
-    }
-    const persistedShowFullDesc = localStorage.getItem('vidAnalysis_showFullDescription');
-    if (persistedShowFullDesc) setShowFullDescription(JSON.parse(persistedShowFullDesc));
-
-    // URL 쿼리 파라미터 처리
-    const queryParams = new URLSearchParams(location.search);
-    const urlVideoId = queryParams.get('videoId');
-
-    if (urlVideoId && !isInitialAnalysisTriggered) {
-      const fullYoutubeUrl = `https://www.youtube.com/watch?v=${urlVideoId}`;
-      setVideoUrl(fullYoutubeUrl);
-      setIsInitialAnalysisTriggered(true); // 플래그 설정
-      // 이 시점에서 handleAnalysis를 직접 호출하지 않고,
-      // videoUrl이 업데이트되면 아래의 다른 useEffect에서 감지하도록 합니다.
-    } else if (!urlVideoId && isInitialAnalysisTriggered) {
-      // URL에서 videoId가 제거되었을 경우 플래그 리셋 (선택 사항)
-      setIsInitialAnalysisTriggered(false);
-    }
-
-  }, [location.search]); // location.search가 변경될 때마다 실행 (URL 파라미터 변화 감지)
-
-  // videoUrl 또는 isInitialAnalysisTriggered 상태가 변경될 때 로컬 스토리지 업데이트
-  useEffect(() => { localStorage.setItem('vidAnalysis_videoUrl', videoUrl); }, [videoUrl]);
-  useEffect(() => {
-    if (analysisResults) localStorage.setItem('vidAnalysis_results', JSON.stringify(analysisResults));
-    else localStorage.removeItem('vidAnalysis_results');
-  }, [analysisResults]);
-  useEffect(() => {
-    if (aiAnalysisResults) localStorage.setItem('vidAnalysis_ai_results', JSON.stringify(aiAnalysisResults));
-    else localStorage.removeItem('aiAnalysis_ai_results');
-  }, [aiAnalysisResults]);
-  useEffect(() => {
-    if (fullTranscript) localStorage.setItem('vidAnalysis_fullTranscript', fullTranscript);
-    else localStorage.removeItem('vidAnalysis_fullTranscript');
-  }, [fullTranscript]);
-  useEffect(() => {
-    localStorage.setItem('vidAnalysis_showFullTranscript', JSON.stringify(showFullTranscript));
-  }, [showFullTranscript]);
-  useEffect(() => { localStorage.setItem('vidAnalysis_showFullDescription', JSON.stringify(showFullDescription)); }, [showFullDescription]);
-
-  // isInitialAnalysisTriggered가 true이고 videoUrl이 설정되면 분석 시작
-  useEffect(() => {
-    if (isInitialAnalysisTriggered && videoUrl && !loading && !analysisResults && !error) {
-      // isInitialAnalysisTriggered가 true이면서
-      // videoUrl이 설정되었고 (초기 URL 파라미터로부터),
-      // 로딩 중이 아니며, 이전에 분석 결과가 없거나 에러가 없을 때만 분석 트리거
-      console.log("URL 파라미터에 의한 자동 분석 시작:", videoUrl);
-      handleAnalysis();
-    }
-  }, [videoUrl, isInitialAnalysisTriggered, loading, analysisResults, error]); // 의존성 추가: videoUrl이 설정되면 실행
-
-  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
-
-  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 핵심 로직: AI 분석 핸들러 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-
-  const handleAnalysis = async () => {
+  const handleAnalysis = useCallback(async () => {
     if (loading) return; // 이미 로딩 중이면 중복 호출 방지
-    
+
     setLoading(true);
     setAnalysisResults(null);
     setAiAnalysisResults(null);
@@ -231,6 +120,23 @@ const VidAnalysis = () => {
     } finally {
       setLoading(false);
     }
+  }, [loading, videoUrl]); // videoUrl이 변경될 때마다 handleAnalysis 함수가 다시 생성되도록 의존성 추가
+
+
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 핵심 로직: AI 분석 핸들러 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+
+  // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+
+  const isLongDescription = (text, limit = 200) => text && text.length > limit;
+  const isLongTranscript = (text, limit = 500) => text && text.length > limit;
+
+  const handleInputChange = (event) => {
+    setVideoUrl(event.target.value);
+    // 수동 입력 시 초기 분석 플래그 초기화
+    if (isInitialAnalysisTriggered) {
+      setIsInitialAnalysisTriggered(false);
+    }
   };
 
   const handleInputKeyDown = (event) => {
@@ -240,9 +146,115 @@ const VidAnalysis = () => {
     }
   };
 
-  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 핵심 로직: AI 분석 핸들러 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-  // src/pages/VidAnalysis.jsx (두 번째 부분)
+  // --- LocalStorage 연동: 페이지를 새로고침해도 이전 상태 유지 (최초 렌더링 시 1회 실행) ---
+  useEffect(() => {
+    const persistedVideoUrl = localStorage.getItem('vidAnalysis_videoUrl');
+    if (persistedVideoUrl) setVideoUrl(persistedVideoUrl);
+
+    const persistedAnalysisResults = localStorage.getItem('vidAnalysis_results');
+    if (persistedAnalysisResults) {
+      try { setAnalysisResults(JSON.parse(persistedAnalysisResults)); }
+      catch (e) { console.error("저장된 일반 분석 결과 파싱 오류:", e); localStorage.removeItem('vidAnalysis_results'); }
+    }
+
+    const persistedAiResults = localStorage.getItem('vidAnalysis_ai_results');
+    if (persistedAiResults) {
+      try { setAiAnalysisResults(JSON.parse(persistedAiResults)); }
+      catch (e) { console.error("저장된 AI 분석 결과 파싱 오류:", e); localStorage.removeItem('vidAnalysis_ai_results'); }
+    }
+    const persistedTranscript = localStorage.getItem('vidAnalysis_fullTranscript');
+    if (persistedTranscript) setFullTranscript(persistedTranscript);
+    
+    // Boolean 값은 직접 파싱
+    const persistedShowFullTranscript = localStorage.getItem('vidAnalysis_showFullTranscript');
+    if (persistedShowFullTranscript !== null) { // null 체크 추가
+      setShowFullTranscript(JSON.parse(persistedShowFullTranscript));
+    }
+    const persistedShowFullDesc = localStorage.getItem('vidAnalysis_showFullDescription');
+    if (persistedShowFullDesc !== null) { // null 체크 추가
+      setShowFullDescription(JSON.parse(persistedShowFullDesc));
+    }
+  }, []); // 의존성 배열이 비어 있어 컴포넌트 마운트 시 한 번만 실행됩니다.
+
+
+  // --- URL 쿼리 파라미터 변경 감지 및 초기 분석 트리거 (location.search 변경 시 실행) ---
+  // 이 useEffect는 URL 쿼리 파라미터 변화를 감지하고, 이에 따라 videoUrl 상태를 업데이트하여
+  // 다음 useEffect가 분석을 트리거하도록 합니다.
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const urlVideoId = queryParams.get('videoId');
+
+    if (urlVideoId) {
+      const fullYoutubeUrl = `https://www.youtube.com/watch?v=${urlVideoId}`;
+      const currentVideoIdInState = extractVideoId(videoUrl);
+
+      // URL의 videoId가 현재 videoUrl 상태와 다르거나, 아직 초기 분석이 트리거되지 않은 경우
+      if (urlVideoId !== currentVideoIdInState || !isInitialAnalysisTriggered) {
+        setVideoUrl(fullYoutubeUrl); // videoUrl 상태 업데이트
+        setIsInitialAnalysisTriggered(true); // 초기 분석 트리거 플래그 설정
+      }
+      // 선택 사항: URL에서 videoId 파라미터를 제거하여 주소창을 깔끔하게 만듦
+      // window.history.replaceState(null, '', location.pathname);
+
+    } else if (!urlVideoId && isInitialAnalysisTriggered) {
+      // URL에서 videoId 파라미터가 없어졌다면 초기 분석 트리거 플래그를 리셋
+      setIsInitialAnalysisTriggered(false);
+      // 필요하다면, 여기에 기존 분석 결과를 초기화하는 로직 추가
+      // setAnalysisResults(null);
+      // setAiAnalysisResults(null);
+      // setVideoUrl(''); // 입력창도 비우기
+    }
+  }, [location.search, videoUrl, isInitialAnalysisTriggered]); // location.search가 변경될 때마다 실행
+
+
+  // --- 실제 분석 로직 트리거 (videoUrl 및 초기 분석 플래그 변경 시) ---
+  // 이 useEffect는 videoUrl이 설정되고 isInitialAnalysisTriggered가 true일 때 분석을 시작합니다.
+  useEffect(() => {
+    if (isInitialAnalysisTriggered && videoUrl && !loading) {
+      const currentVideoId = extractVideoId(videoUrl);
+      const analyzedVideoId = analysisResults ? analysisResults.id : null;
+
+      // 현재 videoUrl의 ID가 유효하고, 이전에 분석된 영상 ID와 다르거나
+      // 혹은 이전에 분석된 결과가 없는 경우 (페이지 첫 로드 시 URL 파라미터 존재)
+      if (currentVideoId && currentVideoId !== analyzedVideoId) {
+           console.log("URL 파라미터 또는 새 입력에 의한 자동 분석 시작:", videoUrl);
+           handleAnalysis(); // 핵심 분석 함수 호출
+      } else if (isInitialAnalysisTriggered && !analysisResults && !error) {
+           // isInitialAnalysisTriggered가 true인데 분석 결과가 없는 경우 (초기 진입)
+           console.log("URL 파라미터에 의한 초기 자동 분석 시작 (결과 없음):", videoUrl);
+           handleAnalysis(); // 핵심 분석 함수 호출
+      }
+    }
+  }, [videoUrl, isInitialAnalysisTriggered, loading, analysisResults, error, handleAnalysis]); // handleAnalysis를 의존성으로 추가
+
+
+  // --- LocalStorage에 상태 저장 (각 상태 변경 시마다) ---
+  // 이 모든 로컬 스토리지 저장 로직을 하나의 useEffect로 통합하여 코드 길이 축소
+  useEffect(() => {
+    localStorage.setItem('vidAnalysis_videoUrl', videoUrl);
+    if (analysisResults) {
+      localStorage.setItem('vidAnalysis_results', JSON.stringify(analysisResults));
+    } else {
+      localStorage.removeItem('vidAnalysis_results');
+    }
+    if (aiAnalysisResults) {
+      localStorage.setItem('vidAnalysis_ai_results', JSON.stringify(aiAnalysisResults));
+    } else {
+      localStorage.removeItem('vidAnalysis_ai_results');
+    }
+    if (fullTranscript) {
+      localStorage.setItem('vidAnalysis_fullTranscript', fullTranscript);
+    } else {
+      localStorage.removeItem('vidAnalysis_fullTranscript');
+    }
+    localStorage.setItem('vidAnalysis_showFullTranscript', JSON.stringify(showFullTranscript));
+    localStorage.setItem('vidAnalysis_showFullDescription', JSON.stringify(showFullDescription));
+  }, [videoUrl, analysisResults, aiAnalysisResults, fullTranscript, showFullTranscript, showFullDescription]);
+
+
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 부가 기능 및 라이프사이클 (Helpers & Lifecycle) ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
 
   // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 렌더링(JSX) 관련 함수 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 
@@ -254,7 +266,7 @@ const VidAnalysis = () => {
 
     const { snippet, statistics, contentDetails, id } = analysisResults;
     const descriptionText = snippet?.description || '';
-    const videoLink = `https://www.youtube.com/watch?v=${id}`;
+    const videoLink = `https://www.youtube.com/watch?v=${id}`; // 올바른 YouTube URL 형식
 
     // 스크립트 길이 체크 헬퍼 함수
     const isLongTranscriptLocal = (text, limit = 500) => text && text.length > limit;
@@ -264,17 +276,17 @@ const VidAnalysis = () => {
         {/* --- 영상 기본 정보 섹션 (디자인 개편) --- */}
         <div className="video-header-section">
           <a href={videoLink} target="_blank" rel="noopener noreferrer" className="thumbnail-link">
-            <img 
-              className="analysis-thumbnail" 
-              src={snippet?.thumbnails?.medium?.url} 
-              alt="영상 썸네일" 
+            <img
+              className="analysis-thumbnail"
+              src={snippet?.thumbnails?.medium?.url}
+              alt="영상 썸네일"
             />
           </a>
           <div className="video-info-details">
             <a href={videoLink} target="_blank" rel="noopener noreferrer" className="video-title-link">
               <h3 className="video-title-main">{snippet?.title || '제목 정보 없음'}</h3>
             </a>
-            
+
             <div className="channel-info">
               <Link to={`/channel/${snippet.channelId}`} className="channel-name-link">
                 {snippet?.channelTitle || '채널 정보 없음'}
@@ -329,32 +341,32 @@ const VidAnalysis = () => {
 
         {/* --- 영상 세부 정보 섹션 --- */}
         <div className="additional-details-section">
-            <h4 className="section-title">영상 세부 정보</h4>
-            <div className="details-content-wrapper">
-                <div className="result-item">
-                    <strong>설명:</strong>
-                    <pre className="description-text">
-                        {showFullDescription || !isLongDescription(descriptionText) ? descriptionText : `${descriptionText.substring(0, 200)}...`}
-                    </pre>
-                    {isLongDescription(descriptionText) && (
-                        <button onClick={() => setShowFullDescription(!showFullDescription)} className="toggle-description-button">
-                            {showFullDescription ? '간략히 보기' : '더 보기'}
-                        </button>
-                    )}
-                </div>
-                {contentDetails && (
-                    <>
-                        <div className="result-item"><strong>영상 길이:</strong> {parseISODuration(contentDetails.duration)}</div>
-                        <div className="result-item"><strong>화질:</strong> {contentDetails.definition?.toUpperCase() || 'N/A'}</div>
-                        <div className="result-item"><strong>캡션:</strong> {contentDetails.caption === 'true' ? '있음' : '없음'}</div>
-                    </>
-                )}
-                {snippet?.tags?.length > 0 && (
-                    <div className="result-item">
-                        <strong>주요 태그:</strong> {snippet.tags.slice(0, 7).join(', ')}{snippet.tags.length > 7 ? `, ... (총 ${snippet.tags.length}개)` : ''}
-                    </div>
-                )}
+          <h4 className="section-title">영상 세부 정보</h4>
+          <div className="details-content-wrapper">
+            <div className="result-item">
+              <strong>설명:</strong>
+              <pre className="description-text">
+                {showFullDescription || !isLongDescription(descriptionText) ? descriptionText : `${descriptionText.substring(0, 200)}...`}
+              </pre>
+              {isLongDescription(descriptionText) && (
+                <button onClick={() => setShowFullDescription(!showFullDescription)} className="toggle-description-button">
+                  {showFullDescription ? '간략히 보기' : '더 보기'}
+                </button>
+              )}
             </div>
+            {contentDetails && (
+              <>
+                <div className="result-item"><strong>영상 길이:</strong> {parseISODuration(contentDetails.duration)}</div>
+                <div className="result-item"><strong>화질:</strong> {contentDetails.definition?.toUpperCase() || 'N/A'}</div>
+                <div className="result-item"><strong>캡션:</strong> {contentDetails.caption === 'true' ? '있음' : '없음'}</div>
+              </>
+            )}
+            {snippet?.tags?.length > 0 && (
+              <div className="result-item">
+                <strong>주요 태그:</strong> {snippet.tags.slice(0, 7).join(', ')}{snippet.tags.length > 7 ? `, ... (총 ${snippet.tags.length}개)` : ''}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* --- 영상 스크립트 섹션 --- */}
@@ -387,13 +399,13 @@ const VidAnalysis = () => {
               <h6>원본 스크립트 (전문)</h6>
               <div className="script-content-area">
                 <pre className="full-transcript-text">
-                  {showFullTranscript || !isLongTranscriptLocal(fullTranscript) 
-                    ? fullTranscript 
+                  {showFullTranscript || !isLongTranscriptLocal(fullTranscript)
+                    ? fullTranscript
                     : `${fullTranscript.substring(0, 500)}...`}
                 </pre>
                 {isLongTranscriptLocal(fullTranscript) && (
-                  <button 
-                    onClick={() => setShowFullTranscript(!showFullTranscript)} 
+                  <button
+                    onClick={() => setShowFullTranscript(!showFullTranscript)}
                     className="toggle-script-button"
                   >
                     {showFullTranscript ? '간략히 보기' : '전체 스크립트 보기'}

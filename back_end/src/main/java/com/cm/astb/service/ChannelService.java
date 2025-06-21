@@ -56,9 +56,7 @@ public class ChannelService {
 		this.youTubeChannelRepository = youTubeChannelRepository;
 	}
 
-	// =================================================================================
     // =                             [신규] 영상 정보 조회 메소드                        =
-    // =================================================================================
     
     public Video getVideoInfo(String videoId) throws IOException {
         logger.info("Fetching public video info for ID: {} using API Key.", videoId);
@@ -189,8 +187,6 @@ public class ChannelService {
 	    }
 	    YouTube youTube = oAuthService.getYouTubeService(credential);
 	    
-	    // [수정] 아래 한 줄을 올바른 코드로 변경합니다.
-		// 잘못된 코드: Youtube.List search = Youtube().list(Arrays.asList("snippet"));
 	    YouTube.Search.List search = youTube.search().list(Arrays.asList("snippet"));
 
 	    search.setType(Arrays.asList("video"));

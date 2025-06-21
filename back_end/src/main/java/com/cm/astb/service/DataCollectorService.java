@@ -552,6 +552,7 @@ public class DataCollectorService {
 
         List<YouTubeChannel> outdatedChannels = youTubeChannelRepository.findByUpdatedAtBefore(threshold);
         outdatedChannels.add(youTubeChannelRepository.findById("UCpP6Av1nV0uh2Ys3T7QiXPw").get());
+        outdatedChannels.add(youTubeChannelRepository.findById("UCK8oKuBKx_ejIYnw4J90TYA").get());
 
         if (outdatedChannels.isEmpty()) {
             logger.info("No outdated channels found in TB_YT_CHANNEL to refresh.");
