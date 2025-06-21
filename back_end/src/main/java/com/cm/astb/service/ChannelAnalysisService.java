@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cm.astb.dto.ChannelAudienceAgeGroupDto;
 import com.cm.astb.dto.ChannelAudienceCountryDto;
 import com.cm.astb.dto.ChannelAudienceGenderDto;
+import com.cm.astb.dto.ChannelDailyMetricsDataDto;
 import com.cm.astb.dto.ChannelDashboardSummaryDto;
 import com.cm.astb.dto.ChannelKeyMetricsDto;
 import com.cm.astb.dto.ChannelTrafficSourceDto;
@@ -464,6 +466,61 @@ public class ChannelAnalysisService {
 
         logger.info("Retrieved {} data points for views by video length from DB for channelId: {} and period: {}. Total views for period videos: {}", result.size(), channelId, period, totalViewsForPeriodVideos);
         return result;
+    }
+    
+    /**
+     * 특정 채널의 일일 조회수, 시청 시간, 평균 시청 지속 시간, 구독자 증가량 시계열 데이터를 조회합니다.
+     * TB_CHANNEL_STATS에서 일일 데이터를 가져와 그래프 데이터를 구성합니다.
+     *
+     * @param channelId 조회할 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 일일 채널 성과 추이 데이터 DTO 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<ChannelDailyMetricsDataDto> getChannelDailyMetricsData(String channelId, String period) { // 반환 타입 변경
+        logger.info("Attempting to get daily metrics data for channelId: {} with period: {}", channelId, period);
+
+        LocalDate endDate = LocalDate.now().minusDays(3); // 어제 날짜 (Analytics 데이터는 보통 최소 1일 지연)
+        LocalDate startDate = getStartDateFromPeriod(endDate, period);
+
+        logger.info("Querying ChannelStat data for daily metrics from {} to {} for channelId: {}", startDate, endDate, channelId);
+
+        // TB_CHANNEL_STATS에서 특정 기간의 데이터를 조회합니다.
+        List<ChannelStat> rawStats = channelStatRepository.findById_ChannelIdAndId_StatsDateBetweenOrderById_StatsDateAsc(
+            channelId, startDate.atStartOfDay(), endDate.atStartOfDay().plusDays(1).minusNanos(1)
+        );
+
+        // 모든 날짜가 포함되도록 데이터 포인트 보정 및 DTO로 변환
+        Map<LocalDate, ChannelStat> statsMap = rawStats.stream()
+                .collect(Collectors.toMap(
+                    stat -> stat.getId().getStatsDate().toLocalDate(),
+                    stat -> stat
+                ));
+
+        List<ChannelDailyMetricsDataDto> dataPoints = IntStream.rangeClosed(0, (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate))
+                .mapToObj(i -> startDate.plusDays(i))
+                .map(date -> {
+                    ChannelStat stat = statsMap.get(date); // 맵에서 해당 날짜의 통계 데이터 조회
+
+                    Long dailyViews = (stat != null) ? stat.getDailyViewsCnt() : 0L;
+                    Long estimatedMinutesWatched = (stat != null) ? stat.getEstimatedMinWatched() : 0L;
+                    Long averageViewDuration = (stat != null) ? stat.getAvgViewDuration() : 0L;
+                    Integer subscribersGained = (stat != null) ? stat.getSubscriberGained() : 0;
+
+                    return ChannelDailyMetricsDataDto.builder() // DTO 이름 변경
+                            .date(date)
+                            .dailyViews(dailyViews)
+                            .estimatedMinutesWatched(estimatedMinutesWatched)
+                            .averageViewDuration(averageViewDuration)
+                            .subscribersGained(subscribersGained)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+
+        logger.info("Retrieved {} data points for daily metrics trend for channelId: {} and period: {}", dataPoints.size(), channelId, period);
+
+        return dataPoints; // List<ChannelDailyMetricsDataDto>를 직접 반환
     }
 
     private String getVideoLengthSegment(int seconds) {

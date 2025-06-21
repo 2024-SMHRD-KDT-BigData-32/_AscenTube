@@ -11,7 +11,12 @@ import com.cm.astb.entity.ChannelStatsId;
 
 public interface ChannelStatRepository extends JpaRepository<ChannelStat, ChannelStatsId> {
 	List<ChannelStat> findById_ChannelIdOrderById_StatsDateDesc(String channelId);
+
 	Optional<ChannelStat> findById_ChannelIdAndId_StatsDate(String channelId, LocalDateTime statsDate);
+
 	List<ChannelStat> findById_ChannelIdAndId_StatsDateBetween(String channelId, LocalDateTime startDate,
 			LocalDateTime endDate);
+
+	List<ChannelStat> findById_ChannelIdAndId_StatsDateBetweenOrderById_StatsDateAsc(String channelId,
+			LocalDateTime startDate, LocalDateTime endDate);
 }
