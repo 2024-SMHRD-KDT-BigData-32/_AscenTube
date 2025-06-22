@@ -8,8 +8,8 @@ import jakarta.persistence.Converter;
 public enum SentimentType {
     POSITIVE("POSITIVE"),
     NEGATIVE("NEGATIVE"),
-    NEUTRAL("NEUTRAL");
-
+    EXCEPT("EXCEPT");
+	
     private final String dbValue;
 
     SentimentType(String dbValue) {
