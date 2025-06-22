@@ -50,7 +50,6 @@ const TopBar = ({ onToggleSidebar }) => {
   }, []);
 
   const handleLogout = () => {
-    // LocalStorage의 모든 관련 항목 삭제
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('google_') || key.startsWith('user_') || key.startsWith('vidAnalysis_') || key === 'access_token' || key === 'token') {
             localStorage.removeItem(key);
@@ -82,7 +81,6 @@ const TopBar = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* ▼▼▼ [수정됨] 검색창 섹션 ▼▼▼ */}
       <div className="topbar-center">
         <div className="topbar-search-container">
           <input type="search" placeholder="채널에서 검색하기" className="topbar-search-input" />
