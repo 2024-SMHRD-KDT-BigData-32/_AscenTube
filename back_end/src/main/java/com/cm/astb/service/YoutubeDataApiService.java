@@ -6,9 +6,12 @@ import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils; // StringUtils 추가
 
@@ -16,6 +19,7 @@ import com.cm.astb.config.GoogleApiConfig;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.YouTube.Youtube;
 import com.google.api.services.youtube.model.Channel;
 import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
@@ -27,10 +31,12 @@ import com.google.api.services.youtube.model.VideoListResponse;
 @Service
 public class YoutubeDataApiService {
 
-   private final YouTube youTube;
-   private final String youtubeApiKey;
-   private final OAuthService oAuthService;
-    private final GoogleApiConfig googleApiConfig; // getYoutubeApiKey()를 위해 추가
+	private static final Logger logger = LoggerFactory.getLogger(YoutubeDataApiService.class);
+	
+	private final YouTube youTube;
+	private final String youtubeApiKey;
+	private final OAuthService oAuthService;
+	private final GoogleApiConfig googleApiConfig; // getYoutubeApiKey()를 위해 추가
 
    // GoogleApiConfig에서 초기화된 YouTube 객체와 API 키를 주입.
     // 생성자 수정: NetHttpTransport와 GsonFactory를 직접 주입받는 대신,
@@ -221,4 +227,82 @@ public List<SearchResult> getTrendingVideosByPeriod(String userId, String catego
             throw new IllegalArgumentException("YouTube에서 '" + identifier + "'에 해당하는 채널을 찾을 수 없습니다.");
         }
     }
+    
+    /**
+     * 특정 키워드로 YouTube 동영상을 검색하고 결과를 반환합니다.
+     * @param googleId API 호출에 사용할 사용자 Google ID
+     * @param keyword 검색 키워드
+     * @param maxResults 가져올 최대 결과 수
+     * @param regionCode 지역 코드 (예: "KR")
+     * @param videoCategoryId 동영상 카테고리 ID (선택 사항, null 가능)
+     * @param order 정렬 기준 (예: "viewCount", "relevance", "rating", "date")
+     * @return 검색 결과 영상 리스트
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    public List<SearchResult> searchVideosByKeyword(
+            String googleId,
+            String keyword,
+            long maxResults,
+            String regionCode,
+            String videoCategoryId,
+            String order) throws IOException, GeneralSecurityException {
+
+        logger.info("Searching YouTube videos for keyword: '{}', region: '{}', category: '{}', order: '{}'",
+                    keyword, regionCode, videoCategoryId != null ? videoCategoryId : "All", order);
+
+        Credential credential = oAuthService.getCredential(googleId);
+        if (credential == null) {
+            logger.error("Credential is null for user {}. Cannot perform YouTube API search.", googleId);
+            throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+        }
+
+        YouTube youTube = oAuthService.getYouTubeService(credential);
+        YouTube.Search.List searchRequest = youTube.search().list(Collections.singletonList("snippet"));
+        searchRequest.setQ(keyword); // 검색어
+        searchRequest.setType(Collections.singletonList("video")); // 동영상만 검색
+        searchRequest.setMaxResults(maxResults); // 최대 결과 수
+        searchRequest.setRegionCode(regionCode); // 지역 코드
+        searchRequest.setOrder(order); // 정렬 기준
+
+        if (videoCategoryId != null && !videoCategoryId.isEmpty() && !"ALL".equalsIgnoreCase(videoCategoryId)) {
+            searchRequest.setVideoCategoryId(videoCategoryId); // 카테고리 ID (ALL이 아니면 적용)
+        }
+
+        SearchListResponse searchResponse = searchRequest.execute();
+
+        if (searchResponse.getItems() != null) {
+            logger.info("Found {} search results for keyword '{}' in YouTube API.", searchResponse.getItems().size(), keyword);
+            return searchResponse.getItems();
+        }
+        return Collections.emptyList();
+    }
+    
+    /**
+     * 특정 비디오 ID에 대한 통계 정보 (조회수, 좋아요, 댓글 등)를 가져옵니다.
+     * @param googleId API 호출에 사용할 사용자 Google ID
+     * @param videoId 조회할 비디오 ID
+     * @return Video 객체 (통계 정보 포함) 또는 null
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    public Video getVideoStatistics(String googleId, String videoId) throws IOException, GeneralSecurityException {
+        logger.debug("Fetching statistics for videoId: {}", videoId);
+        Credential credential = oAuthService.getCredential(googleId);
+        if (credential == null) {
+            logger.error("Credential is null for user {}. Cannot perform YouTube API video statistics query.", googleId);
+            throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+        }
+
+        YouTube youTube = oAuthService.getYouTubeService(credential);
+        YouTube.Videos.List videoRequest = youTube.videos().list(Arrays.asList("statistics", "snippet"));
+        videoRequest.setId(Collections.singletonList(videoId));
+
+        VideoListResponse response = videoRequest.execute();
+        if (response != null && response.getItems() != null && !response.getItems().isEmpty()) {
+            return response.getItems().get(0);
+        }
+        return null;
+    }
+
 }

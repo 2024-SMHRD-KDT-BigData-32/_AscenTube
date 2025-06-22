@@ -1,11 +1,21 @@
 package com.cm.astb.service;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -19,10 +29,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cm.astb.dto.ChannelKeywordDto;
+import com.cm.astb.dto.PopularVideoDto;
+import com.cm.astb.entity.CachedKeywordSearchResult;
+import com.cm.astb.entity.CachedKeywordSearchResultId;
 import com.cm.astb.entity.YouTubeVideo;
+import com.cm.astb.repository.CachedKeywordSearchResultRepository;
 import com.cm.astb.repository.YouTubeVideoRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.Video;
 
-import scala.Option;
 import scala.collection.Seq;
 
 @Service
@@ -31,8 +49,20 @@ public class KeywordAnalysisService {
 	private static final Logger logger = LoggerFactory.getLogger(KeywordAnalysisService.class);
 
     private final YouTubeVideoRepository youTubeVideoRepository;
+    private final CachedKeywordSearchResultRepository cachedKeywordSearchResultRepository;
+    private final YoutubeDataApiService youtubeApiService;
+    private final ObjectMapper objectMapper;
+    
+    public KeywordAnalysisService(YouTubeVideoRepository youTubeVideoRepository,
+			CachedKeywordSearchResultRepository cachedKeywordSearchResultRepository,
+			YoutubeDataApiService youtubeApiService, ObjectMapper objectMapper) {
+		this.youTubeVideoRepository = youTubeVideoRepository;
+		this.cachedKeywordSearchResultRepository = cachedKeywordSearchResultRepository;
+		this.youtubeApiService = youtubeApiService;
+		this.objectMapper = objectMapper;
+	}
 
-    private static final HashSet<String> STOP_WORDS = new HashSet<>(Arrays.asList(
+	private static final HashSet<String> STOP_WORDS = new HashSet<>(Arrays.asList(
             // 한국어 불용어 (명사 형태의 불용어 위주로 남김)
             "채널", "영상", "비디오", "저희", "오늘", "이번", "저번", "다음", "지금", "나중에", "항상", "언제나", "모두", "누구나", "어디든", "무엇이든",
             "시청", "구독", "좋아요", "알림", "설정", "클릭", "링크", "때문", "관련", "위해", "대한", "통해", "위한", "가지", "정도", "점", "분", "것", "수", "등", "이", "그", "저", "것", "좀", "내", "네", "한",
@@ -67,13 +97,7 @@ public class KeywordAnalysisService {
 
     private static final Pattern NUMBER_ONLY_PATTERN = Pattern.compile("^[0-9]+$");
 
-
-    public KeywordAnalysisService(YouTubeVideoRepository youTubeVideoRepository) {
-        this.youTubeVideoRepository = youTubeVideoRepository;
-    }
-
-
-    /**
+	/**
      * 주어진 YouTubeVideo 리스트에서 키워드를 추출하고 빈도수를 계산하여 워드클라우드용 데이터를 반환하는 헬퍼 메서드.
      * Open-Korean-Text 형태소 분석기를 사용하여 한국어 명사를 추출하고 정제합니다.
      *
@@ -196,5 +220,193 @@ public class KeywordAnalysisService {
          } else {
              return token.getText();
          }
+    }
+    
+    /**
+     * 특정 키워드에 대한 인기 동영상 검색 결과를 조회합니다.
+     * 캐시 유효 기간(예: 24시간) 내에 데이터가 있으면 캐시에서 반환하고, 없으면 YouTube API를 호출하여 캐시하고 반환합니다.
+     * 이 메서드는 이제 `getPopularVideosForChannelKeywords` 내부에서 각 키워드별로 호출됩니다.
+     *
+     * @param keyword          조회할 키워드
+     * @param videoCategoryId  동영상 카테고리 ID (선택 사항, null 또는 "ALL"인 경우 전체 카테고리)
+     * @param resultLimit      이 키워드에 대해 가져올 영상의 최대 개수 (API 호출 및 캐싱될 결과 수)
+     * @return 캐시되거나 새로 검색된 인기 동영상 목록 DTO
+     */
+    @Transactional
+    public List<PopularVideoDto> getPopularVideosForKeyword(String keyword, String videoCategoryId, int resultLimit) {
+        logger.info("Attempting to get popular videos for keyword: '{}', category: '{}', resultLimit: {}",
+                    keyword, videoCategoryId != null ? videoCategoryId : "ALL", resultLimit);
+
+        long cacheValidityHours = 24; // 캐시 유효 시간 (시간 단위)
+        LocalDateTime currentCollectionDate = LocalDate.now().atStartOfDay();
+        String actualCategoryId = (videoCategoryId == null || videoCategoryId.isEmpty()) ? "ALL" : videoCategoryId;
+
+        CachedKeywordSearchResultId cachedId = new CachedKeywordSearchResultId(keyword, currentCollectionDate, actualCategoryId);
+        Optional<CachedKeywordSearchResult> cachedResultOpt = cachedKeywordSearchResultRepository.findById(cachedId);
+
+        // 1. 캐시에서 최신 유효 데이터 조회 시도
+        if (cachedResultOpt.isPresent()) {
+            LocalDateTime cachedAt = cachedResultOpt.get().getUpdatedAt();
+            long hoursSinceCached = ChronoUnit.HOURS.between(cachedAt, LocalDateTime.now());
+
+            if (hoursSinceCached < cacheValidityHours) {
+                try {
+                    logger.info("Cache hit for keyword: '{}', category: '{}'. Cached at {} ({} hours old).", keyword, actualCategoryId, cachedAt, hoursSinceCached);
+                    List<PopularVideoDto> results = objectMapper.readValue(
+                        cachedResultOpt.get().getSearchResultsJson(),
+                        new TypeReference<List<PopularVideoDto>>() {}
+                    );
+                    return results; // 캐시된 원본 리스트를 반환 (최종 limit은 호출하는 쪽에서 처리)
+                } catch (JsonProcessingException e) {
+                    logger.error("Error deserializing cached search results for keyword '{}', category '{}': {}", keyword, actualCategoryId, e.getMessage(), e);
+                }
+            } else {
+                logger.info("Cache for keyword: '{}', category: '{}' found but expired ({} hours old).", keyword, actualCategoryId, hoursSinceCached);
+            }
+        } else {
+            logger.info("Cache miss for keyword: '{}', category: '{}'. No entry for today.", keyword, actualCategoryId);
+        }
+
+        // 2. 캐시 미스 또는 캐시 만료 시, YouTube API 호출
+        List<SearchResult> searchResults = Collections.emptyList();
+        String searchGoogleId = "105233553913338283491";
+        try {
+            String regionCode = "KR";
+            String order = "viewCount";
+            long apiMaxResults = 50L;
+
+            searchResults = youtubeApiService.searchVideosByKeyword(
+                searchGoogleId, keyword, apiMaxResults, regionCode, actualCategoryId, order
+            );
+
+        } catch (IOException | GeneralSecurityException e) {
+            logger.error("Error calling YouTube API for keyword '{}', category '{}': {}", keyword, actualCategoryId, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+
+        // 3. 가져온 데이터를 캐시하고 DTO로 반환
+        List<Map<String, Object>> videoDetailsList = new ArrayList<>();
+        List<PopularVideoDto> popularVideoDtos = new ArrayList<>();
+
+        for (SearchResult result : searchResults) {
+            String videoId = result.getId().getVideoId();
+            if (videoId == null) continue;
+
+            Long viewsCount = null;
+            String actualVideoCategoryId = null; // <--- 추가
+
+            // 각 SearchResult에 대해 Video Data API (videos.list)를 추가 호출하여 통계 정보 및 스니펫 정보 가져오기
+            try {
+                Video videoStatsAndSnippet = youtubeApiService.getVideoStatistics(searchGoogleId, videoId); // <-- 수정: 메서드 이름은 그대로지만 snippet도 가져옴
+                if (videoStatsAndSnippet != null) {
+                    if (videoStatsAndSnippet.getStatistics() != null) {
+                        viewsCount = videoStatsAndSnippet.getStatistics().getViewCount().longValue();
+                    }
+                    if (videoStatsAndSnippet.getSnippet() != null) { // <--- 추가
+                        actualVideoCategoryId = videoStatsAndSnippet.getSnippet().getCategoryId(); // <--- 카테고리 ID 가져오기
+                    }
+                }
+            } catch (IOException | GeneralSecurityException e) {
+                logger.error("Error fetching statistics and snippet for videoId {}: {}", videoId, e.getMessage());
+            }
+
+            Map<String, Object> videoData = new LinkedHashMap<>();
+            videoData.put("videoKey", videoId);
+            videoData.put("videoTitle", result.getSnippet().getTitle());
+            videoData.put("thumbnailUrl", Optional.ofNullable(result.getSnippet().getThumbnails())
+                                                 .map(t -> t.getDefault())
+                                                 .map(td -> td.getUrl())
+                                                 .orElse(null));
+            videoData.put("channelId", result.getSnippet().getChannelId());
+            videoData.put("channelTitle", result.getSnippet().getChannelTitle());
+            videoData.put("publishedAt", result.getSnippet().getPublishedAt().toStringRfc3339());
+            videoData.put("videoCategoryId", actualVideoCategoryId); // <--- 실제 비디오 카테고리 ID 사용
+            videoData.put("viewsCount", viewsCount);
+
+            videoDetailsList.add(videoData);
+
+            popularVideoDtos.add(PopularVideoDto.builder()
+                                .videoKey(videoId)
+                                .videoTitle(result.getSnippet().getTitle())
+                                .thumbnailUrl(Optional.ofNullable(result.getSnippet().getThumbnails())
+                                                    .map(t -> t.getDefault())
+                                                    .map(td -> td.getUrl())
+                                                    .orElse(null))
+                                .channelId(result.getSnippet().getChannelId())
+                                .channelTitle(result.getSnippet().getChannelTitle())
+                                .publishedAt(LocalDateTime.parse(result.getSnippet().getPublishedAt().toStringRfc3339().substring(0, 19)))
+                                .videoCategoryId(actualVideoCategoryId) // <--- 실제 비디오 카테고리 ID 사용
+                                .viewsCount(viewsCount)
+                                .build());
+        }
+        // 캐시 저장 (UPSERT)
+        try {
+            CachedKeywordSearchResult cachedResult = new CachedKeywordSearchResult();
+            cachedResult.setId(cachedId);
+            cachedResult.setSearchResultsJson(objectMapper.writeValueAsString(videoDetailsList));
+            cachedKeywordSearchResultRepository.save(cachedResult);
+            logger.info("Successfully cached {} search results for keyword: '{}', category: '{}'.", searchResults.size(), keyword, actualCategoryId);
+        } catch (JsonProcessingException e) {
+            logger.error("Error serializing search results for keyword '{}', category '{}' for caching: {}", keyword, actualCategoryId, e.getMessage(), e);
+        }
+
+        // API로부터 가져온 원본 리스트를 반환 (최종 limit은 호출하는 쪽에서 처리)
+        return popularVideoDtos;
+    }
+
+
+    /**
+     * 특정 채널의 상위 키워드들을 기반으로 인기 동영상 목록을 조회합니다.
+     * 이 메서드는 각 상위 키워드별로 캐시되거나 새로 검색된 인기 영상을 가져와 합산합니다.
+     *
+     * @param channelId        조회할 채널 ID (키워드 추출용)
+     * @param videoCategoryId  동영상 카테고리 ID (선택 사항, null 또는 "ALL"인 경우 전체 카테고리)
+     * @param totalResultLimit 최종적으로 반환할 영상의 최대 개수
+     * @param keywordLimit     채널에서 가져올 상위 키워드의 개수 (예: 5개)
+     * @return 각 키워드별 인기 영상 목록을 합산한 최종 목록 (중복 제거 후 제한)
+     */
+    @Transactional
+    public List<PopularVideoDto> getPopularVideosForChannelKeywords(
+            String channelId,
+            String videoCategoryId,
+            int totalResultLimit,
+            int keywordLimit) { // 몇 개의 상위 키워드를 사용할지
+
+        logger.info("Getting popular videos for channel '{}' based on its top {} keywords. Total result limit: {}",
+                    channelId, keywordLimit, totalResultLimit);
+
+        // 1. 해당 채널의 상위 키워드를 가져옵니다.
+        List<ChannelKeywordDto> topKeywords = getChannelKeywordsForWordCloud(channelId, keywordLimit);
+        if (topKeywords.isEmpty()) {
+            logger.warn("No top keywords found for channelId: {}. Returning empty list for popular videos.", channelId);
+            return Collections.emptyList();
+        }
+
+        // 2. 각 상위 키워드에 대해 인기 영상을 가져옵니다. (캐시 또는 API 호출)
+        // Set을 사용하여 중복 제거 및 최종 순서 유지를 위해 LinkedHashSet 사용
+        Set<PopularVideoDto> distinctPopularVideos = new LinkedHashSet<>();
+        
+        // 각 키워드별로 몇 개의 영상을 가져올지 설정 (예: 각 키워드당 10개, 총 50개면 적절)
+        int videosPerKeyword = 10; 
+
+        for (ChannelKeywordDto keywordDto : topKeywords) {
+            String keyword = keywordDto.getText();
+            // 각 키워드에 대해 getPopularVideosForKeyword 호출
+            List<PopularVideoDto> videosForKeyword = getPopularVideosForKeyword(keyword, videoCategoryId, videosPerKeyword); // resultLimit 대신 videosPerKeyword 전달
+            distinctPopularVideos.addAll(videosForKeyword); // 중복 제거하며 추가
+            
+            // 총 결과 개수 제한을 초과하면 루프 중단
+            if (distinctPopularVideos.size() >= totalResultLimit) {
+                break;
+            }
+        }
+
+        // 3. 최종 결과 리스트로 변환하고, 요청된 totalResultLimit에 맞춰 제한합니다.
+        List<PopularVideoDto> finalResult = new ArrayList<>(distinctPopularVideos);
+        finalResult.sort(Comparator.comparing(PopularVideoDto::getViewsCount, Comparator.nullsLast(Comparator.reverseOrder()))); // 조회수 기준으로 내림차순 정렬 (PopularVideoDto에 viewsCount 필드 추가 필요)
+
+        return finalResult.stream()
+                          .limit(totalResultLimit)
+                          .collect(Collectors.toList());
     }
 }
