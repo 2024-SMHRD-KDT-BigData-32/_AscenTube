@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ import com.cm.astb.dto.ChannelDailyMetricsDataDto;
 import com.cm.astb.dto.ChannelDashboardSummaryDto;
 import com.cm.astb.dto.ChannelKeyMetricsDto;
 import com.cm.astb.dto.ChannelKeywordDto;
+import com.cm.astb.dto.CommentAnalysisSummaryDto;
 import com.cm.astb.dto.DayOfWeekViewsDto;
 import com.cm.astb.dto.HourOfDayViewsDto;
 import com.cm.astb.dto.PopularVideoDto;
@@ -29,6 +31,7 @@ import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
 import com.cm.astb.service.ChannelAnalysisService;
 import com.cm.astb.service.ChannelService;
+import com.cm.astb.service.CommentAnalysisService;
 import com.cm.astb.service.KeywordAnalysisService;
 import com.cm.astb.service.VideoAnalysisService;
 import com.google.api.services.youtube.model.Channel;
@@ -43,14 +46,16 @@ public class ChannelController {
 	private final VideoAnalysisService videoAnalysisService;
 	private final ChannelAnalysisService channelAnalysisService;
 	private final KeywordAnalysisService keywordAnalysisService;
+	private final CommentAnalysisService commentAnalysisService;
 	
 	public ChannelController(ChannelService channelService, VideoAnalysisService videoAnalysisService,
-			ChannelAnalysisService channelAnalysisService, KeywordAnalysisService keywordAnalysisService) {
-		super();
+			ChannelAnalysisService channelAnalysisService, KeywordAnalysisService keywordAnalysisService,
+			CommentAnalysisService commentAnalysisService) {
 		this.channelService = channelService;
 		this.videoAnalysisService = videoAnalysisService;
 		this.channelAnalysisService = channelAnalysisService;
 		this.keywordAnalysisService = keywordAnalysisService;
+		this.commentAnalysisService = commentAnalysisService;
 	}
 
 	@GetMapping("/channel-info")
@@ -316,6 +321,27 @@ public class ChannelController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(popularVideos);
+    }
+    
+    /**
+     * 특정 채널의 댓글 분석 요약 정보 (총 댓글 수, 감성/화행 분포, 최신/인기 댓글 등)를 반환하는 엔드포인트.
+     * 예시: GET /api/channels/{channelId}/comment-analysis-summary?period=month
+     *
+     * @param channelId 유튜브 채널 ID
+     * @param period    조회 기간 ("month", "quarter", "6month", "year", 기본값: "month")
+     * @return 댓글 분석 요약 DTO
+     */
+    @GetMapping("/my-channel/comment-analysis-summary")
+    public ResponseEntity<CommentAnalysisSummaryDto> getCommentAnalysisSummary(
+            @RequestParam String channelId,
+            @RequestParam(defaultValue = "quarter") String period) {
+
+        CommentAnalysisSummaryDto summaryDto = commentAnalysisService.getCommentAnalysisSummary(channelId, period);
+
+        if (summaryDto.getTotalComments() == null || summaryDto.getTotalComments() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(summaryDto);
     }
 }
 

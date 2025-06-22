@@ -51,6 +51,10 @@ public class Comment {
     @Enumerated(EnumType.STRING)
     @Column(name = "SENTIMENT_TYPE", length = 20)
     private SentimentType sentimentType;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "SPEECH_ACT", length = 20)
+    private SpeechActType speechAct;
 
     @Column(name = "IS_DELETED", length = 1)
     private String isDeleted;
