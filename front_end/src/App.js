@@ -36,18 +36,22 @@ const App = () => {
         <Route path="ai" element={<Ai />} />
         <Route path="category-analysis" element={<CategoryAnalysisPage />} />
 
-        {/* 핵심 수정 부분: 'vidanalysis' 경로를 'video-analysis'로 변경하여 Link와 일치시킵니다. */}
-        {/* 이렇게 하면 Link to="/video-analysis?videoId=..." 요청을 VidAnalysis 컴포넌트가 받게 됩니다. */}
-        <Route path="video-analysis" element={<VidAnalysis />} />
+        {/* ⭐ [수정] 'video-analysis' 경로를 원래 'vidanalysis'로 되돌립니다. ⭐ */}
+        {/* 이렇게 하면 다른 컴포넌트에서 /vidanalysis를 참조하는 링크들이 다시 작동합니다. */}
+        <Route path="vidanalysis" element={<VidAnalysis />} />
         
         {/* 만약 /video/VIDEO_ID 형태의 직접적인 경로도 필요하다면 유지합니다. */}
         {/* 이 경우 VidAnalysis 컴포넌트 내에서 useParams를 사용하여 videoId를 가져와야 합니다. */}
+        {/* 이 라우트는 /vidanalysis와는 별개로 동작합니다. */}
         <Route path="video/:videoId" element={<VidAnalysis />} />
 
-        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
+        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
 
-  `     {/* 🚀 테스트 페이지 라우트 추가 */}
+        {/* 🚀 테스트 페이지 라우트 */}
         <Route path="admin" element={<TestConnectionPage />} />
+
+        {/* ⭐ [추가] FavoriteChannels 라우트 추가 ⭐ */}
+        <Route path="favorite-channels" element={<FavoriteChannels />} />
 
       </Route>
 

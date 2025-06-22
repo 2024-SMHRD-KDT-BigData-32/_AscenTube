@@ -10,11 +10,11 @@ const parseDurationToSeconds = (isoDuration) => {
     if (!isoDuration) return 0;
     const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return 0;
-    
+
     const hours = parseInt(match[1] || 0);
     const minutes = parseInt(match[2] || 0);
     const seconds = parseInt(match[3] || 0);
-    
+
     return (hours * 3600) + (minutes * 60) + seconds;
 };
 
@@ -25,7 +25,7 @@ const formatDuration = (isoDuration) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-    
+
     let formatted = '';
     if (hours > 0) formatted += `${hours}시간 `;
     if (minutes > 0 || hours > 0) formatted += `${minutes}분 `;
@@ -61,7 +61,7 @@ const generateSpeechActData = () => {
         { name: '요청', value: Math.floor(Math.random() * 10) + 5, color: '#9C27B0' },
         { name: '기타', value: Math.floor(Math.random() * 15) + 5, color: '#607D8B' }
     ];
-    
+
     // 비율 정규화 (총합 100%가 되도록)
     const total = speechActs.reduce((sum, act) => sum + act.value, 0);
     return speechActs.map(act => ({
@@ -109,20 +109,20 @@ const generateRepresentativeComments = () => {
             "구독하고 갑니다~"
         ]
     };
-    
+
     const result = {};
     Object.keys(commentExamples).forEach(category => {
         const comments = commentExamples[category];
         result[category] = comments[Math.floor(Math.random() * comments.length)];
     });
-    
+
     return result;
 };
 
 // API 응답 데이터를 UI에 맞게 가공하는 함수
 const processApiData = (videosFromApi) => {
     if (!videosFromApi || videosFromApi.length === 0) return [];
-    
+
     return videosFromApi.map(video => {
         const publishedAtTimestamp = video.snippet.publishedAt?.value || video.snippet.publishedAt;
         const positivePercent = Math.floor(Math.random() * 91) + 5;
@@ -141,7 +141,7 @@ const processApiData = (videosFromApi) => {
             comments: parseInt(video.statistics?.commentCount ?? '0', 10),
             duration: video.contentDetails?.duration || 'N/A',
             isSummaryVisible: false,
-            summaryText: `${video.snippet.title.substring(0,20)}
+            summaryText: `${video.snippet.title.substring(0, 20)}
 한화생명 vs T1 경기 요약:
 T1이 압도적인 경기력으로 한화생명을 3:0으로 완승했습니다.
 T1 선수들, 특히 도란, 구마유시, 페이커 선수의 활약이 돋보였습니다. [03:19:04], [03:16:59], [03:21:55]
@@ -204,39 +204,39 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
             setIsLoading(false);
             return;
         }
-    
+
         const fetchData = async () => {
             setIsLoading(true);
             setError(null);
-            
+
             const token = localStorage.getItem('access_token');
             const userId = localStorage.getItem('user_google_id');
             const periodMap = { '일간': 'daily', '주간': 'weekly', '월간': 'monthly' };
             const apiPeriod = periodMap[timePeriod] || 'daily';
-    
+
             const rawData = await fetchTrendingVideosByPeriod(token, userId, categoryId, apiPeriod, 50);
-    
+
             if (rawData) {
                 console.clear();
                 console.log("=============== 데이터 처리 과정 추적 ===============");
                 console.log(`[1단계] API로부터 받은 전체 동영상 개수: ${rawData.length}개`);
-                
+
                 const processedVideos = processApiData(rawData);
-    
+
                 const shorts = processedVideos.filter(v => parseDurationToSeconds(v.duration) <= 180);
                 const regulars = processedVideos.filter(v => parseDurationToSeconds(v.duration) > 180);
-    
+
                 console.log(`[2단계] 3분 미만 (숏츠 후보) 개수: %c${shorts.length}개`, "color: blue; font-weight: bold;");
                 console.log(`[3단계] 3분 이상 (일반 영상 후보) 개수: %c${regulars.length}개`, "color: green; font-weight: bold;");
                 console.log("=================================================");
-    
+
                 const sortByViewCount = (a, b) => b.views - a.views;
                 shorts.sort(sortByViewCount);
                 regulars.sort(sortByViewCount);
-    
+
                 setShortsVideos(shorts.slice(0, 10));
                 setRegularVideos(regulars.slice(0, 10));
-    
+
             } else {
                 setError('데이터를 불러오는 데 실패했습니다.');
                 setRegularVideos([]);
@@ -244,11 +244,11 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
             }
             setIsLoading(false);
         };
-    
+
         fetchData();
     }, [categoryId, timePeriod]);
 
-// src/pages/VideoAnalytics.jsx (두 번째 부분)
+    // src/pages/VideoAnalytics.jsx (두 번째 부분)
 
     const renderVideoItem = (video, listType) => {
         const sentimentChartData = [{ name: '반응', positive: video.positivePercent, negative: video.negativePercent }];
@@ -284,8 +284,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                             {video.isSummaryVisible ? '숨기기' : '상세분석'}
                         </button>
                         {/* 영상분석 링크 수정: videoId 쿼리 파라미터로 전달 */}
-                        <Link to={`/video-analysis?videoId=${video.id}`} className="more-button video-specific-analysis-link">영상분석</Link>
-                        <Link to={`/channel/${video.channelId}`} className="more-button channel-analysis-link">채널분석</Link>
+                        <Link to={`/vidanalysis?videoId=${video.id}`} className="more-button video-specific-analysis-link">영상분석</Link>                        <Link to={`/channel/${video.channelId}`} className="more-button channel-analysis-link">채널분석</Link>
                     </div>
                 </div>
                 {video.isSummaryVisible && (
@@ -297,7 +296,7 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                                     <BarChart layout="vertical" data={sentimentChartData} stackOffset="expand" margin={{ top: 2, right: 5, left: 5, bottom: 2 }}>
                                         <XAxis type="number" hide domain={[0, 1]} />
                                         <YAxis type="category" dataKey="name" hide />
-                                        <Tooltip content={<CustomTooltip />} cursor={{fill: 'transparent'}}/>
+                                        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
                                         <Bar dataKey="positive" stackId="sentiment" fill="#FFC107" barSize={30} radius={positiveRadius}>
                                             <LabelList dataKey="positive" position="center" fill="#ffffff" fontSize={10} formatter={(value) => `긍정 ${value}%`} />
                                         </Bar>
@@ -339,11 +338,11 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
                                 <div className="speech-act-legend">
                                     {video.speechActData.map((entry, index) => (
                                         <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '5px' }}>
-                                            <div 
-                                                style={{ 
-                                                    width: '12px', 
-                                                    height: '12px', 
-                                                    backgroundColor: entry.color, 
+                                            <div
+                                                style={{
+                                                    width: '12px',
+                                                    height: '12px',
+                                                    backgroundColor: entry.color,
                                                     marginRight: '8px',
                                                     borderRadius: '2px'
                                                 }}
@@ -380,8 +379,8 @@ const VideoAnalytics = ({ title, categoryId, categoryName, timePeriod }) => {
     return (
         <div className="video-analysis-section">
             <h2 className="section-subtitle">{title}</h2>
-            
-            <section className="video-list-container" style={{marginBottom: '50px'}}>
+
+            <section className="video-list-container" style={{ marginBottom: '50px' }}>
                 <h3 className="list-title">인기 동영상</h3>
                 {regularVideos.length > 0 ? (
                     regularVideos.map(video => renderVideoItem(video, 'regular'))

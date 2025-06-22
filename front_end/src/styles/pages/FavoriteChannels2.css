@@ -23,7 +23,6 @@ body {
 }
 
 .favorite-channels-container {
-  padding: 1.5rem 1.5rem;  /* 상하 1rem, 좌우 1.5rem */
   width: 100%;
   margin: 0 auto;
   display: flex;
@@ -39,7 +38,7 @@ body {
   align-items: center;
   padding: 1rem 1.5rem;
   background-color: transparent !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) ;
   border-bottom: 1px solid var(--border-color) !important;
 }
 
@@ -54,14 +53,16 @@ body {
 }
 
 
-/* .search-and-add-section-wrapper {
+.search-and-add-section-wrapper {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   align-items: stretch;
   padding-top: 1rem;
   padding-bottom: 1rem;
-} */
+  margin-left: 30px;
+  margin-right: 30px;
+}
 
 .card {
   background-color: var(--card-bg-color);
@@ -116,15 +117,24 @@ body {
   gap: 0.5rem !important;
 }
 
-.search-and-add-section-wrapper,
-.registered-channels-section {
-  /* max-width: 1200px; */
-  margin: 2rem auto;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+.search-and-add-section-wrapper{
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.registered-channels-section {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  margin-left: 30px;
+  margin-right: 30px;
 }
 
 .registered-title {
@@ -159,7 +169,7 @@ body {
   width: 100%;
 }
 
-.card + .card {
+#favorite-channels-page .card + #favorite-channels-page .card {
   margin-top: 1.75rem;  /* 원하는 여백 크기로 조절 */
 }
 
@@ -237,12 +247,6 @@ body {
   font-size: 0.95rem;
 }
 
-/* .registered-channels-section {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1rem;
-} */
 
 .registered-channels-section h3 {
   font-size: 1.25rem;
@@ -416,3 +420,38 @@ table td {
   }
 }
 
+/* 비율 기반 열 크기 조정 */
+.registered-channel-table th:nth-child(1),
+.registered-channel-table td:nth-child(1) {
+  width: 4%;
+}
+
+.registered-channel-table th:nth-child(2),
+.registered-channel-table td:nth-child(2) {
+  width: 8%;
+}
+
+.registered-channel-table th:nth-child(3),
+.registered-channel-table td:nth-child(3) {
+  width: 18%;
+}
+
+.registered-channel-table th:nth-child(4),
+.registered-channel-table td:nth-child(4) {
+  width: 25%;
+}
+
+.registered-channel-table th:nth-child(5),
+.registered-channel-table td:nth-child(5) {
+  width: 25%;
+}
+
+.registered-channel-table th:nth-child(6),
+.registered-channel-table td:nth-child(6) {
+  width: 10%;
+}
+
+.registered-channel-table th:nth-child(7),
+.registered-channel-table td:nth-child(7) {
+  width: 10%;
+}

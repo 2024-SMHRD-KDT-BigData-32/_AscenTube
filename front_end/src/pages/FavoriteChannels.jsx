@@ -1,18 +1,20 @@
 // src/pages/FavoriteChannels.js
 import React, { useState } from 'react'; // useEffect는 현재 불필요하여 제거
 import { MdSearch, MdAddCircleOutline } from 'react-icons/md';
-import '../styles/pages/FavoriteChannels.css';
+import '../styles/pages/FavoriteChannels2.css';
 
 const FavoriteChannels = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [memoInput, setMemoInput] = useState('');
+  
+  const [filterTerm, setFilterTerm] = useState('');
 
   const [registeredChannels, setRegisteredChannels] = useState([
     { id: 'ch_cm', name: '침착맨', url: 'https://www.youtube.com/@ChimChakMan_Official', description: '크롬 확장 기능 테스트용 관심 채널1' },
     { id: 'ch_jt', name: '조튜브', url: 'https://www.youtube.com/@jhotube', description: '크롬 확장 기능 테스트용 관심 채널2' },
   ]);
-
+  
   // URL 디코딩 함수 (URL이 인코딩되어 있다면 표시할 때 디코딩)
   const decodeUrlIfEncoded = (url) => {
     try {
@@ -39,21 +41,21 @@ const FavoriteChannels = () => {
       { id: 'ch_test1', name: '테스트 채널 1', url: 'https://www.youtube.com/@testchannel1', description: '임시 테스트용 채널입니다.' },
       { id: 'ch_test2', name: '테스트 채널 2', url: 'https://www.youtube.com/@testchannel2', description: '또 다른 테스트 채널입니다.' },
     ];
-    
+
     // URL이 정확히 일치하는 경우 우선 검색 (디코딩된 searchTerm과 비교)
-    const foundByUrl = allSearchableChannels.find(channel => 
-        channel.url.toLowerCase() === lowerCaseSearchTerm || 
-        decodeUrlIfEncoded(channel.url).toLowerCase() === lowerCaseSearchTerm // 디코딩된 URL과도 비교
+    const foundByUrl = allSearchableChannels.find(channel =>
+      channel.url.toLowerCase() === lowerCaseSearchTerm ||
+      decodeUrlIfEncoded(channel.url).toLowerCase() === lowerCaseSearchTerm // 디코딩된 URL과도 비교
     );
 
     if (foundByUrl) {
-        setSearchResults([foundByUrl]);
+      setSearchResults([foundByUrl]);
     } else {
-        // 이름에 포함되는 경우 검색
-        const filteredResults = allSearchableChannels.filter(channel =>
-            channel.name.toLowerCase().includes(lowerCaseSearchTerm)
-        );
-        setSearchResults(filteredResults);
+      // 이름에 포함되는 경우 검색
+      const filteredResults = allSearchableChannels.filter(channel =>
+        channel.name.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+      setSearchResults(filteredResults);
     }
   };
 
@@ -64,14 +66,14 @@ const FavoriteChannels = () => {
       alert(`${channelToAdd.name} 채널은 이미 등록되어 있습니다.`);
       return;
     }
-    
+
     const newId = `reg_ch_${Date.now()}`; // 고유 ID 생성
     setRegisteredChannels(prevChannels => [
-      ...prevChannels, 
-      { 
-        id: newId, 
-        name: channelToAdd.name, 
-        url: channelToAdd.url, 
+      ...prevChannels,
+      {
+        id: newId,
+        name: channelToAdd.name,
+        url: channelToAdd.url,
         description: memoInput || channelToAdd.description || '새로 등록된 채널입니다.'
       }
     ]);
@@ -93,7 +95,7 @@ const FavoriteChannels = () => {
     if (channelToEdit) {
       const newDescription = prompt(`'${channelToEdit.name}' 채널의 설명을 수정하세요:`, channelToEdit.description);
       if (newDescription !== null) { // 취소 버튼 누르면 null 반환
-        setRegisteredChannels(prevChannels => prevChannels.map(channel => 
+        setRegisteredChannels(prevChannels => prevChannels.map(channel =>
           channel.id === idToEdit ? { ...channel, description: newDescription } : channel
         ));
       }
@@ -101,16 +103,68 @@ const FavoriteChannels = () => {
   };
 
   return (
-    <div className="favorite-channels-container">
+    <div className="favorite-channels-container" id="favorite-channels-page">
+      
+      <header className="page-header">
+        <h1>관심 채널 관리</h1>
+        <input
+          type="text"
+          placeholder="채널 이름 검색..."
+          className="favorite-header-search"
+          onChange={(e) => setFilterTerm(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              const term = e.target.value.trim().toLowerCase();
+              if (!term) {
+                alert('검색어를 입력하세요.');
+              } else {
+                const result = registeredChannels.filter(
+                  (ch) =>
+                    ch.name.toLowerCase().includes(term) ||
+                    ch.url.toLowerCase().includes(term)
+                );
+                if (result.length === 0) {
+                  alert('검색 결과가 없습니다.');
+                }
+              }
+            }
+          }}
+        />
+      </header>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      {/* 
       <div className="page-header">
         <h2 className="page-title">관심 채널 관리</h2>
       </div>
-
+       */}{/* 
+      <div className="page-header">
+        <h2 className="page-title">관심 채널 관리</h2>
+      </div>
+       */}{/* 
+      <div className="page-header">
+        <h2 className="page-title">관심 채널 관리</h2>
+      </div>
+       */}
+      {/* 
+      <div className="page-header">
+        <h2 className="page-title">관심 채널 관리</h2>
+      </div>
+       */}
+      
       {/* 채널 검색 및 추가 섹션 (이미지 기반 레이아웃) */}
       <div className="search-and-add-section-wrapper card">
         {/* ✅ h3를 검색 컨트롤과 같은 라인으로 배치 (CSS에서 flex로 정렬) */}
-        <h3 className="search-section-title"><MdSearch /> 채널 검색 및 추가</h3> 
-        
+        <h3 className="search-section-title"><MdSearch /> 채널 검색 및 추가</h3>
+
         <div className="search-controls-and-results">
           {/* 검색 입력창과 버튼 */}
           <div className="search-input-group-container">
@@ -190,11 +244,11 @@ const FavoriteChannels = () => {
             <table>
               <thead>
                 <tr>
-                  <th className="column-number"></th>
+                  <th className="column-number">#</th>
                   <th className="column-channel-name">채널 이름</th>
                   <th className="column-url">URL</th>
                   <th className="column-description">설명</th>
-                  <th className="column-action"></th>
+                  <th className="column-action">관리</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,15 +257,15 @@ const FavoriteChannels = () => {
                     <td className="cell-number">{index + 1}</td>
                     <td className="cell-channel-name">{channel.name}</td>
                     <td className="cell-url">
-                        <a href={decodeUrlIfEncoded(channel.url)} target="_blank" rel="noopener noreferrer">
-                            {decodeUrlIfEncoded(channel.url)}
-                        </a>
+                      <a href={decodeUrlIfEncoded(channel.url)} target="_blank" rel="noopener noreferrer">
+                        {decodeUrlIfEncoded(channel.url)}
+                      </a>
                     </td>
                     <td className="cell-description">{channel.description}</td>
                     <td className="cell-action">
-                      <span className="action-link" onClick={() => handleDeleteChannel(channel.id)}>[삭제]</span>
-                      <span className="action-divider"> / </span>
-                      <span className="action-link" onClick={() => handleEditChannel(channel.id)}>[수정]</span>
+                      <button className="edit-button" onClick={() => handleEditChannel(channel.id)}>수정</button>
+                      <span className="action-divider">/ </span>
+                      <button className="delete-button"  onClick={() => handleDeleteChannel(channel.id)}>삭제</button>
                     </td>
                   </tr>
                 ))}

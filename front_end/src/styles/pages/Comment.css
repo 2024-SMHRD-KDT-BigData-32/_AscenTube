@@ -28,7 +28,7 @@
 /* ===============================
    💬 댓글 페이지 전체 레이아웃
 =============================== */
-.comment-container {
+#comment-page .comment-container {
   min-height: 100vh;
   background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
   font-family: sans-serif;

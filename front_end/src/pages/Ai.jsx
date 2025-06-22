@@ -28,7 +28,7 @@ const AnimatedBar = ({ percentage, color = '#6366f1' }) => {
 
 const Ai = () => {
   return (
-    <div className="ai-container">
+    <div className="ai-container" id="ai-page">
       <header className="ai-header">
         <h1>AI 콘텐츠 전략 코치</h1>
         <input type="text" placeholder="전략 검색..." />

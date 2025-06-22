@@ -138,6 +138,8 @@ const Comment = () => {
       </header>
 
       <main className="comment-main">
+
+        {/* ✅ 수정: '댓글 유형 비율' 섹션을 상단으로 이동 */}
         <section
           className="comment-section"
           ref={tooltipSectionRef}
@@ -154,11 +156,30 @@ const Comment = () => {
           {tooltipContent && (
             <div className="representative-comment-tooltip" style={tooltipPosition}>
               <p className="tooltip-title">{tooltipContent.title}</p>
+              
               <p className="tooltip-text">"{tooltipContent.text}"</p>
             </div>
           )}
+          {tooltipContent && (
+            <div className="representative-comment-tooltip" style={tooltipPosition}>
+              <p className="tooltip-title">
+                {tooltipContent.title}
+                <span style={{ marginLeft: '8px', fontWeight: 'normal', fontSize: '0.9em' }}>
+                  ({analysisData.percentages[tooltipContent.category]}%)
+                </span>
+              </p>
+              <p className="tooltip-text">"{tooltipContent.text}"</p>
+            </div>
+          )}  
         </section>
-
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
+          
         {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
         <section className="comment-section">
           <h2>핵심 키워드 분석</h2>
