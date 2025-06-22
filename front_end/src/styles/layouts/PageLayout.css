@@ -1,0 +1,171 @@
+/* src/styles/pages/Keyword.css */
+
+/* 이 파일에는 이제 Keyword 페이지에만 사용되는 고유한 스타일만 남습니다. */
+
+/* --- 채널 키워드: 태그 디자인 --- */
+.keyword-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    padding: 1rem 0;
+}
+
+.keyword-tag {
+    color: #ffffff;
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: default;
+}
+
+.keyword-tag:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+
+/* --- 연관 인기 동영상 카드 --- */
+.video-list-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.video-card {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #e5e7eb;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+}
+
+.video-thumbnail-container {
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    position: relative;
+    background-color: #f3f4f6;
+}
+
+.video-thumbnail-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-card-content {
+    padding: 1rem;
+}
+
+.list-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+    height: 2.8em; /* 2줄까지 표시 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.list-card-meta {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.list-card-meta.secondary {
+    font-size: 0.8rem;
+}
+
+.meta-icon {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+}
+
+
+/* --- 키워드별 대표 영상 리스트 --- */
+.representative-video-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.representative-video-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+.representative-video-item:hover {
+    background-color: #f9fafb;
+}
+
+.rep-keyword-tag {
+    background-color: #eef2ff;
+    color: #4338ca;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+}
+
+.rep-video-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.rep-video-info .title {
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.25rem;
+}
+
+.rep-video-info .performance {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.performance .metric-value {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/* 데이터 없음 메시지 */
+.no-data-message {
+    color: #6b7280;
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+}

@@ -1,64 +1,60 @@
 // src/App.js
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+
+// Layouts
 import MainLayout from './layouts/MainLayout';
+
+// Pages
 import Dashboard from './pages/Dashboard';
 import Contents from './pages/Contents';
 import Keyword from './pages/Keyword';
-import Comment from './pages/Comment';
+import Comment from './pages/Comment'; // 이 import 구문은 원래부터 올바렸습니다.
 import Ai from './pages/Ai';
 import Login from './pages/Login';
 import LoginCallback from './pages/LoginCallback';
 import CategoryAnalysisPage from './pages/CategoryAnalysisPage';
 import ChannelAnalysisPage from './pages/ChannelAnalysisPage';
 import VidAnalysis from './pages/VidAnalysis';
-import FavoriteChannels from './pages/FavoriteChannels'; // ✅ FavoriteChannels 컴포넌트 임포트
+import FavoriteChannels from './pages/FavoriteChannels';
+import TestConnectionPage from './pages/TestConnectionPage';
 
-import TestConnectionPage from './pages/TestConnectionPage'; // 🚀 새로 만든 테스트 페이지 import
-
+// PrivateRoute: 로그인이 되어있어야만 접근 가능한 페이지들을 위한 HOC(Higher-Order Component)
 const PrivateRoute = () => {
-  const isAuthenticated = !!localStorage.getItem('access_token');
-  return isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />;
+    // localStorage에 access_token이 있는지 확인하여 인증 여부를 판단합니다.
+    const isAuthenticated = !!localStorage.getItem('access_token');
+    // 인증되었다면 MainLayout을 통해 자식 라우트들을 보여주고, 아니라면 로그인 페이지로 리다이렉트합니다.
+    return isAuthenticated ? <MainLayout /> : <Navigate to="/login" replace />;
 };
 
 const App = () => {
-  return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/login-callback" element={<LoginCallback />} />
+    return (
+        <Routes>
+            {/* 로그인 관련 경로는 항상 접근 가능해야 합니다. */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/login-callback" element={<LoginCallback />} />
 
-      <Route element={<PrivateRoute />}>
-        <Route index element={<Navigate to="index" replace />} />
-        <Route path="index" element={<Dashboard />} />
-        <Route path="contents" element={<Contents />} />
-        <Route path="keyword" element={<Keyword />} />
-        <Route path="comment" element={<Comment />} />
-        <Route path="ai" element={<Ai />} />
-        <Route path="category-analysis" element={<CategoryAnalysisPage />} />
+            {/* PrivateRoute로 감싸진 모든 경로는 로그인이 필요합니다. */}
+            <Route element={<PrivateRoute />}>
+                {/* 기본 경로 접속 시 /index로 자동 이동합니다. */}
+                <Route index element={<Navigate to="index" replace />} />
+                <Route path="index" element={<Dashboard />} />
+                <Route path="contents" element={<Contents />} />
+                <Route path="keyword" element={<Keyword />} />
+                <Route path="comment" element={<Comment />} />
+                <Route path="ai" element={<Ai />} />
+                <Route path="category-analysis" element={<CategoryAnalysisPage />} />
+                <Route path="vidanalysis" element={<VidAnalysis />} />
+                <Route path="video/:videoId" element={<VidAnalysis />} />
+                <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
+                <Route path="admin" element={<TestConnectionPage />} />
+                <Route path="favorite-channels" element={<FavoriteChannels />} />
+            </Route>
 
-        {/* ⭐ [수정] 'video-analysis' 경로를 원래 'vidanalysis'로 되돌립니다. ⭐ */}
-        {/* 이렇게 하면 다른 컴포넌트에서 /vidanalysis를 참조하는 링크들이 다시 작동합니다. */}
-        <Route path="vidanalysis" element={<VidAnalysis />} />
-        
-        {/* 만약 /video/VIDEO_ID 형태의 직접적인 경로도 필요하다면 유지합니다. */}
-        {/* 이 경우 VidAnalysis 컴포넌트 내에서 useParams를 사용하여 videoId를 가져와야 합니다. */}
-        {/* 이 라우트는 /vidanalysis와는 별개로 동작합니다. */}
-        <Route path="video/:videoId" element={<VidAnalysis />} />
-
-        <Route path="channel/:channelId" element={<ChannelAnalysisPage />} />
-
-        {/* 🚀 테스트 페이지 라우트 */}
-        <Route path="admin" element={<TestConnectionPage />} />
-
-        {/* ⭐ [추가] FavoriteChannels 라우트 추가 ⭐ */}
-        <Route path="favorite-channels" element={<FavoriteChannels />} />
-
-      </Route>
-
-      {/* 루트 경로 ('/')로 접근 시 인증 여부에 따라 'index' 또는 'login'으로 리다이렉트 */}
-      <Route path="/" element={<Navigate to="/index" replace />} />
-    </Routes>
-  );
+            {/* 그 외 모든 경로로 접근 시 루트 경로로 이동하여 인증 상태를 다시 확인합니다. */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
 };
 
 export default App;
