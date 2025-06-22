@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +21,7 @@ import com.cm.astb.dto.ChannelKeyMetricsDto;
 import com.cm.astb.dto.ChannelKeywordDto;
 import com.cm.astb.dto.DayOfWeekViewsDto;
 import com.cm.astb.dto.HourOfDayViewsDto;
+import com.cm.astb.dto.PopularVideoDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
 import com.cm.astb.dto.TopSubscriberContributingVideoDto;
 import com.cm.astb.dto.VideoLengthViewsDto;
@@ -290,6 +290,32 @@ public class ChannelController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(keywords);
+    }
+    
+    /**
+     * 특정 채널의 상위 키워드들을 기반으로 인기 동영상 목록을 반환하는 엔드포인트.
+     * 검색 결과는 DB에 캐시된 데이터를 사용하거나, 캐시 미스/만료 시 YouTube API를 호출하여 가져옵니다.
+     * @param channelId 유튜브 채널 ID (키워드 추출의 기준)
+     * @param videoCategoryId 동영상 카테고리 ID (선택 사항, null 또는 "ALL"인 경우 전체 카테고리)
+     * @param totalResultLimit 최종적으로 반환할 영상의 최대 개수 (기본값: 10)
+     * @param keywordLimit     채널에서 가져올 상위 키워드의 개수 (기본값: 5)
+     * @return 인기 동영상 목록 DTO
+     */
+    @GetMapping("/my-channel/popular-videos-by-keywords")
+    public ResponseEntity<List<PopularVideoDto>> getPopularVideosForChannelKeywords(
+            @RequestParam String channelId,
+            @RequestParam(required = false) String videoCategoryId,
+            @RequestParam(defaultValue = "10") int totalResultLimit,
+            @RequestParam(defaultValue = "5") int keywordLimit) {
+
+        List<PopularVideoDto> popularVideos = keywordAnalysisService.getPopularVideosForChannelKeywords(
+            channelId, videoCategoryId, totalResultLimit, keywordLimit
+        );
+
+        if (popularVideos.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(popularVideos);
     }
 }
 

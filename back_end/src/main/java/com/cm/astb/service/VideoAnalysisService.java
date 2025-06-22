@@ -58,6 +58,7 @@ public class VideoAnalysisService {
 
 
         List<VideoPerformanceDto> performanceList = videos.stream()
+        		.filter(video -> "Y".equals(video.getPublicYn()))
                 .map(video -> {
                     Optional<VideoStat> latestStatOpt = videoStatRepository.findById_VideoIdAndId_StatsDate(video.getVideoId().intValue(), latestStatsDate);
 
@@ -118,6 +119,7 @@ public class VideoAnalysisService {
 
         // 3. 각 비디오에 대해 최신 통계를 찾아 DTO로 매핑하고, 필터링, 정렬, 제한을 적용합니다.
         List<TopSubscriberContributingVideoDto> topVideos = videos.stream()
+        		.filter(video -> "Y".equals(video.getPublicYn()))
                 .map(video -> {
                     Optional<VideoStat> latestStatOpt = videoStatRepository.findById_VideoIdAndId_StatsDate(video.getVideoId().intValue(), latestStatsDate);
                     
@@ -140,6 +142,7 @@ public class VideoAnalysisService {
                     }
                 })
                 .filter(java.util.Objects::nonNull) // null 값 (VideoStat 없는 비디오) 제거
+                .filter(dto -> dto.getSubscriberGained() != null && dto.getSubscriberGained() > 0)
                 .sorted(Comparator.comparing(TopSubscriberContributingVideoDto::getSubscriberGained, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(limit)
                 .collect(Collectors.toList());

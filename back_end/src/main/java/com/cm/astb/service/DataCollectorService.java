@@ -740,7 +740,7 @@ public class DataCollectorService {
             return;
         }
 
-        YouTube.Videos.List videoDetailsRequest = youTube.videos().list(Arrays.asList("snippet", "statistics", "contentDetails"));
+        YouTube.Videos.List videoDetailsRequest = youTube.videos().list(Arrays.asList("snippet", "statistics", "contentDetails", "status"));
         videoDetailsRequest.setId(videoIds);
         VideoListResponse videoDetailsResponse = videoDetailsRequest.execute();
 

@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.cache.annotation.EnableCaching;
 
 @SpringBootApplication
-@EnableScheduling
+//@EnableScheduling
 @EnableCaching
 public class AscenTubeApplication {
 
