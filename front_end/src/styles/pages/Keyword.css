@@ -1,249 +1,128 @@
-/* 💡 전체 배경 및 기본 폰트 */
-body {
-    margin: 0;
-    background: linear-gradient(180deg, #fff1f2, #e0f7fa);
-    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
-    color: #1f2937;
+/* ===========================================
+   📌 0. 공통 - 배경 · 폰트 · 컬러
+=========================================== */
+body{
+  margin:0;
+  background:linear-gradient(180deg,#fff1f2,#e0f7fa);
+  font-family:'Pretendard','Noto Sans KR',sans-serif;
+  color:#1f2937;
 }
 
-/* ✅ 메인 컨테이너 (수정됨) */
-.keyword-container {
-  width: 100%;
-  /* 상단 여백(padding-top)을 줄여서 콘텐츠를 위로 올립니다. */
-  padding: 1.5rem 2rem;
-  display: flex;
-  min-height: calc(100vh - 3rem); /* 줄어든 패딩만큼 vh 계산 수정 */
+/* ===========================================
+   📌 1. 기본(데스크톱 ≥ 1025px)
+=========================================== */
+.keyword-container{width:100%;display:flex;min-height:calc(100vh - 3rem);}
+#keyword-page{flex:1;display:flex;flex-direction:column;background:#fff;border-radius:1.5rem;overflow:hidden;}
+
+/* ── 헤더 ───────────────────────── */
+#keyword-page header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:1rem 1.5rem;border-bottom:1px solid #e5e7eb;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);background:#fff;
+}
+#keyword-page header h1{font-size:1.5rem;font-weight:700;color:#4f46e5;}
+header input{
+  width:24rem;padding:.5rem 1rem;border:1px solid #d1d5db;
+  border-radius:.5rem;font-size:.875rem;transition:box-shadow .3s;
+}
+header input:focus{outline:none;box-shadow:0 0 0 2px #c7d2fe;}
+
+/* ── 메인 2열 그리드 ─────────────── */
+.keyword-main{
+  padding:1.5rem;overflow-y:auto;
+  display:grid;grid-template-columns:1fr 1fr;grid-gap:2rem;align-items:start;
 }
 
-/* ✅ [추가] 메인 콘텐츠 래퍼 */
-.main-content-area {
-    flex: 1; /* 부모 요소의 공간을 모두 차지 */
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    border-radius: 1.5rem; /* 모서리를 둥글게 */
-    overflow: hidden; /* 내부 요소가 모서리를 벗어나지 않도록 */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* ✅ [수정] 공통 헤더 스타일 */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    background-color: white; 
-}
-
-header h1 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #4f46e5;
-}
-
-header input {
-    width: 24rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    transition: box-shadow 0.3s;
-}
-
-header input:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px #c7d2fe;
-}
-
-
-/* ✅ [수정] 2열 배치 그리드 (메인) */
-.keyword-main {
-    padding: 1.5rem; /* 내부 콘텐츠 여백 추가 */
-    overflow-y: auto; /* 콘텐츠가 길어지면 스크롤 생성 */
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 2rem;
-    align-items: start;
-}
-
-/* 제목 배치 (기존 코드 유지) */
-.keyword-main > .keyword-section-lable:nth-of-type(1) {
-    grid-column: 1;
-}
-.keyword-main > .keyword-section-lable:nth-of-type(2) {
-    grid-column: 2;
-}
-
-/* 워드 클라우드 배치 (기존 코드 유지) */
-.keyword-main > .keyword-section-wordcloud:nth-of-type(1) {
-    grid-column: 1;
-}
-.keyword-main > .keyword-section-wordcloud:nth-of-type(2) {
-    grid-column: 2;
-}
-
-/* 카드 섹션 배치 (기존 코드 유지) */
-.keyword-main > .keyword-section1 {
-    grid-column: 1;
-}
-.keyword-main > .keyword-section2 {
-    grid-column: 2;
-}
-
-/* ✅ 섹션 제목 */
+/* 섹션 제목 */
 .keyword-section-lable h2,
-.keyword-section h2 {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #3b82f6;
-    padding-left: 0.75rem;
-    margin-bottom: 1rem;
-    background-color: #f9f9f9;
+.keyword-section h2{
+  font-size:1.6rem;font-weight:700;color:#3b82f6;
+  padding-left:.75rem;margin-bottom:1rem;background:#f9f9f9;
 }
 
-/* ✅ 워드 클라우드 */
-.keyword-section-wordcloud {
-    height: auto;
-    min-height: 380px;
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* 워드 클라우드 */
+.keyword-section-wordcloud{
+  min-height:380px;padding:1.5rem;margin-bottom:2rem;
+  background:#fff;border-radius:24px;box-shadow:0 4px 12px rgba(0,0,0,.1);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
 }
+.cloud-box-js{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 15px;width:100%;height:100%;}
+.word-item-js{white-space:nowrap;font-weight:600;border-radius:6px;transition:transform .2s;}
+.word-item-js:hover{transform:scale(1.1);z-index:10;box-shadow:0 5px 15px rgba(0,0,0,.2);}
 
-.cloud-box-js {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px 15px;
-    width: 100%;
-    height: 100%;
+/* ── 카드 공통 ─────────────────── */
+.list-box{display:flex;flex-wrap:wrap;gap:1.5rem;}
+.list-card{
+  width:calc(50% - .75rem);
+  background:#fff;border-radius:20px;padding:1.3rem;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+  display:flex;gap:1rem;align-items:center;
+  transition:transform .25s;text-decoration:none;
 }
+.list-card:hover{transform:translateY(-5px);}
+.list-card-content{flex:1;}
+.list-card-title{font-size:1.1rem;font-weight:700;color:#1f2937;}
+.list-card-meta{font-size:.9rem;color:#64748b;}
+.secondary{color:#94a3b8;}
+.idea-text{font-size:1rem;font-weight:700;color:#475569;line-height:1.5;}
 
-.word-item-js {
-    white-space: nowrap;
-    font-weight: 600;
-    border-radius: 6px;
-    transition: transform 0.2s ease-in-out;
-}
+/* 추천 아이디어만 세로 */
+.idea-list-box{flex-direction:column;flex-wrap:nowrap;gap:1rem;}
+.idea-list-box .list-card{width:100%;}
 
-.word-item-js:hover {
-    transform: scale(1.1);
-    z-index: 10;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-/* ✅ 카드형 리스트 */
-.list-box {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-}
-
-.list-card {
-    background: white;
-    border-radius: 20px;
-    padding: 1.3rem;
-    width: calc(50% - 0.75rem);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    transition: transform 0.25s ease;
-    text-decoration: none;
-}
-
-.list-card:hover {
-    transform: translateY(-5px);
-}
-
-/* ✅ 썸네일 및 아이디어 아이콘 */
+/* 아이콘 / 썸네일 */
 .video-thumbnail-placeholder,
-.idea-icon-placeholder {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.idea-icon-placeholder{
+  width:64px;height:64px;border-radius:16px;font-size:1.3rem;font-weight:700;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
 }
 
-/* 썸네일 색 랜덤 */
-.video-card:nth-child(4n+1) .video-thumbnail-placeholder { background: #60a5fa; }
-.video-card:nth-child(4n+2) .video-thumbnail-placeholder { background: #f472b6; }
-.video-card:nth-child(4n+3) .video-thumbnail-placeholder { background: #facc15; color: #1e293b; }
-.video-card:nth-child(4n+4) .video-thumbnail-placeholder { background: #34d399; }
+/* 썸네일/아이디어 색상 */
+.video-card:nth-child(4n+1) .video-thumbnail-placeholder{background:#60a5fa;}
+.video-card:nth-child(4n+2) .video-thumbnail-placeholder{background:#f472b6;}
+.video-card:nth-child(4n+3) .video-thumbnail-placeholder{background:#facc15;color:#1e293b;}
+.video-card:nth-child(4n+4) .video-thumbnail-placeholder{background:#34d399;}
+.idea-card:nth-child(4n+1) .idea-icon-placeholder{background:#818cf8;}
+.idea-card:nth-child(4n+2) .idea-icon-placeholder{background:#fb7185;}
+.idea-card:nth-child(4n+3) .idea-icon-placeholder{background:#2dd4bf;}
+.idea-card:nth-child(4n+4) .idea-icon-placeholder{background:#fbbf24;color:#1e293b;}
 
-.idea-card:nth-child(4n+1) .idea-icon-placeholder { background: #818cf8; }
-.idea-card:nth-child(4n+2) .idea-icon-placeholder { background: #fb7185; }
-.idea-card:nth-child(4n+3) .idea-icon-placeholder { background: #2dd4bf; }
-.idea-card:nth-child(4n+4) .idea-icon-placeholder { background: #fbbf24; color: #1e293b; }
-
-/* ✅ 카드 내부 텍스트 */
-.list-card-content {
-    flex: 1;
+/* =========================================
+   📱 태블릿(≤1024px) & 모바일(≤768px)
+========================================= */
+@media (max-width:1024px){
+  header{flex-direction:column;align-items:flex-start;gap:1rem;}
+  header input{width:100%;}
+  .keyword-main{grid-template-columns:1fr;}
+  .keyword-main>*{grid-column:1!important;}
+  .list-card{width:100%;}
+  .keyword-section-wordcloud{padding:1.2rem;}
+  .keyword-section h2,
+  .keyword-section-lable h2{font-size:1.4rem;}
+  .video-thumbnail-placeholder,
+  .idea-icon-placeholder{width:56px;height:56px;font-size:1.15rem;}
+}
+@media (max-width:768px){
+  .keyword-main{padding:1rem;grid-gap:1.5rem;}
+  .list-card{flex-direction:column;align-items:flex-start;padding:1rem;}
+  .video-thumbnail-placeholder,
+  .idea-icon-placeholder{margin-bottom:.5rem;width:52px;height:52px;font-size:1.05rem;}
+  #keyword-page header h1{font-size:1.3rem;}
+  .list-card-title{font-size:1rem;}
+  .idea-text{font-size:.95rem;}
+}
+@media (max-width:480px){
+  .keyword-section h2,
+  .keyword-section-lable h2{font-size:1.25rem;}
+  .keyword-section-wordcloud{min-height:260px;}
+  .video-thumbnail-placeholder,
+  .idea-icon-placeholder{width:46px;height:46px;font-size:1rem;}
 }
 
-.list-card-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1f2937;
-}
-
-.list-card-meta {
-    font-size: 0.9rem;
-    color: #64748b;
-}
-
-.secondary {
-    color: #94a3b8;
-}
-
-.idea-text {
-    font-size: 1rem;
-    color: #475569;
-    line-height: 1.5;
-    font-weight: bold;
-}
-
-/* ✅ [수정] 반응형 */
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    header input {
-        width: 100%;
-    }
-    .keyword-main {
-        grid-template-columns: 1fr;
-    }
-    .keyword-main > * {
-        grid-column: 1 !important;
-    }
-    .list-card {
-        width: 100%;
-    }
-}
-
-.subscriber-focus-card .arrow {
-  /* SVG 아이콘은 flex-box로 정렬하는 것이 더 정확합니다. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0.3rem; /* 숫자와의 간격 조정 */
-  /* font-size와 line-height는 SVG에 직접 영향을 주지 않으므로 제거합니다. */
+/* =========================================
+   기타
+========================================= */
+.subscriber-focus-card .arrow{
+  display:inline-flex;align-items:center;justify-content:center;margin-right:.3rem;
 }
