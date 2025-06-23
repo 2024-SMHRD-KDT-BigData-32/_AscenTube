@@ -75,6 +75,7 @@ public class VideoAnalysisService {
                                 .likeCount(stat.getLikeCount())
                                 .commentCount(stat.getCommentCount())
                                 .subscriberGained(stat.getSubscriberGained())
+                                .videoPlaytime(video.getVideoPlaytime())
                                 .uploadedAt(video.getUploadedAt())
                                 .build();
                     } else {
