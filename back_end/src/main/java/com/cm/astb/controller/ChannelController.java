@@ -354,9 +354,9 @@ public class ChannelController {
      */
     @GetMapping("/videos/comment-analysis")
     public ResponseEntity<VideoCommentAnalysisSummaryDto> getVideoCommentAnalysisSummary(
-            @RequestParam Long videoId) { // videoId is Long type
+            @RequestParam String videoKey) { // videoId is Long type
 
-        VideoCommentAnalysisSummaryDto summaryDto = commentAnalysisService.getVideoCommentAnalysisSummary(videoId);
+        VideoCommentAnalysisSummaryDto summaryDto = commentAnalysisService.getVideoCommentAnalysisSummary(videoKey);
 
         // totalComments가 0이면 데이터가 없는 것으로 간주 (204 No Content)
         if (summaryDto.getTotalComments() == null || summaryDto.getTotalComments() == 0) {
