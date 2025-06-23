@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import PageLayout from '../layouts/PageLayout';
 import '../styles/pages/Ai.css';
 import { fetchChannelKeywords } from '../api/keywordApi';
-import { fetchAiStrategyReport } from '../api/AiApi';
+// --- [에러 해결] --- default export를 가져오기 위해 { } 중괄호를 제거하고, 확장자를 명시합니다.
+import fetchAiStrategyReport from '../api/AiApi.jsx'; 
 import { fetchDashboardData } from '../api/dashboardApi';
 import { fetchCommentAnalysisSummary } from '../api/CommentApi';
 
@@ -21,64 +22,54 @@ const SENTIMENT_LABELS = {
 
 const NoDataMessage = () => <div className="no-data-message">데이터가 없습니다.</div>;
 
-
-// [개선] 바 차트 UI를 위한 재사용 컴포넌트 추가
 const AnalysisChart = ({ data, total, labelMap }) => {
-    if (!data || data.length === 0) {
-        return <NoDataMessage />;
-    }
-
-    // [핵심] API의 percentage 대신 count와 total로 직접 비율을 계산
-    const calculatedData = data.map(item => ({
-        ...item,
-        percentage: total > 0 ? (item.count / total) * 100 : 0
-    }));
-
+    if (!data || data.length === 0) return <NoDataMessage />;
+    const calculatedData = data.map(item => ({ ...item, percentage: total > 0 ? (item.count / total) * 100 : 0 }));
     return (
         <ul className="bar-chart-list">
-            {calculatedData
-                .sort((a, b) => b.percentage - a.percentage)
-                .map(item => {
-                    // type 키가 없는 경우를 대비한 안전장치
-                    if (!item.type) return null; 
-
-                    const colorClass = item.type.startsWith('P') || item.type.startsWith('N')
-                        ? `sentiment-${item.type.toLowerCase()}`
-                        : `cat-${item.type.toLowerCase()}`;
-
-                    return (
-                        <li key={item.type}>
-                            <span className="label">{labelMap[item.type] || item.type}</span>
-                            <div className="bar-wrapper">
-                                <div 
-                                    className={`bar ${colorClass}`} 
-                                    style={{ width: `${item.percentage}%` }}
-                                ></div>
-                            </div>
-                            <span className="value">{item.percentage.toFixed(1)}%</span>
-                        </li>
-                    );
-                })}
+            {calculatedData.sort((a, b) => b.percentage - a.percentage).map(item => {
+                if (!item.type) return null;
+                const colorClass = item.type.startsWith('P') || item.type.startsWith('N') ? `sentiment-${item.type.toLowerCase()}` : `cat-${item.type.toLowerCase()}`;
+                return (
+                    <li key={item.type}>
+                        <span className="label">{labelMap[item.type] || item.type}</span>
+                        <div className="bar-wrapper"><div className={`bar ${colorClass}`} style={{ width: `${item.percentage}%` }}></div></div>
+                        <span className="value">{item.percentage.toFixed(1)}%</span>
+                    </li>
+                );
+            })}
         </ul>
     );
 };
+
+// --- [디자인 개선] --- 분석적인 UI를 위한 '전략 제안 카드' 컴포넌트 ---
+const StrategyCard = ({ icon, title, recommendation }) => (
+    <div className="strategy-card">
+        <div className="card-header">
+            <span className="card-icon">{icon}</span>
+            <h3 className="card-title">{title}</h3>
+        </div>
+        <div className="card-body">
+            <p className="recommendation" dangerouslySetInnerHTML={{ __html: recommendation.replace(/\n/g, '<br />') }} />
+        </div>
+        <div className="card-footer">
+            <span className="based-on-label">분석 기반</span>
+            <span className="based-on-data">채널 데이터 종합 분석</span>
+        </div>
+    </div>
+);
 
 
 // ============================================
 // 🟦 메인 컴포넌트
 // ============================================
-
 const Ai = () => {
-    // State 선언
     const [popularKeywords, setPopularKeywords] = useState([]);
     const [topWatchedVideos, setTopWatchedVideos] = useState([]);
     const [analysisData, setAnalysisData] = useState(null);
-    const [insightSummary, setInsightSummary] = useState('');
-    const [strategyProposals, setStrategyProposals] = useState(null);
+    const [aiReport, setAiReport] = useState(null); // insightSummary와 strategyProposals를 함께 관리
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    
-    // 화행/긍부정 분석 탭 상태 관리
     const [activeTab, setActiveTab] = useState('speechAct');
 
     useEffect(() => {
@@ -96,15 +87,11 @@ const Ai = () => {
                 ]);
 
                 if (keywordsData) setPopularKeywords(keywordsData);
-                if (aiReportData) {
-                    setInsightSummary(aiReportData.insightSummary);
-                    setStrategyProposals(aiReportData.strategyProposals);
-                }
+                if (aiReportData) setAiReport(aiReportData);
                 if (dashboardData?.contentPerformance?.topViewDurationVideos) {
                     setTopWatchedVideos(dashboardData.contentPerformance.topViewDurationVideos);
                 }
                 if (commentData) {
-                    // [개선] 데이터의 key를 대문자로 표준화하여 안정성 확보
                     const standardize = (text) => text?.toUpperCase() || null;
                     const standardizedData = {
                         ...commentData,
@@ -113,7 +100,6 @@ const Ai = () => {
                     };
                     setAnalysisData(standardizedData);
                 }
-                
             } catch (err) {
                 setError(err);
                 console.error("AI 페이지 데이터 로딩 중 에러:", err);
@@ -121,16 +107,51 @@ const Ai = () => {
                 setLoading(false);
             }
         };
-
         loadAiData();
     }, []);
 
-    if (loading) {
-        return <PageLayout title="AI 콘텐츠 전략 코치"><h2 className="no-data-message">AI 분석 데이터를 생성 중입니다...</h2></PageLayout>;
-    }
-    if (error) {
-        return <PageLayout title="AI 콘텐츠 전략 코치"><h2 className="no-data-message">데이터 분석 중 오류가 발생했습니다: {error.message}</h2></PageLayout>;
-    }
+    // --- [기능 구현] --- API 응답을 '전략 카드' 데이터 구조로 변환하는 로직 ---
+    const strategyCardsData = useMemo(() => {
+        const proposals = aiReport?.strategyProposals;
+        if (!proposals) return [];
+
+        const cardData = [];
+        
+        // API가 제공하는 'planning' 전략을 카드로 변환
+        if (proposals.planning && proposals.planning.length > 0) {
+            const [title, ...descParts] = proposals.planning[0].split(':');
+            cardData.push({
+                icon: '💡',
+                title: title.trim() || '콘텐츠 기획 전략',
+                recommendation: descParts.join(':').trim() || '제공된 추천 내용이 없습니다.'
+            });
+        }
+        
+        // API가 제공하는 'timing' 전략을 카드로 변환
+        if (proposals.timing && proposals.timing.length > 0) {
+            const [title, ...descParts] = proposals.timing[0].split(':');
+            cardData.push({
+                icon: '⏰',
+                title: title.trim() || '업로드 최적 시간',
+                recommendation: descParts.join(':').trim() || '제공된 추천 내용이 없습니다.'
+            });
+        }
+
+        // API가 제공하는 'editing' 전략을 카드로 변환
+        if (proposals.editing && proposals.editing.length > 0) {
+            const [title, ...descParts] = proposals.editing[0].split(':');
+            cardData.push({
+                icon: '🎨',
+                title: title.trim() || '타이틀/썸네일 전략',
+                recommendation: descParts.join(':').trim() || '제공된 추천 내용이 없습니다.'
+            });
+        }
+
+        return cardData;
+    }, [aiReport]);
+
+    if (loading) return <PageLayout title="AI 콘텐츠 전략 코치"><h2 className="no-data-message">AI 분석 데이터를 생성 중입니다...</h2></PageLayout>;
+    if (error) return <PageLayout title="AI 콘텐츠 전략 코치"><h2 className="no-data-message">데이터 분석 중 오류가 발생했습니다: {error.message}</h2></PageLayout>;
 
     return (
         <PageLayout title="AI 콘텐츠 전략 코치">
@@ -144,40 +165,14 @@ const Ai = () => {
                         ) : <NoDataMessage />}
                     </div>
 
-                    {/* '댓글 상세 분석' 섹션 (탭 UI 적용) */}
                     <div className="insight-box detailed-analysis-box">
                         <div className="analysis-tab-nav">
-                            <button 
-                                className={activeTab === 'speechAct' ? 'active' : ''}
-                                onClick={() => setActiveTab('speechAct')}
-                            >
-                                화행 분석
-                            </button>
-                            <button 
-                                className={activeTab === 'sentiment' ? 'active' : ''}
-                                onClick={() => setActiveTab('sentiment')}
-                            >
-                                긍부정 분석
-                            </button>
+                            <button className={activeTab === 'speechAct' ? 'active' : ''} onClick={() => setActiveTab('speechAct')}>화행 분석</button>
+                            <button className={activeTab === 'sentiment' ? 'active' : ''} onClick={() => setActiveTab('sentiment')}>긍부정 분석</button>
                         </div>
-                        
                         <div className="analysis-tab-content">
-                            {/* [개선] 새로운 AnalysisChart 컴포넌트를 사용하여 렌더링 */}
-                            {activeTab === 'speechAct' && (
-                                <AnalysisChart 
-                                    data={analysisData?.speechActDistribution}
-                                    total={analysisData?.totalComments}
-                                    labelMap={SPEECH_ACT_LABELS}
-                                />
-                            )}
-
-                            {activeTab === 'sentiment' && (
-                                <AnalysisChart 
-                                    data={analysisData?.sentimentDistribution}
-                                    total={analysisData?.totalComments}
-                                    labelMap={SENTIMENT_LABELS}
-                                />
-                            )}
+                            {activeTab === 'speechAct' && <AnalysisChart data={analysisData?.speechActDistribution} total={analysisData?.totalComments} labelMap={SPEECH_ACT_LABELS} />}
+                            {activeTab === 'sentiment' && <AnalysisChart data={analysisData?.sentimentDistribution} total={analysisData?.totalComments} labelMap={SENTIMENT_LABELS} />}
                         </div>
                         <p className="note">* 분기별 댓글 분석 기반</p>
                     </div>
@@ -199,20 +194,27 @@ const Ai = () => {
                     </div>
                 </div>
                 
-                {insightSummary && (
+                {aiReport?.insightSummary && (
                     <div className="summary-box">
-                        <p dangerouslySetInnerHTML={{ __html: insightSummary.replace(/\n/g, '<br />') }} />
+                        <p dangerouslySetInnerHTML={{ __html: aiReport.insightSummary.replace(/\n/g, '<br />') }} />
                     </div>
                 )}
             </section>
 
             <section className="page-section">
                 <h2>AI 기반 전략 제안</h2>
-                <div className="strategy-grid">
-                    <div className="strategy-box"><h3>콘텐츠 기획 전략</h3>{strategyProposals?.planning?.length > 0 ? (<ul>{strategyProposals.planning.map((item, i) => <li key={i}>{item}</li>)}</ul>) : <NoDataMessage />}</div>
-                    <div className="strategy-box"><h3>업로드 최적 시간</h3>{strategyProposals?.timing?.length > 0 ? (<ul>{strategyProposals.timing.map((item, i) => <li key={i}>{item}</li>)}</ul>) : <NoDataMessage />}</div>
-                    <div className="strategy-box"><h3>타이틀/썸네일 전략</h3>{strategyProposals?.editing?.length > 0 ? (<ul>{strategyProposals.editing.map((item, i) => <li key={i}>{item}</li>)}</ul>) : <NoDataMessage />}</div>
-                </div>
+                {strategyCardsData.length > 0 ? (
+                    <div className="strategy-grid">
+                        {strategyCardsData.map((card, index) => (
+                            <StrategyCard
+                                key={index}
+                                icon={card.icon}
+                                title={card.title}
+                                recommendation={card.recommendation}
+                            />
+                        ))}
+                    </div>
+                ) : <NoDataMessage />}
             </section>
         </PageLayout>
     );

@@ -1,0 +1,117 @@
+/* VideoCommentAnalysis 컴포넌트 전용 스타일 */
+.detailed-content-wrapper {
+    margin-top: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #e0e7ff;
+    /* 상세 분석 내용 토글 시 페이드인 효과 (컨테이너) */
+    animation: fadeInSummaryContainer 0.4s ease-out forwards;
+}
+
+/* 상세 분석창 내부 요소들 애니메이션 */
+.comment-analysis-section,
+.speech-act-analysis-section, /* 화행 분석 섹션도 여기에 추가 */
+.video-summary {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInSlideUp 0.5s forwards ease-out;
+}
+
+.comment-analysis-section {
+    margin-bottom: 12px;
+    animation-delay: 0.1s; /* 컨테이너 애니메이션 후 지연 */
+}
+
+.speech-act-analysis-section {
+    margin-top: 20px; /* 기존 HTML에 맞춤 */
+    animation-delay: 0.2s; /* 이전 섹션 후 지연 */
+}
+
+.video-summary {
+    margin-bottom: 12px;
+    margin-top: 20px; /* 기존 HTML에 맞춤 */
+    animation-delay: 0.3s; /* 이전 섹션 후 지연 */
+}
+
+.comment-analysis-section h5,
+.speech-act-analysis-section h5,
+.video-summary h5 {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #333333;
+    margin: 0 0 8px 0;
+}
+
+.sentiment-chart-container {
+    width: 100%;
+    height: 36px;
+    margin-bottom: 8px;
+}
+
+.representative-comments p {
+    font-size: 0.85em;
+    color: #666666;
+    margin: 4px 0;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.representative-comments strong {
+    color: #333333;
+}
+
+.positive-comment {
+    background-color: #f5f5f5;
+    border-left: 2px solid #4caf50;
+}
+
+.negative-comment {
+    background-color: #f5f5f5;
+    border-left: 2px solid #ef5350;
+}
+
+.recharts-custom-tooltip {
+    background: #ffffff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid #e0e7ff;
+    font-size: 0.8em;
+}
+
+.recharts-custom-tooltip div {
+    margin-bottom: 3px;
+}
+
+.recharts-custom-tooltip div:last-child {
+    margin-bottom: 0;
+}
+
+.speech-act-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* 각 항목 간 간격 */
+}
+
+/* Keyframes for animations specific to VideoCommentAnalysis */
+@keyframes fadeInSummaryContainer {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
