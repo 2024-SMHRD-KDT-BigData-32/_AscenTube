@@ -70,8 +70,26 @@ public class OAuthController {
 	}
 
 	@GetMapping("/oauth2callback")
-	public RedirectView oauth2Callback(@RequestParam String code) {
+	public RedirectView oauth2Callback(
+			@RequestParam(required = false) String code,
+			@RequestParam(required = false) String error,
+			@RequestParam(required = false) String state) {
+		
+		if (error != null) {
+			logger.warn("Google OAuth2 callback received an error: {} (State: {})", error, state);
+			String errorRedirectUrl = String.format("%s?error=%s", googleApiConfig.getFrontendRedirectUrl(),
+					URLEncoder.encode("login_canceled_or_failed", StandardCharsets.UTF_8));
+			return new RedirectView(errorRedirectUrl);
+		}
 
+		// code가 null인 경우 (error가 없는데 code도 없으면 비정상적인 접근)
+		if (code == null) {
+			logger.error("Google OAuth2 callback received without 'code' or 'error' parameter. Malformed request.");
+			String errorRedirectUrl = String.format("%s?error=%s", googleApiConfig.getFrontendRedirectUrl(),
+					URLEncoder.encode("malformed_callback_request", StandardCharsets.UTF_8));
+			return new RedirectView(errorRedirectUrl);
+		}
+		
 		String googleId = null;
 		String email = null;
 		String nickname = null;
@@ -156,6 +174,7 @@ public class OAuthController {
 
 		}
 	}
+	
 	@GetMapping("/google/analytics/authorize")
 	public RedirectView googleAnalyticsAuthorize() throws IOException {
 		String authorizationUrl = oAuthService.getAuthorizationUrl(GoogleApiConfig.ANALYTICS_SCOPES);
