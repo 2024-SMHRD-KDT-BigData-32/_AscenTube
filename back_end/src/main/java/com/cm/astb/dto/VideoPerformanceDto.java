@@ -17,4 +17,5 @@ public class VideoPerformanceDto {
     private Integer commentCount;
     private Integer subscriberGained;
     private LocalDateTime uploadedAt;
+    private Integer videoPlaytime;
 }

@@ -1,7 +1,7 @@
 // content_scripts/content.js (v6.2.0 - API 직접 호출, 전체 코드)
 
 const DEBUG_PREFIX_MAIN = "[Main Controller v6.2.0] ";
-const FAVORITE_CHANNELS_API_URL = 'https://localhost:8082/AscenTube/api/ascen/user/me/favorite-channels'; // https로 변경
+const FAVORITE_CHANNELS_API_URL = 'https://localhost:8082/AscenTube/fav-channel'; // https로 변경
 let isInitialLoad = true;
 
 function logMain(message, ...optionalParams) {

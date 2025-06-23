@@ -2,7 +2,7 @@
 const DEBUG_PREFIX_BG = "[관심 채널 BG v7.1.0] ";
 const USER_DATA_STORAGE_KEY = 'ascenTubeUserData';
 // 중요: 백엔드 서버는 반드시 https를 사용해야 합니다.
-const FAVORITE_CHANNELS_API_URL = 'https://localhost:8082/AscenTube/api/ascen/user/me/favorite-channels';
+const FAVORITE_CHANNELS_API_URL = 'https://localhost:8082/AscenTube/fav-channel';
 
 console.log(DEBUG_PREFIX_BG + "서비스 워커 시작됨.");
 

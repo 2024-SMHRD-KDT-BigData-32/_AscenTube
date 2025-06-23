@@ -766,9 +766,9 @@ public class DataCollectorService {
                 } else if (video.getSnippet().getDefaultLanguage() != null) {
                     youTubeVideoToSave.setVideoLanguage(video.getSnippet().getDefaultLanguage());
                 }
-//                logger.info("privacyStatus: {}" + video.getStatus().getPrivacyStatus());
                 if (video.getStatus() != null && video.getStatus().getPrivacyStatus() != null) {
                     youTubeVideoToSave.setPublicYn(video.getStatus().getPrivacyStatus().equals("public") ? "Y" : "N");
+                    logger.info("privacyStatus: {}" + video.getStatus().getPrivacyStatus());
                 } else {
                     youTubeVideoToSave.setPublicYn(null);
                 }
@@ -791,8 +791,6 @@ public class DataCollectorService {
                     videoStat.setViewCount(video.getStatistics().getViewCount().longValue());
                     videoStat.setLikeCount(video.getStatistics().getLikeCount() != null ? video.getStatistics().getLikeCount().intValue() : 0);
                     videoStat.setCommentCount(video.getStatistics().getCommentCount() != null ? video.getStatistics().getCommentCount().intValue() : 0);
-                    
-//                    videoStatRepository.save(videoStat);
                 }	
             }
         }
