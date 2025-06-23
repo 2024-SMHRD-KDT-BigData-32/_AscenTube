@@ -132,7 +132,8 @@ public class DataCollectorService {
 	 * initialDelay = 10000ms (Scheduling starts in 10 seconds after application starting)
      * fixedRate = 24 * 60 * 60 * 1000ms (schedule again in 24hrs)
 	 */
-	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+	@Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul")
 	@Transactional
 	public void collectDailyChannelAndVideoStats() {
 		logger.info("Starting daily data collection for YouTube Analytics for all users.");
@@ -780,8 +781,8 @@ public class DataCollectorService {
         return (int) duration.getSeconds();
     }
 	
-//	@Scheduled(cron = "0 0 1 * * ?") 
-	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+//	@Scheduled(initialDelay = 5000, fixedRate = 24 * 60 * 60 * 1000)
+	@Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Seoul")
     @Transactional
     public void refreshOutdatedChannelInfo() {
         logger.info("Starting refresh of outdated channel info in TB_YT_CHANNEL...");
