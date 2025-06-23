@@ -1,290 +1,277 @@
-/* ===============================
-   🔧 기본 초기화 및 설정
-=============================== */
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: sans-serif;
-  background: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
-  color: #2d3748;
-  min-height: 100vh;
-}
+/* src/styles/pages/Ai.css */
 
 /* ===============================
-   🧱 공통 유틸리티 클래스
+    📊 그리드 레이아웃
 =============================== */
-
-.flex {
-  display: flex;
-}
-
-/* ===============================
-   🧭 사이드바 (aside)
-=============================== */
-
-aside {
-  width: 16rem;
-  background-color: white;
-  border-right: 1px solid #e5e7eb;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-/* 로고 스타일 */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.125rem;
-  font-weight: bold;
-}
-
-.logo img {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-.logo span {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: black;
-  letter-spacing: 0.05em;
-}
-
-/* 내비게이션 링크 */
-nav a {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  text-decoration: none;
-  color: inherit;
-  font-weight: 600;
-  transition: background 0.3s;
-}
-
-nav a:hover {
-  background-color: #eef2ff;
-}
-
-nav a.active {
-  background-color: #e0e7ff;
-}
-
-/* ===============================
-   📦 메인 콘텐츠 래퍼
-=============================== */
-
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border-top-left-radius: 1.5rem;
-  overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-/* ===============================
-   🔝 헤더 (내부 메인)
-=============================== */
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-header h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #4f46e5;
-}
-
-header input {
-  width: 24rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  transition: box-shadow 0.3s;
-}
-
-header input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #c7d2fe;
-}
-
-/* ===============================
-   📑 메인 콘텐츠
-=============================== */
-
-main {
-  padding: 1.5rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-/* ===============================
-   📦 콘텐츠 섹션
-=============================== */
-
-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s;
-}
-
-section:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-section h2 {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #3730a3;
-  margin-bottom: 1rem;
-}
-
-/* ===============================
-   📊 그리드 레이아웃
-=============================== */
-
 .insight-grid,
 .strategy-grid {
-  display: grid;
-  gap: 1rem;
+    display: grid;
+    gap: 1.5rem; /* 그리드 아이템 간 간격 */
+    grid-template-columns: repeat(3, 1fr); /* 기본 3열 */
 }
 
 /* 반응형 설정 */
-@media (min-width: 640px) {
-  .insight-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+@media (max-width: 1024px) {
+    .insight-grid,
+    .strategy-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2열 */
+    }
 }
 
-@media (min-width: 1024px) {
-  .insight-grid,
-  .strategy-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+@media (max-width: 768px) {
+    .insight-grid,
+    .strategy-grid {
+        grid-template-columns: 1fr; /* 1열 */
+    }
 }
+
 
 /* ===============================
-   📌 인사이트 & 전략 박스
+    📌 인사이트 & 전략 박스
 =============================== */
-
 .insight-box,
 .strategy-box {
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.strategy-box {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    display: flex; /* 자식 요소(콘텐츠, 노트) 정렬을 위해 추가 */
+    flex-direction: column; /* 세로 방향으로 쌓이게 */
 }
 
 .insight-box h3,
 .strategy-box h3 {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #1e3a8a;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1e3a8a;
 }
 
 .insight-box ul,
 .strategy-box ul {
-  list-style-type: disc;
-  padding-left: 1rem;
-  color: #1e40af;
+    list-style-type: none; /* 기본 list-style 제거 */
+    padding-left: 0;
+    margin: 0;
+    color: #374151;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* 리스트 아이템 간 간격 */
+    flex-grow: 1; /* 박스 내에서 남은 공간을 차지하도록 */
 }
 
-.insight-box ul li,
+/* 인사이트 박스 리스트 스타일 (인기 키워드) */
+.insight-box ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+.insight-box ul li strong {
+    font-weight: 600;
+}
+
+/* 전략 박스 리스트 스타일 */
 .strategy-box ul li {
-  margin-bottom: 0.25rem;
+    padding-left: 1.25rem;
+    position: relative;
+    line-height: 1.5;
+    display: block; /* 위의 flex 스타일 덮어쓰기 */
+}
+.strategy-box ul li::before {
+    content: '✔';
+    color: #4f46e5;
+    position: absolute;
+    left: 0;
+    top: 4px;
 }
 
-/* ===============================
-   📝 요약 박스
-=============================== */
 
+/* ===============================
+    📑 댓글 상세 분석 (탭 UI)
+=============================== */
+.detailed-analysis-box {
+    padding: 0; /* 내부에서 패딩을 다시 조절하므로 제거 */
+}
+
+/* 탭 네비게이션 (버튼 2개 담는 곳) */
+.analysis-tab-nav {
+    display: flex;
+    padding: 0.75rem 1.5rem 0; /* 위, 좌우 패딩 */
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.analysis-tab-nav button {
+    padding: 8px 16px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.2s ease-in-out;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px; /* 부모의 border와 겹치게 */
+}
+
+/* 활성화된 탭 버튼 스타일 */
+.analysis-tab-nav button.active {
+    color: #1e3a8a;
+    font-weight: 700;
+    border-bottom-color: #4f46e5;
+}
+
+.analysis-tab-nav button:hover:not(.active) {
+    color: #374151;
+}
+
+/* 탭 내용이 표시되는 영역 */
+.analysis-tab-content {
+    padding: 1.5rem; /* 콘텐츠 영역에 패딩 적용 */
+    flex-grow: 1;
+}
+
+
+/* ===============================
+    📊 바 차트 (화행/긍부정)
+=============================== */
+.bar-chart-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* 바 간격 */
+}
+
+.bar-chart-list li {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.bar-chart-list .label {
+    width: 70px;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.bar-chart-list .bar-wrapper {
+    flex-grow: 1;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    margin: 0 10px;
+    height: 22px;
+}
+
+.bar-chart-list .bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+}
+
+.bar-chart-list .value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 45px;
+    text-align: right;
+    color: #1e2937;
+}
+
+/* 긍정/중립/부정 바 색상 */
+.bar.sentiment-positive { background-color: #22c55e; } /* 긍정: 초록색 */
+.bar.sentiment-neutral  { background-color: #f59e0b; } /* 중립: 노란색 */
+.bar.sentiment-negative { background-color: #ef4444; } /* 부정: 빨간색 */
+
+/* 화행 바 색상 */
+.bar.cat-praise    { background-color: #81c784; }
+.bar.cat-criticism { background-color: #e57373; }
+.bar.cat-info      { background-color: #64b5f6; }
+.bar.cat-question  { background-color: #ffb74d; }
+.bar.cat-emotion   { background-color: #ba68c8; }
+.bar.cat-request   { background-color: #4dd0e1; }
+.bar.cat-etc       { background-color: #90a4ae; }
+
+
+/* ===============================
+    📝 요약 박스
+=============================== */
 .summary-box {
-  margin-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 1rem;
-  color: #1e40af;
-  line-height: 1.6;
+    margin-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 1.5rem;
+    color: #1f2937;
+    line-height: 1.7;
+    font-size: 1.05rem;
 }
-
 .summary-box strong {
-  font-weight: bold;
+    font-weight: 700;
+    color: #4f46e5;
 }
-
-.summary-box span {
-  font-weight: 600;
-}
-
 .summary-box .highlight {
-  color: #22c55e;
-  font-weight: bold;
+    background-color: #eef2ff;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+
+/* ===============================
+    📈 몰입도 최고 영상 리스트
+=============================== */
+.ranked-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.ranked-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+.rank {
+    font-weight: 700;
+    color: #4f46e5;
+    width: 20px;
+}
+.title {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #374151;
+}
+.value {
+    font-weight: 600;
+    color: #1e2937;
 }
 
 /* ===============================
-   📎 부가 텍스트 및 노트
+    📎 부가 텍스트 및 노트
 =============================== */
-
 .note {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-align: right;
+    margin-top: auto; /* 박스 하단에 붙도록 수정 */
+    padding: 0 1.5rem 1rem; /* 안쪽 패딩 조절 */
 }
 
-/* ===============================
-   📶 진행률 바
-=============================== */
-
-.progress-bar-container {
-  background-color: #e5e7eb;
-  height: 0.75rem;
-  border-radius: 9999px;
-  margin-top: 0.25rem;
-  overflow: hidden;
+/* insight-box에 직접 포함된 note에는 다른 스타일 적용 */
+.insight-box > .note {
+    padding: 0;
+    margin-top: 1rem;
 }
 
-.progress-bar {
-  height: 100%;
-  width: 0;
-  transition: width 1.5s ease-out;
-  background-color: #6366f1;
-  border-radius: 9999px;
-}
-
-/* ===============================
-   🤖 AI 콘텐츠 전용 컨테이너
-=============================== */
-
-.ai-container {
-  min-height: 100vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+/* 데이터 없음 메시지 */
+.no-data-message {
+    color: #6b7280;
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+    width: 100%;
 }

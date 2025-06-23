@@ -1,33 +1,73 @@
 /* src/styles/pages/Comment.css */
 
 /* ===============================
-   🎨 댓글 유형별 색상 정의 (고유 스타일)
+    📄 페이지 기본 레이아웃
 =============================== */
-.tag.cat-praise { background-color: #E6FFFA; color: #2C7A7B; }
-.bar.cat-praise, .modal-header.cat-praise { background-color: #38A169; }
-
-.tag.cat-criticism { background-color: #FFF5F5; color: #9B2C2C; }
-.bar.cat-criticism, .modal-header.cat-criticism { background-color: #E53E3E; }
-
-.tag.cat-info { background-color: #EBF8FF; color: #2B6CB0; }
-.bar.cat-info, .modal-header.cat-info { background-color: #3182CE; }
-
-.tag.cat-question { background-color: #FAF5FF; color: #6B46C1; }
-.bar.cat-question, .modal-header.cat-question { background-color: #805AD5; }
-
-.tag.cat-emotion { background-color: #FFFBEB; color: #B7791F; }
-.bar.cat-emotion, .modal-header.cat-emotion { background-color: #D69E2E; }
-
-.tag.cat-request { background-color: #F0FFF4; color: #2F855A; }
-.bar.cat-request, .modal-header.cat-request { background-color: #48BB78; }
-
-.tag.cat-etc { background-color: #F7FAFC; color: #4A5568; }
-.bar.cat-etc, .modal-header.cat-etc { background-color: #718096; }
+.page-section {
+    margin-bottom: 2.5rem;
+}
+.grid-2-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+@media (max-width: 768px) {
+    .grid-2-col {
+        grid-template-columns: 1fr;
+    }
+}
+.page-section h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #1a202c;
+}
 
 
 /* ===============================
-   📶 7가지 유형 분석 바 (고유 스타일)
+    🎨 댓글 유형별 색상 정의
 =============================== */
+/* 화행 태그 색상 */
+.tag.cat-praise { background-color: #E6FFFA; color: #2C7A7B; border: 1px solid #B2F5EA; }
+.tag.cat-criticism { background-color: #FFF5F5; color: #9B2C2C; border: 1px solid #FED7D7; }
+.tag.cat-info { background-color: #EBF8FF; color: #2B6CB0; border: 1px solid #BEE3F8; }
+.tag.cat-question { background-color: #FAF5FF; color: #6B46C1; border: 1px solid #E9D8FD; }
+.tag.cat-emotion { background-color: #FFFBEB; color: #B7791F; border: 1px solid #FEEBC8; }
+.tag.cat-request { background-color: #F0FFF4; color: #2F855A; border: 1px solid #C6F6D5; }
+.tag.cat-etc { background-color: #F7FAFC; color: #4A5568; border: 1px solid #E2E8F0; }
+
+/* 화행 바/모달 헤더 색상 */
+.bar.cat-praise, .modal-header.cat-praise { background-color: #38A169; }
+.bar.cat-criticism, .modal-header.cat-criticism { background-color: #E53E3E; }
+.bar.cat-info, .modal-header.cat-info { background-color: #3182CE; }
+.bar.cat-question, .modal-header.cat-question { background-color: #805AD5; }
+.bar.cat-emotion, .modal-header.cat-emotion { background-color: #D69E2E; }
+.bar.cat-request, .modal-header.cat-request { background-color: #48BB78; }
+.bar.cat-etc, .modal-header.cat-etc { background-color: #718096; }
+
+/* 🎨 긍부정 분석 색상 정의 */
+.bar.sentiment-positive { background-color: #22c55e; }
+.bar.sentiment-neutral  { background-color: #f59e0b; }
+.bar.sentiment-negative { background-color: #ef4444; }
+
+/* [추가] 긍부정 태그 색상 */
+.tag.sentiment-positive { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.tag.sentiment-neutral { background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.tag.sentiment-negative { background-color: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; }
+
+
+/* ===============================
+    📊 댓글 분석 바 차트
+=============================== */
+.analysis-chart-container {
+    margin-bottom: 2rem;
+}
+.analysis-chart-container h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
 .sentiment-bar-container {
     width: 100%; height: 2.5rem; border-radius: 1rem; background-color: #e5e7eb;
     overflow: hidden; display: flex; margin-top: 0.5rem; margin-bottom: 1rem;
@@ -39,8 +79,9 @@
     white-space: nowrap; overflow: hidden;
 }
 
+
 /* ===============================
-   ✨ 대표 댓글 툴팁 스타일 (고유 스타일)
+    ✨ 대표 댓글 툴팁 스타일
 =============================== */
 .representative-comment-tooltip {
     position: absolute; transform: translateX(-50%); background-color: rgba(0, 0, 0, 0.85);
@@ -57,15 +98,110 @@
 
 
 /* ===============================
-   📝 댓글 리스트 (고유 스타일)
+    🪗 화행별 대표 댓글 (아코디언)
 =============================== */
-.comment-list { display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; list-style: none; padding: 0;}
-.comment-list li { display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6;}
-.comment-list li:last-child { border-bottom: none; }
-.tag { font-weight: 600; flex-shrink: 0; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;}
+.accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.accordion-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+.accordion-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.accordion-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    background-color: #f9fafb;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+.accordion-header.active,
+.accordion-header:hover {
+    background-color: #f3f4f6;
+}
+.accordion-title {
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.accordion-icon {
+    font-size: 0.8rem;
+    color: #6b7280;
+    transition: transform 0.3s ease;
+}
+.accordion-icon.open {
+    transform: rotate(180deg);
+}
+
+.accordion-content {
+    background-color: #fff;
+    padding: 0 1.5rem 1.5rem;
+    font-size: 0.9rem;
+    color: #4b5563;
+    line-height: 1.6;
+    border-top: 1px solid #e5e7eb;
+}
+.accordion-content p {
+    margin: 0.75rem 0;
+}
+.accordion-content b {
+    color: #111827;
+    margin-right: 0.5rem;
+}
+
 
 /* ===============================
-   💬 댓글 목록 모달 스타일 (고유 스타일)
+    📝 댓글 리스트 (수정)
+=============================== */
+.comment-list { display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; list-style: none; padding: 0; margin: 0; }
+.comment-list li { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding: 1rem; border: 1px solid #f3f4f6; border-radius: 8px; }
+.comment-list li:last-child { border-bottom: 1px solid #f3f4f6; }
+
+/* [추가] 태그들을 담는 컨테이너 */
+.comment-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.tag { font-weight: 600; flex-shrink: 0; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; }
+
+/* [추가] 댓글 본문 컨테이너 (좋아요 많은 댓글용) */
+.comment-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* 최신 댓글 리스트 li 내부 p태그 재정의 */
+.comment-list .comment-body p,
+.grid-2-col > .page-section:first-child .comment-list li > p {
+    margin: 0;
+    line-height: 1.5;
+    color: #374151;
+    width: 100%;
+}
+
+.like-count { font-weight: 600; color: #4f46e5; flex-shrink: 0; white-space: nowrap; }
+
+
+/* ===============================
+    💬 댓글 목록 모달 스타일
 =============================== */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6);
@@ -82,9 +218,25 @@
 .modal-close-button:hover { opacity: 1; }
 .modal-body { padding: 1.5rem; overflow-y: auto; }
 .modal-body ul { list-style: none; padding: 0; margin: 0; }
-.modal-body li { padding: 0.8rem 0; border-bottom: 1px solid #e5e7eb; color: #374151; line-height: 1.5; }
+.modal-body li { padding: 1rem 0; border-bottom: 1px solid #e5e7eb; color: #374151; line-height: 1.5; }
 .modal-body li:last-child { border-bottom: none; }
+.modal-body li p { margin-bottom: 0.5rem; }
+.modal-body li span { font-size: 0.8rem; color: #6b7280; }
 .no-comments { color: #6b7280; text-align: center; padding: 2rem; }
 
 @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
 @keyframes zoomInModal { from { transform: scale(0.95); } to { transform: scale(1); } }
+
+
+/* ===============================
+    ⚡️ 로딩 및 메시지
+=============================== */
+.message-center {
+    text-align: center;
+    padding: 4rem 1rem;
+    font-size: 1.1rem;
+    color: #6b7280;
+}
+.message-center.error {
+    color: #ef4444;
+}
