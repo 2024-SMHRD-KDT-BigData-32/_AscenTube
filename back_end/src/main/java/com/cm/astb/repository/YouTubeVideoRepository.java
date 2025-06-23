@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.cm.astb.entity.YouTubeVideo;
 
 public interface YouTubeVideoRepository extends JpaRepository<YouTubeVideo, Long>{
+    Optional<YouTubeVideo> findById(Long videoId);
 	Optional<YouTubeVideo> findByVideoKey(String videoKey);
 	List<YouTubeVideo> findByChannelId(String channelId);
 	List<YouTubeVideo> findByChannelIdOrderByUploadedAtDesc(String channelId);

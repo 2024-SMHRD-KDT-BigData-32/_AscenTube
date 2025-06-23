@@ -29,4 +29,9 @@ public interface CommentRepository  extends JpaRepository<Comment, String>{
      * 삭제 여부(isDeleted)를 기준으로 필터링하여 조회합니다.
      */
     List<Comment> findByVideoIdInAndCommentWriteAtBetweenAndIsDeleted(List<Long> videoIds, LocalDateTime startDate, LocalDateTime endDate, String isDeleted);
+    
+    List<Comment> findByVideoIdAndIsDeleted(Long videoId, String isDeleted);
+    List<Comment> findByVideoIdAndIsDeletedOrderByCommentWriteAtDesc(Long videoId, String isDeleted);
+    List<Comment> findByVideoIdAndIsDeletedOrderByCommentLikeCountDesc(Long videoId, String isDeleted);
+    
 }

@@ -26,6 +26,7 @@ import com.cm.astb.dto.HourOfDayViewsDto;
 import com.cm.astb.dto.PopularVideoDto;
 import com.cm.astb.dto.TopAverageWatchTimeVideoDto;
 import com.cm.astb.dto.TopSubscriberContributingVideoDto;
+import com.cm.astb.dto.VideoCommentAnalysisSummaryDto;
 import com.cm.astb.dto.VideoLengthViewsDto;
 import com.cm.astb.dto.VideoPerformanceDto;
 import com.cm.astb.security.CustomUserDetails;
@@ -338,6 +339,26 @@ public class ChannelController {
 
         CommentAnalysisSummaryDto summaryDto = commentAnalysisService.getCommentAnalysisSummary(channelId, period);
 
+        if (summaryDto.getTotalComments() == null || summaryDto.getTotalComments() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(summaryDto);
+    }
+    
+    /**
+     * 특정 영상에 대한 댓글 분석 요약 정보를 반환하는 엔드포인트.
+     * 이 엔드포인트는 '카테고리별 인기 영상 목록'에서 '상세 분석' 버튼을 눌렀을 때 사용됩니다.
+     *
+     * @param videoId 조회할 영상의 DB 고유 ID (TB_VIDEO.VIDEO_ID)
+     * @return 영상 댓글 분석 요약 DTO
+     */
+    @GetMapping("/videos/comment-analysis")
+    public ResponseEntity<VideoCommentAnalysisSummaryDto> getVideoCommentAnalysisSummary(
+            @RequestParam Long videoId) { // videoId is Long type
+
+        VideoCommentAnalysisSummaryDto summaryDto = commentAnalysisService.getVideoCommentAnalysisSummary(videoId);
+
+        // totalComments가 0이면 데이터가 없는 것으로 간주 (204 No Content)
         if (summaryDto.getTotalComments() == null || summaryDto.getTotalComments() == 0) {
             return ResponseEntity.noContent().build();
         }
