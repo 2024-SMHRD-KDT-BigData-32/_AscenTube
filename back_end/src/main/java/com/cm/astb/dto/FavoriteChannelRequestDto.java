@@ -21,8 +21,7 @@ public class FavoriteChannelRequestDto {
 
     // @Size(max = 500, message = "메모는 최대 500자까지 입력 가능합니다.") // 유효성 검사 예시
     private String cnlMemo;    // 사용자가 입력하는 메모 (선택 사항)
+    private String channelId;
+    private String channelName;
 
-    // 만약 채널명을 사용자가 직접 입력하게 하거나,
-    // 백엔드에서 YouTube API 호출 없이 바로 저장해야 하는 경우 아래 필드 추가 가능
-    // private String cnlName;
 }

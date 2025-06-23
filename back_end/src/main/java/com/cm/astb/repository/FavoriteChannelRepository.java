@@ -7,11 +7,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.cm.astb.dto.FavoriteChannelDto;
 import com.cm.astb.entity.FavoriteChannel; // 엔티티 패키지 경로
 
 @Repository
 public interface FavoriteChannelRepository extends JpaRepository<FavoriteChannel, Long> { // 기본키 타입은 Long (FAV_ID)
-
+	
+    List<FavoriteChannel> findByGoogleId(String googleId);
     /**
      * 특정 사용자의 모든 관심 채널 목록을 생성일자 내림차순으로 조회합니다.
      * @param googleId 사용자의 Google ID
