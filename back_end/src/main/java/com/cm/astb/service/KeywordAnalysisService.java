@@ -273,7 +273,7 @@ public class KeywordAnalysisService {
         try {
             String regionCode = "KR";
             String order = "viewCount";
-            long apiMaxResults = 50L;
+            long apiMaxResults = 10L;
 
             searchResults = youtubeApiService.searchVideosByKeyword(
                 searchGoogleId, keyword, apiMaxResults, regionCode, actualCategoryId, order
@@ -387,7 +387,7 @@ public class KeywordAnalysisService {
         Set<PopularVideoDto> distinctPopularVideos = new LinkedHashSet<>();
         
         // 각 키워드별로 몇 개의 영상을 가져올지 설정 (예: 각 키워드당 10개, 총 50개면 적절)
-        int videosPerKeyword = 10; 
+        int videosPerKeyword = 2; 
 
         for (ChannelKeywordDto keywordDto : topKeywords) {
             String keyword = keywordDto.getText();

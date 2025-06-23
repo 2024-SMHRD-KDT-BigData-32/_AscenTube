@@ -311,7 +311,7 @@ public class ChannelController {
     public ResponseEntity<List<PopularVideoDto>> getPopularVideosForChannelKeywords(
             @RequestParam String channelId,
             @RequestParam(required = false) String videoCategoryId,
-            @RequestParam(defaultValue = "10") int totalResultLimit,
+            @RequestParam(defaultValue = "5") int totalResultLimit,
             @RequestParam(defaultValue = "5") int keywordLimit) {
 
         List<PopularVideoDto> popularVideos = keywordAnalysisService.getPopularVideosForChannelKeywords(
