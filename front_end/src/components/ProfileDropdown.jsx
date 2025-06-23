@@ -9,6 +9,9 @@ const ProfileDropdown = ({ user, onLogout }) => {
 
   if (!user) return null;
 
+  // 내 채널의 YouTube URL을 생성합니다. user.channelId가 '@username' 형태라고 가정합니다.
+  const myChannelUrl = `https://www.youtube.com/${user.channelId}`;
+
   const handleLogout = () => {
     if (onLogout) onLogout();
     navigate('/login');
@@ -17,13 +20,11 @@ const ProfileDropdown = ({ user, onLogout }) => {
   const handleAddChannel = () => {
     if (channelUrl.trim()) {
       console.log('관심 채널 추가:', channelUrl);
-      // 여기에 관심 채널 추가 로직을 구현하세요 (예: API 요청)
       setChannelUrl('');
       setShowModal(false);
     }
   };
 
-  // 내부 모달 컴포넌트
   const AddChannelModal = () => (
     <div className="modal-backdrop">
       <div className="modal-content">
@@ -57,15 +58,24 @@ const ProfileDropdown = ({ user, onLogout }) => {
           </div>
         </div>
         <ul className="dropdown-menu">
-          <li><Link to="/my-channel"><span>내 채널</span></Link></li>
+          {/* --- 1. '내 채널' 링크 수정 --- */}
+          <li><a href={myChannelUrl} target="_blank" rel="noopener noreferrer"><span>내 채널</span></a></li>
+          {/* --- 2. 'YouTube' 링크 수정 --- */}
           <li><a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer"><span>YouTube</span></a></li>
-          <li><button onClick={() => alert('계정 전환 기능 구현 필요')}><span>계정 전환</span></button></li>
+          {/* --- 3. '계정 전환' 링크 수정 --- */}
+          <li><a href="https://accounts.google.com/AccountChooser" target="_blank" rel="noopener noreferrer"><span>계정 전환</span></a></li>
           <li><button onClick={handleLogout}><span>로그아웃</span></button></li>
         </ul>
         <ul className="dropdown-menu separator">
           <li><button onClick={() => alert('디자인 변경 기능 구현 필요')}><span>디자인: 기기 테마</span></button></li>
-          <li><button onClick={() => alert('의견 보내기 기능 구현 필요')}><span>의견 보내기</span></button></li>
-          <li><button onClick={() => setShowModal(true)}><span>관심 채널 추가</span></button></li>
+          {/* --- 4. '의견 보내기' 메뉴 제거 --- */}
+        </ul>
+        <ul className="dropdown-menu channel-section">
+          <li>
+            <button className="highlight-button" onClick={() => setShowModal(true)}>
+              <span>+ 관심 채널 추가</span>
+            </button>
+          </li>
         </ul>
       </div>
 

@@ -1,27 +1,21 @@
+```css
 /* src/styles/pages/VidAnalysis.css */
 
 /* ==========================================================================
     기본 및 전역 스타일
     ========================================================================== */
 
-.vid-analysis-container {
+.vid-analysis-page {
     display: flex;
     flex-direction: column;
     padding: 25px 30px;
-    font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 가독성 좋은 Pretendard 폰트 우선 적용 */
+    font-family: 'Pretendard', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f7f9fc;
     min-height: 100vh;
     color: #333;
 }
 
-.ai-header h1 {
-    font-size: 2.2em;
-    color: #1a202c;
-    margin-bottom: 20px;
-    font-weight: 700;
-}
-
-.url-input-action-row {
+.url-input-action-group {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -89,7 +83,7 @@
 .analysis-results-content {
     display: flex;
     flex-direction: column;
-    gap: 40px; /* 섹션 간의 간격 */
+    gap: 40px;
 }
 
 /* ==========================================================================
@@ -116,7 +110,6 @@
     padding: 25px;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .thumbnail-link {
@@ -124,12 +117,7 @@
     display: block;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.thumbnail-link:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
 .analysis-thumbnail {
@@ -205,9 +193,6 @@
 /* ==========================================================================
     AI 분석 결과 (카드 레이아웃)
     ========================================================================== */
-.ai-analysis-container { /* AI 분석 결과 전체 컨테이너 */
-    /* .analysis-results-content의 gap으로 섹션 간 간격 처리 */
-}
 
 .ai-analysis-grid {
     display: grid;
@@ -220,12 +205,7 @@
     border: 1px solid #e2e8f0;
     border-radius: 10px;
     padding: 25px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     transition: transform 0.2s, box-shadow 0.2s;
-}
-.ai-analysis-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.06);
 }
 
 .ai-analysis-card h5 {
@@ -274,22 +254,18 @@
     font-weight: 500;
 }
 
-/* src/styles/pages/VidAnalysis.css (두 번째 부분) */
-
 /* ==========================================================================
     영상 세부 정보 및 스크립트
     ========================================================================== */
-.additional-details-section, .video-script-section { /* 섹션 컨테이너 */
+
+.additional-details-section, .video-script-section {
     background-color: #fff;
     padding: 25px;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.details-content-wrapper { /* 영상 세부 정보의 실제 내용 */
-    /* padding, border, box-shadow는 .additional-details-section에서 처리되므로 제거 */
-    /* background-color는 .additional-details-section에서 처리되므로 제거 */
+.details-content-wrapper {
 }
 
 .result-item {
@@ -304,23 +280,22 @@
     margin-right: 8px;
 }
 
-/* 중요: 설명 텍스트 가독성 개선 */
-pre.description-text { /* 기존 description-condensed에서 이름 변경 */
+pre.description-text {
     background-color: #f7fafc;
     padding: 15px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     white-space: pre-wrap;
     word-wrap: break-word;
-    font-size: 1rem; /* 크기 키움 */
-    line-height: 1.7; /* 줄 간격 넓힘 */
-    color: #2d3748; /* 더 진한 색상으로 변경 */
-    font-family: inherit; /* 부모 폰트 상속 */
-    font-weight: 400; /* 보통 굵기 */
-    max-height: 180px; /* 적절한 최대 높이 설정 */
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #2d3748;
+    font-family: inherit;
+    font-weight: 400;
+    max-height: 180px;
     overflow-y: auto;
-    margin-top: 10px; /* 위쪽 여백 추가 */
-    margin-bottom: 10px; /* 아래쪽 여백 추가 */
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .toggle-description-button, .toggle-script-button {
@@ -342,17 +317,12 @@ pre.description-text { /* 기존 description-condensed에서 이름 변경 */
     color: #2c5282;
 }
 
-/* --- 영상 스크립트 섹션 (AI 요약 + 원본) 스타일 --- */
-.video-script-section {
-    /* .additional-details-section과 동일한 기본 카드 스타일 적용 */
-}
-
 .script-summary-content {
-    background-color: #f0f8ff; /* AI 요약 배경색 */
+    background-color: #f0f8ff;
     border: 1px solid #cce4f7;
     border-radius: 8px;
     padding: 20px;
-    margin-bottom: 25px; /* 원본 스크립트와의 간격 */
+    margin-bottom: 25px;
 }
 .script-summary-content h6 {
     font-size: 1.1rem;
@@ -364,7 +334,7 @@ pre.description-text { /* 기존 description-condensed에서 이름 변경 */
     border-bottom: 1px dashed #cce4f7;
 }
 .script-summary-content ul {
-    list-style-type: none; /* 기본 불릿 제거 */
+    list-style-type: none;
     padding-left: 0;
     margin: 0;
 }
@@ -377,22 +347,20 @@ pre.description-text { /* 기존 description-condensed에서 이름 변경 */
     position: relative;
 }
 .script-summary-content li::before {
-    content: '‣'; /* 다른 불릿 스타일 */
+    content: '‣';
     color: #007bff;
     font-weight: bold;
     display: inline-block;
     position: absolute;
     left: 0;
 }
-.script-summary-content ul ul { /* 중첩 리스트 */
+.script-summary-content ul ul {
     margin-top: 5px;
     padding-left: 15px;
 }
 
-
 .script-raw-content-toggle {
-    /* 원본 스크립트 전체 토글 컨테이너 */
-    margin-top: 25px; /* 요약 섹션과 원본 스크립트 섹션 사이 간격 */
+    margin-top: 25px;
 }
 .script-raw-content-toggle h6 {
     font-size: 1.1rem;
@@ -405,9 +373,8 @@ pre.description-text { /* 기존 description-condensed에서 이름 변경 */
 }
 
 .script-content-area {
-    /* 기존 스타일 유지 */
-    max-height: 400px; /* 적절한 최대 높이 설정 */
-    overflow-y: auto; /* 내용이 넘칠 경우 스크롤 */
+    max-height: 400px;
+    overflow-y: auto;
     border: 1px solid #ddd;
     border-radius: 4px;
     background-color: #fff;
@@ -430,6 +397,7 @@ pre.full-transcript-text {
 /* ==========================================================================
     로딩 스피너
     ========================================================================== */
+
 .loading-spinner {
     margin: 40px auto;
     border: 5px solid #e2e8f0;
@@ -445,71 +413,65 @@ pre.full-transcript-text {
     100% { transform: rotate(360deg); }
 }
 
-
 /* ==========================================================================
     반응형 디자인
     ========================================================================== */
+
 @media (max-width: 992px) {
-    .vid-analysis-container { padding: 20px; }
+    .vid-analysis-page { padding: 20px; }
     .video-header-section {
         flex-direction: column;
-        align-items: center; /* 썸네일 중앙 정렬 */
+        align-items: center;
     }
-    .thumbnail-link { /* 썸네일 링크도 중앙 정렬 */
+    .thumbnail-link {
         align-self: center;
     }
     .analysis-thumbnail {
         width: 100%;
         height: auto;
-        max-width: 320px; /* 너무 커지지 않도록 제한 */
+        max-width: 320px;
     }
     .video-info-details {
-        align-items: center; /* 텍스트 정보 중앙 정렬 */
+        align-items: center;
         text-align: center;
     }
     .channel-info {
-        justify-content: center; /* 채널 정보 중앙 정렬 */
+        justify-content: center;
     }
     .video-stats-inline {
-        justify-content: center; /* 통계 정보 중앙 정렬 */
+        justify-content: center;
     }
     .ai-analysis-grid {
-        grid-template-columns: 1fr; /* 모바일에서는 1컬럼 */
+        grid-template-columns: 1fr;
     }
     .additional-details-section, .video-script-section {
-        padding: 20px; /* 모바일 패딩 조정 */
+        padding: 20px;
     }
 }
 
 @media (max-width: 768px) {
-    .ai-header h1 {
-        font-size: 1.8em;
-        margin-bottom: 20px;
-        text-align: center; /* 중앙 정렬 */
-    }
-    .url-input-action-row {
+    .url-input-action-group {
         flex-direction: column;
         align-items: stretch;
         padding: 15px;
     }
     .url-input-field { margin-bottom: 10px; }
     .url-submit-button { width: 100%; }
-
     .video-title-main { font-size: 1.5rem; }
     .video-stats-inline {
         flex-direction: column;
         gap: 12px;
-        align-items: flex-start; /* 좌측 정렬 유지 */
+        align-items: flex-start;
     }
     .stat-item {
-        justify-content: center; /* 아이콘과 텍스트 중앙 정렬 */
+        justify-content: center;
         width: 100%;
     }
     .stat-icon {
-        margin-right: 8px; /* 아이콘과 텍스트 간격 조정 */
+        margin-right: 8px;
     }
     .description-text, .full-transcript-text {
-        font-size: 0.95rem; /* 모바일에서 폰트 크기 조정 */
+        font-size: 0.95rem;
     }
     .toggle-description-button, .toggle-script-button {
         width: 100%;

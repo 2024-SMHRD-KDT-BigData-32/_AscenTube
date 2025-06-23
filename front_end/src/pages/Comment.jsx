@@ -1,252 +1,341 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { fetchCommentAnalysisSummary } from '../api/CommentApi';
+import PageLayout from '../layouts/PageLayout';
 import '../styles/pages/Comment.css';
 
-const allComments = [];
+// ============================================
+// 🟦 상수 및 라벨
+// ============================================
+
+const SPEECH_ACT_LABELS = {
+    PRAISE: '칭찬', CRITICISM: '비판', INFO: '정보제공',
+    QUESTION: '질문', EMOTION: '감정표현', REQUEST: '요청', ETC: '기타'
+};
+
+const SENTIMENT_LABELS = {
+    POSITIVE: '긍정', NEUTRAL: '중립', NEGATIVE: '부정'
+};
+
+// ============================================
+// 🟦 헬퍼 컴포넌트
+// ============================================
 
 const CommentListModal = ({ category, categoryLabel, comments, onClose }) => {
-  if (!category) return null;
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className={`modal-header cat-${category}`}>
-          <h3>{categoryLabel} 댓글 전체 보기 ({comments.length}개)</h3>
-          <button onClick={onClose} className="modal-close-button">&times;</button>
+    // ... (변경 없음)
+    if (!category) return null;
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className={`modal-header cat-${category.toLowerCase()}`}>
+                    <h3>{categoryLabel} 댓글 전체 보기 ({comments.length}개)</h3>
+                    <button onClick={onClose} className="modal-close-button">&times;</button>
+                </div>
+                <div className="modal-body">
+                    {comments.length > 0 ? (
+                        <ul className="modal-comment-list">{comments.map((comment, index) =>
+                            <li key={comment.commentId || index}>
+                                <p>{comment.commentContent}</p>
+                                <span>- {comment.commentWriterName}</span>
+                            </li>
+                        )}</ul>
+                    ) : <p className="no-comments">해당 카테고리의 댓글이 없습니다.</p>}
+                </div>
+            </div>
         </div>
-        <div className="modal-body">
-          {comments.length > 0 ? (
-            <ul>
-              {comments.map(comment => (
-                <li key={comment.id}>{comment.text}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="no-comments">해당 카테고리의 댓글이 없습니다.</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
+const AnalysisBarChart = ({ title, distributionData, labelMap, colorPrefix, onBarHover, onBarLeave, onBarClick }) => {
+    // ... (변경 없음, 이미 가장 정확한 방식으로 구현됨)
+    const refs = useRef({});
+    
+    const calculatedTotal = React.useMemo(() => {
+        return distributionData?.reduce((sum, item) => sum + item.count, 0) || 0;
+    }, [distributionData]);
 
-const AnimatedSentimentBar = ({ percentages, categoryLabels, onBarHover, onBarLeave, onBarClick }) => {
-  const refs = {
-    praise: useRef(null), criticism: useRef(null), info: useRef(null),
-    question: useRef(null), emotion: useRef(null), request: useRef(null), etc: useRef(null),
-  };
+    const percentages = React.useMemo(() => {
+        if (!distributionData || calculatedTotal === 0) return {};
+        return distributionData.reduce((acc, item) => {
+            const percentage = (item.count / calculatedTotal) * 100;
+            acc[item.type] = { percentage, count: item.count };
+            refs.current[item.type] = React.createRef();
+            return acc;
+        }, {});
+    }, [distributionData, calculatedTotal]);
+    
+    useEffect(() => {
+        requestAnimationFrame(() => {
+            for (const key in percentages) {
+                if (refs.current[key]?.current) {
+                    refs.current[key].current.style.width = `${percentages[key].percentage}%`;
+                }
+            }
+        });
+    }, [percentages]);
 
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      for (const key in percentages) {
-        if (refs[key].current) {
-          refs[key].current.style.width = `${percentages[key]}%`;
-        }
-      }
-    });
-  }, [percentages, refs]);
+    const orderedTypes = Object.keys(labelMap);
 
-  const categoryOrder = ['praise', 'criticism', 'info', 'question', 'emotion', 'request', 'etc'];
+    return (
+        <div className="analysis-chart-container">
+            <h3>{title}</h3>
+            <div className="sentiment-bar-container">
+                {orderedTypes.map(type => {
+                    const data = percentages[type];
+                    if (!data || data.percentage <= 0) return null;
 
-  return (
-    <div className="sentiment-bar-container">
-      {categoryOrder.map(cat => {
-        const percentage = percentages[cat];
-        let labelText;
-        if (percentage > 15) { labelText = `${categoryLabels[cat]} ${percentage}%`; }
-        else if (percentage > 5) { labelText = `${percentage}%`; }
-        else { labelText = ''; }
-        return (
-          <div
-            key={cat} ref={refs[cat]} className={`bar cat-${cat}`} style={{ width: '0%' }}
-            title={`${categoryLabels[cat]} ${percentage}%`}
-            onMouseEnter={(e) => onBarHover(cat, e)}
-            onMouseLeave={onBarLeave}
-            onClick={() => onBarClick(cat)}
-          >
-            <span>{labelText}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
+                    const percentage = data.percentage.toFixed(1);
+                    const categoryLabel = labelMap[type];
+                    
+                    let labelText = '';
+                    if (data.percentage > 15) { labelText = `${categoryLabel} ${percentage}%`; }
+                    else if (data.percentage > 5) { labelText = `${percentage}%`; }
+
+                    return (
+                        <div 
+                            key={type} 
+                            ref={refs.current[type]} 
+                            className={`bar ${colorPrefix}${type.toLowerCase()}`} 
+                            style={{ width: '0%' }} 
+                            title={`${categoryLabel} ${percentage}% `} 
+                            onMouseEnter={(e) => onBarHover && onBarHover(type, e)} 
+                            onMouseLeave={onBarLeave} 
+                            onClick={() => onBarClick && onBarClick(type)}
+                        >
+                            <span>{labelText}</span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
 };
 
-
+// ============================================
+// 🟦 메인 컴포넌트
+// ============================================
 const Comment = () => {
-  const categoryLabels = {
-    praise: '칭찬', criticism: '비판', info: '정보', question: '질문',
-    emotion: '감정', request: '요청', etc: '기타',
-  };
+    const [analysisData, setAnalysisData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    
+    const [tooltip, setTooltip] = useState({ content: null, position: { top: 0, left: 0, opacity: 0 } });
+    const tooltipSectionRef = useRef(null);
+    
+    const [modal, setModal] = useState({ category: null, comments: [] });
+    
+    const [openAccordion, setOpenAccordion] = useState(null);
 
-  const analysisData = {
-    percentages: { praise: 30, criticism: 15, info: 20, question: 10, emotion: 10, request: 10, etc: 5, },
-    representativeComments: [
-        { category: 'praise', icon: '👍', title: '대표 칭찬 댓글', text: '설명이 귀에 쏙쏙 들어와요! 구독하고 갑니다~' },
-        { category: 'criticism', icon: '🤔', title: '대표 비판 댓글', text: '이전 영상이랑 내용이 거의 비슷한 것 같아요. 좀 아쉽네요.' },
-        { category: 'info', icon: '💡', title: '대표 정보 댓글', text: '영상에 나온 제품 정보는 더보기란에 있습니다.' },
-        { category: 'question', icon: '❓', title: '대표 질문 댓글', text: '혹시 BGM 정보 알 수 있을까요?' },
-        { category: 'emotion', icon: '😄', title: '대표 감정표현 댓글', text: 'ㅋㅋㅋㅋㅋ 너무 웃겨요!!' },
-        { category: 'request', icon: '🙏', title: '대표 요청 댓글', text: '다음엔 OO도 한번 다뤄주세요!' },
-        { category: 'etc', icon: '📋', title: '대표 기타 댓글', text: '영상 잘 보고 갑니다.' },
-    ],
-    commentList: [],
-    keywords: [],
-    // ✅ 추가: 인기 댓글 분석을 위한 데이터 항목 추가
-    popularComments: [],
-  };
+    useEffect(() => {
+        const loadData = async () => {
+            setLoading(true);
+            setError(null);
+            
+            const loggedInChannelId = localStorage.getItem('user_youtube_channel_id');
+            if (!loggedInChannelId) {
+                setError("로그인 정보에서 채널 ID를 찾을 수 없습니다. 다시 로그인해주세요.");
+                setLoading(false);
+                return;
+            }
 
-  const [tooltipContent, setTooltipContent] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0, opacity: 0 });
-  const tooltipSectionRef = useRef(null);
+            try {
+                const period = 'quarter';
+                const data = await fetchCommentAnalysisSummary(loggedInChannelId, period);
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [categoryComments, setCategoryComments] = useState([]);
+                if (data) {
+                    const standardize = (text) => text?.toUpperCase() || null;
+                    const standardizedData = {
+                        ...data,
+                        speechActDistribution: data.speechActDistribution?.map(item => ({...item, type: standardize(item.type) })),
+                        sentimentDistribution: data.sentimentDistribution?.map(item => ({...item, type: standardize(item.type) })),
+                        latestComments: data.latestComments?.map(c => ({...c, speechAct: standardize(c.speechAct), sentimentType: standardize(c.sentimentType) })),
+                        topLikedComments: data.topLikedComments?.map(c => ({...c, speechAct: standardize(c.speechAct), sentimentType: standardize(c.sentimentType) })),
+                        representativeCommentsBySpeechAct: data.representativeCommentsBySpeechAct?.map(c => ({...c, speechAct: standardize(c.speechAct) })),
+                        // [수정 3] 백엔드에서 이 데이터가 온다고 가정
+                        representativeCommentsBySentiment: data.representativeCommentsBySentiment?.map(c => ({...c, sentimentType: standardize(c.sentimentType) })),
+                    };
+                    setAnalysisData(standardizedData);
+                } else {
+                    setError("데이터를 불러오는 데 실패했습니다.");
+                }
+            } catch (err) {
+                setError("데이터 로딩 중 오류가 발생했습니다.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+    }, []);
 
-  const handleBarHover = (category, event) => {
-    const representativeComment = analysisData.representativeComments.find(c => c.category === category);
-    if (representativeComment && tooltipSectionRef.current) {
-      const barRect = event.currentTarget.getBoundingClientRect();
-      const sectionRect = tooltipSectionRef.current.getBoundingClientRect();
-      const left = (barRect.left + barRect.width / 2) - sectionRect.left;
-      const top = barRect.bottom - sectionRect.top + 15;
-      setTooltipContent(representativeComment);
-      setTooltipPosition({ top, left, opacity: 1 });
-    }
-  };
+    // [수정 2] 화행 그래프 클릭 시, 페이지에 있는 모든 댓글을 대상으로 필터링
+    const allComments = React.useMemo(() => {
+        if (!analysisData) return [];
+        const combined = [...(analysisData.latestComments || []), ...(analysisData.topLikedComments || [])];
+        // 중복 제거
+        const uniqueComments = Array.from(new Map(combined.map(c => [c.commentId, c])).values());
+        return uniqueComments;
+    }, [analysisData]);
 
-  const handleBarLeave = () => {
-    setTooltipPosition(prev => ({ ...prev, opacity: 0 }));
-  };
+    const handleBarClick = (category) => {
+        const filteredComments = allComments.filter(comment => comment.speechAct === category);
+        setModal({
+            category: category,
+            comments: filteredComments
+        });
+    };
+    
+    const showTooltip = (content, event) => {
+        if (content && tooltipSectionRef.current) {
+            const barRect = event.currentTarget.getBoundingClientRect();
+            const containerRect = tooltipSectionRef.current.getBoundingClientRect();
+            const left = barRect.left + barRect.width / 2 - containerRect.left;
+            const top = barRect.bottom - containerRect.top + 10;
+            setTooltip({ content, position: { top, left, opacity: 1 } });
+        }
+    };
+    
+    const handleBarHover = (category, event) => {
+        const repComment = analysisData.representativeCommentsBySpeechAct?.find(c => c.speechAct === category);
+        if (repComment) {
+            showTooltip({
+                title: `대표 ${SPEECH_ACT_LABELS[category]} 댓글`,
+                text: repComment.commentContent
+            }, event);
+        }
+    };
 
-  const handleBarClick = (category) => {
-    const filteredComments = allComments.filter(comment => comment.category === category);
-    setCategoryComments(filteredComments);
-    setSelectedCategory(category);
-  };
+    // [수정 3] 긍부정 그래프 툴팁 핸들러
+    const handleSentimentBarHover = (category, event) => {
+        // 현재 백엔드에서 `representativeCommentsBySentiment`를 보내주지 않지만,
+        // 나중에 추가될 것을 대비하여 로직을 미리 구현합니다.
+        const repComment = analysisData.representativeCommentsBySentiment?.find(c => c.sentimentType === category);
+        if (repComment) {
+            showTooltip({
+                title: `대표 ${SENTIMENT_LABELS[category]} 댓글`,
+                text: repComment.commentContent
+            }, event);
+        }
+    };
 
-  const handleCloseModal = () => {
-    setSelectedCategory(null);
-    setCategoryComments([]);
-  };
+    const handleBarLeave = () => setTooltip(prev => ({ ...prev, position: { ...prev.position, opacity: 0 } }));
+    
+    const handleAccordionClick = (speechAct) => {
+        setOpenAccordion(prevOpen => (prevOpen === speechAct ? null : speechAct));
+    };
 
-  return (
-    <div className="comment-container">
-      <header className="comment-header">
-        <h1>댓글 상세 분석</h1>
-        <input type="text" placeholder="댓글 내용, 작성자 등으로 검색" />
-      </header>
+    const renderContent = () => {
+        if (loading) return <p className="message-center">데이터를 분석하고 있습니다...</p>;
+        if (error) return <p className="message-center error">{error}</p>;
+        if (!analysisData || !analysisData.totalComments) return <p className="message-center">분석할 댓글 데이터가 없습니다.</p>;
 
-      <main className="comment-main">
-
-        {/* ✅ 수정: '댓글 유형 비율' 섹션을 상단으로 이동 */}
-        <section
-          className="comment-section"
-          ref={tooltipSectionRef}
-          style={{ zIndex: tooltipContent ? 20 : 'auto' }}
-        >
-          <h2>댓글 유형 비율</h2>
-          <AnimatedSentimentBar
-            percentages={analysisData.percentages}
-            categoryLabels={categoryLabels}
-            onBarHover={handleBarHover}
-            onBarLeave={handleBarLeave}
-            onBarClick={handleBarClick}
-          />
-          {tooltipContent && (
-            <div className="representative-comment-tooltip" style={tooltipPosition}>
-              <p className="tooltip-title">{tooltipContent.title}</p>
-              
-              <p className="tooltip-text">"{tooltipContent.text}"</p>
-            </div>
-          )}
-          {tooltipContent && (
-            <div className="representative-comment-tooltip" style={tooltipPosition}>
-              <p className="tooltip-title">
-                {tooltipContent.title}
-                <span style={{ marginLeft: '8px', fontWeight: 'normal', fontSize: '0.9em' }}>
-                  ({analysisData.percentages[tooltipContent.category]}%)
-                </span>
-              </p>
-              <p className="tooltip-text">"{tooltipContent.text}"</p>
-            </div>
-          )}  
-        </section>
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-          
-        {/* ✅ 수정: '핵심 키워드 분석' 섹션을 위로 이동 */}
-        <section className="comment-section">
-          <h2>핵심 키워드 분석</h2>
-          {analysisData.keywords.length > 0 ? (
-            <div className="cloud-box">
-              {analysisData.keywords.map((keyword, index) => {
-                const keywordStyle = {
-                  fontSize: `${12 + keyword.value * 0.45}px`,
-                  fontWeight: 400 + Math.round(keyword.value / 100 * 5) * 100,
-                };
-                return (
-                  <span key={index} className={`cloud-word cat-${keyword.category}`} style={keywordStyle}>
-                    {keyword.text}
-                  </span>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="no-comments">분석된 키워드가 없습니다.</p>
-          )}
-        </section>
-        
-        {/* ✅ 추가: '최근 댓글'과 '인기 댓글'을 나란히 배치하기 위한 wrapper div */}
-        <div className="side-by-side-sections">
-            <section className="comment-section">
-                <h2>최근 댓글 분석</h2>
-                {analysisData.commentList.length > 0 ? (
-                    <ul className="comment-list">
-                    {analysisData.commentList.map((comment, index) => (
-                        <li key={index}>
-                        <span className={`tag cat-${comment.category}`}>[{categoryLabels[comment.category]}]</span>
-                        <p>{comment.text}</p>
-                        </li>
-                    ))}
-                    </ul>
-                ) : (
-                    <p className="no-comments">최근 분석된 댓글이 없습니다.</p>
+        return (
+            <>
+                <section className="page-section" ref={tooltipSectionRef} style={{ position: 'relative' }}>
+                    <h2>댓글 유형 분석</h2>
+                    <AnalysisBarChart
+                        title="댓글 화행 비율"
+                        distributionData={analysisData.speechActDistribution}
+                        labelMap={SPEECH_ACT_LABELS}
+                        colorPrefix="cat-"
+                    />
+                    <AnalysisBarChart
+                        title="댓글 긍·부정 비율"
+                        distributionData={analysisData.sentimentDistribution}
+                        labelMap={SENTIMENT_LABELS}
+                        colorPrefix="sentiment-"
+                    />
+                    {tooltip.content && (
+                        <div className="representative-comment-tooltip" style={tooltip.position}>
+                            <p className="tooltip-title">{tooltip.content.title}</p>
+                            <p className="tooltip-text">"{tooltip.content.text}"</p>
+                        </div>
+                    )}
+                </section>
+                
+                {analysisData.representativeCommentsBySpeechAct?.length > 0 && (
+                    <section className="page-section">
+                        <h2>화행별 대표 댓글</h2>
+                        <div className="accordion-container">
+                            {Object.keys(SPEECH_ACT_LABELS).map(speechActKey => {
+                                const comment = analysisData.representativeCommentsBySpeechAct.find(c => c.speechAct === speechActKey);
+                                if (!comment) return null;
+                                const isOpen = openAccordion === speechActKey;
+                                return (
+                                    <div key={speechActKey} className="accordion-item">
+                                        <button className={`accordion-header ${isOpen ? 'active' : ''}`} onClick={() => handleAccordionClick(speechActKey)}>
+                                            <span className={`tag cat-${speechActKey.toLowerCase()}`}>{SPEECH_ACT_LABELS[speechActKey]}</span>
+                                            <span className="accordion-title">"{comment.commentContent}"</span>
+                                            <span className={`accordion-icon ${isOpen ? 'open' : ''}`}>▼</span>
+                                        </button>
+                                        {isOpen && (
+                                            <div className="accordion-content">
+                                                <p><b>작성자:</b> {comment.commentWriterName}</p>
+                                                <p><b>영상:</b> {comment.videoTitle}</p>
+                                                <p><b>작성일:</b> {new Date(comment.commentWriteAt).toLocaleString()}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
                 )}
-            </section>
 
-            {/* ✅ 추가: '인기 댓글 분석' 섹션 새로 생성 */}
-            <section className="comment-section">
-                <h2>인기 댓글 분석</h2>
-                {analysisData.popularComments.length > 0 ? (
-                    <ul className="comment-list">
-                    {analysisData.popularComments.map((comment, index) => (
-                        <li key={index}>
-                        {/* 인기 댓글에 맞는 데이터 구조를 나중에 정의하면 됩니다. */}
-                        <p>{comment.text}</p> 
-                        </li>
-                    ))}
-                    </ul>
-                ) : (
-                    <p className="no-comments">인기 댓글이 없습니다.</p>
-                )}
-            </section>
-        </div>
-      </main>
+                <div className="grid-2-col">
+                    <section className="page-section">
+                        <h2>최신 댓글</h2>
+                        {analysisData.latestComments?.length > 0 ? (
+                            <ul className="comment-list">
+                                {analysisData.latestComments.map(comment => (
+                                    <li key={comment.commentId}>
+                                        <div className="comment-tags">
+                                            {/* [수정 1] 화행과 긍부정 태그 모두 표시 */}
+                                            {comment.speechAct && <span className={`tag cat-${comment.speechAct.toLowerCase()}`}>{SPEECH_ACT_LABELS[comment.speechAct]}</span>}
+                                            {comment.sentimentType && <span className={`tag sentiment-${comment.sentimentType.toLowerCase()}`}>{SENTIMENT_LABELS[comment.sentimentType]}</span>}
+                                        </div>
+                                        <p>{comment.commentContent}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : <p className="no-comments">최근 분석된 댓글이 없습니다.</p>}
+                    </section>
+                    
+                    <section className="page-section">
+                        <h2>'좋아요' 많은 댓글</h2>
+                        {analysisData.topLikedComments?.length > 0 ? (
+                            <ul className="comment-list">
+                                {analysisData.topLikedComments.map(comment => 
+                                    <li key={comment.commentId}>
+                                        <div className="comment-body">
+                                            <div className="comment-tags">
+                                                {/* [수정 1] 화행과 긍부정 태그 모두 표시 */}
+                                                {comment.speechAct && <span className={`tag cat-${comment.speechAct.toLowerCase()}`}>{SPEECH_ACT_LABELS[comment.speechAct]}</span>}
+                                                {comment.sentimentType && <span className={`tag sentiment-${comment.sentimentType.toLowerCase()}`}>{SENTIMENT_LABELS[comment.sentimentType]}</span>}
+                                            </div>
+                                            <p>{comment.commentContent}</p>
+                                        </div>
+                                        <span className="like-count">👍 {comment.commentLikeCount}</span>
+                                    </li>
+                                )}
+                            </ul>
+                        ) : <p className="no-comments">인기 댓글이 없습니다.</p>}
+                    </section>
+                </div>
 
-      <CommentListModal
-        category={selectedCategory}
-        categoryLabel={selectedCategory ? categoryLabels[selectedCategory] : ''}
-        comments={categoryComments}
-        onClose={handleCloseModal}
-      />
-    </div>
-  );
+                <CommentListModal 
+                    category={modal.category} 
+                    categoryLabel={modal.category ? SPEECH_ACT_LABELS[modal.category] : ''} 
+                    comments={modal.comments} 
+                    onClose={() => setModal({ category: null, comments: [] })}
+                />
+            </>
+        );
+    };
+
+    return (
+        <PageLayout title="댓글 상세 분석">
+            {renderContent()}
+        </PageLayout>
+    );
 };
 
 export default Comment;

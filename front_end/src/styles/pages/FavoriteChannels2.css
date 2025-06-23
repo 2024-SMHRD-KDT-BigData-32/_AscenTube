@@ -1,3 +1,9 @@
+```css
+/* src/styles/pages/FavoriteChannels.css */
+
+/* ==========================================================================
+    CSS 변수 정의
+    ========================================================================== */
 :root {
   --main-bg-color: linear-gradient(to bottom right, #eef2ff, white, #dbeafe);
   --card-bg-color: #ffffff;
@@ -13,203 +19,111 @@
   --button-green-hover: #218838;
   --button-dark: #2d3748;
   --button-dark-hover: #1a202c;
+  --button-edit: #3b82f6;
+  --button-edit-hover: #2563eb;
+  --button-delete: #ef4444;
+  --button-delete-hover: #dc2626;
 }
 
-body {
+/* ==========================================================================
+    기본 및 전역 스타일
+    ========================================================================== */
+.favorite-channels-page {
+  display: flex;
+  flex-direction: column;
+  padding: 25px 30px;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Segoe UI', sans-serif;
   background: var(--main-bg-color);
-  font-family: 'Noto Sans KR', sans-serif;
-  color: var(--text-main);
   min-height: 100vh;
+  color: var(--text-main);
 }
 
-.favorite-channels-container {
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background-color: transparent !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) ;
-  border-bottom: 1px solid var(--border-color) !important;
-}
-
-
-.page-header h1 {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary);
-  margin: 0;
-  padding: 0;
-  line-height: 1.2;
-}
-
-
-.search-and-add-section-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: stretch;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  margin-left: 30px;
-  margin-right: 30px;
-}
-
-.card {
+.search-and-add-section-wrapper,
+.registered-channels-section {
   background-color: var(--card-bg-color);
-  padding: 1rem;
-  border-radius: 1rem;
+  padding: 25px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
   transition: box-shadow 0.3s ease;
-  transform: none;
 }
 
-.card:hover {
+.search-and-add-section-wrapper:hover,
+.registered-channels-section:hover {
   box-shadow: var(--shadow-hover);
-  transform: none;
 }
 
-
-
-
-
-.favorite-header-search {
-  max-width: 20rem;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  background-color: white;
-  color: var(--text-main);
-  box-shadow: none;
-  outline: none;
-  transition: border-color 0.2s;
-    vertical-align: middle;
-  align-self: center;       /* ✅ flex 내부에서 수직 중앙 정렬 */
-  margin: 0;
-}
-.favorite-header-search:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+.search-and-add-section-wrapper {
+  margin-bottom: 40px;
 }
 
-
-
-.search-section-title {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--primary) !important;
-  margin: 0 0 0.5rem 0 !important;
-  padding: 0 !important;
-  text-align: left !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-}
-
-.search-and-add-section-wrapper{
+.search-section-title,
+.registered-channels-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0 0 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border-color);
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  align-items: center;
+  gap: 8px;
 }
-
-.registered-channels-section {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 1rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  margin-left: 30px;
-  margin-right: 30px;
-}
-
-.registered-title {
-  margin-bottom: 0.25rem !important;
-}
-
 
 .search-controls-and-results {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 20px;
 }
 
 .search-input-group-container {
   display: flex;
-  gap: 0.75rem;
-  align-items: stretch;
+  gap: 12px;
+  align-items: center;
 }
 
 .search-input-field,
-.memo-field,
-.search-registered-input {
+.memo-field {
   flex-grow: 1;
-  padding: 0.5rem 0.75rem;
+  padding: 12px 15px;
   border: 1px solid var(--border-color);
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
-  height: 2.5rem;
-  background: white;
+  border-radius: 8px;
+  font-size: 1rem;
   color: var(--text-main);
-  transition: border-color 0.3s, box-shadow 0.3s;
-  width: 100%;
+  background: var(--card-bg-color);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-
-#favorite-channels-page .card + #favorite-channels-page .card {
-  margin-top: 1.75rem;  /* 원하는 여백 크기로 조절 */
-}
-
 
 .search-input-field:focus,
-.memo-field:focus,
-.search-registered-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px var(--primary-light);
+.memo-field:focus {
   outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-.memo-field::placeholder,
 .search-input-field::placeholder,
-.search-registered-input::placeholder {
+.memo-field::placeholder {
   color: var(--text-sub);
   opacity: 0.7;
 }
 
 .icon-button {
-  padding: 0.625rem 1rem;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 0.5rem;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
+  gap: 8px;
+  transition: background-color 0.2s, transform 0.1s;
   white-space: nowrap;
-  border: none;
 }
 
 .icon-button.search-button {
   background-color: var(--primary);
   color: white;
-  padding: 0.5rem 1rem;
-  font-size: 0.95rem;
-  line-height: 1.25;
 }
 
 .icon-button.search-button:hover {
@@ -221,64 +135,70 @@ body {
   background-color: var(--button-green);
   color: white;
 }
+
 .add-button:hover {
   background-color: var(--button-green-hover);
   transform: translateY(-1px);
 }
 
-.cancel-button {
-  background-color: white;
-  color: var(--primary);
-  border: 1px solid var(--primary);
-}
-.cancel-button:hover {
-  background-color: #f3f4f6;
-  color: var(--primary);
-}
-
-.manual-add-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-.manual-add-buttons .icon-button {
-  min-width: 8rem;
-  font-size: 0.95rem;
+.edit-button {
+  background-color: var(--button-edit);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-right: 8px;
 }
 
-
-.registered-channels-section h3 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin: 0 0 1rem 0;
-  padding: 0;
-  text-align: left;
+.edit-button:hover {
+  background-color: var(--button-edit-hover);
+  transform: translateY(-1px);
 }
 
-.registered-channel-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
+.delete-button {
+  background-color: var(--button-delete);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
 }
 
+.delete-button:hover {
+  background-color: var(--button-delete-hover);
+  transform: translateY(-1px);
+}
+
+.action-divider {
+  color: var(--text-sub);
+  margin: 0 8px;
+}
+
+/* ==========================================================================
+    테이블 스타일
+    ========================================================================== */
 .table-container {
   width: 100%;
   overflow-x: auto;
 }
 
+.search-result-table,
+.registered-channel-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg-color);
+}
+
 table th,
 table td {
-  text-align: left;
-  padding: 0.75rem 1rem;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--border-color);
   font-size: 0.95rem;
+  text-align: left;
 }
 
 table th {
   background-color: #f9fafb;
-  font-weight: bold;
+  font-weight: 600;
   color: var(--text-main);
 }
 
@@ -286,172 +206,147 @@ table tbody tr:hover {
   background-color: var(--hover-bg);
 }
 
-a {
+table a {
   color: var(--primary);
   text-decoration: none;
 }
-a:hover {
+
+table a:hover {
   text-decoration: underline;
   color: #4338ca;
-}
-
-.action-link {
-  color: var(--primary);
-  cursor: pointer;
-}
-.action-link:hover {
-  text-decoration: underline;
-}
-.action-divider {
-  margin: 0 0.4rem;
-  color: #999;
 }
 
 .no-results-message,
 .no-favorites-message {
   text-align: center;
-  padding: 1rem;
-  background: white;
+  padding: 20px;
   border: 1px dashed var(--border-color);
-  border-radius: 0.5rem;
+  border-radius: 8px;
   color: var(--text-sub);
   font-style: italic;
-  margin-top: 1rem;
+  margin-top: 20px;
+  background: var(--card-bg-color);
 }
 
-/* 썸네일 */ 
-.thumbnail-cell {
-  text-align: center;
-  vertical-align: middle;
-  width: 75px;
-}
-
-.thumbnail-wrapper {
-  width: 50px;
-  height: 50px;
-  border-radius: 4px;
-  background-color: #ccc; /* ✅ 회색 배경 적용 */
-  display: inline-block;
-  overflow: hidden;
-}
-
-.thumbnail-wrapper img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-
-/* 기본 상태: 줄바꿈 ❌ */
-table {
-  table-layout: auto;
-  width: 100%;
-}
-
-table th,
-table td {
-  white-space: nowrap;       /* ✅ 한 줄로 유지 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* 화면이 작아질 때만 줄바꿈 허용 */
-@media (max-width: 1024px) {
-  table {
-    table-layout: fixed;      /* ✅ 고정 레이아웃으로 전환 */
-  }
-
-  table th,
-  table td {
-    white-space: normal;      /* ✅ 줄바꿈 허용 */
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-  }
-}
-
-
-/*수정, 삭제 버튼*/
-.edit-button {
-  background-color: #3b82f6; /* 파란색 */
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  transition: background-color 0.2s ease;
-}
-
-.edit-button:hover {
-  background-color: #2563eb; /* hover 시 더 진한 파랑 */
-}
-
-.delete-button {
-  background-color: #ef4444; /* 빨간색 */
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border: none;
-  border-radius: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.delete-button:hover {
-  background-color: #dc2626; /* hover 시 더 진한 빨강 */
-}
-
-
-
-@media (max-width: 1024px) {
-  .search-and-add-section-wrapper {
-    flex-direction: column;
-  }
-  .search-input-group-container {
-    flex-direction: column;
-  }
-  .icon-button {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* 비율 기반 열 크기 조정 */
+/* 열 너비 설정 */
 .registered-channel-table th:nth-child(1),
 .registered-channel-table td:nth-child(1) {
-  width: 4%;
+  width: 5%; /* # */
 }
 
 .registered-channel-table th:nth-child(2),
 .registered-channel-table td:nth-child(2) {
-  width: 8%;
+  width: 20%; /* 채널 이름 */
 }
 
 .registered-channel-table th:nth-child(3),
 .registered-channel-table td:nth-child(3) {
-  width: 18%;
+  width: 30%; /* URL */
 }
 
 .registered-channel-table th:nth-child(4),
 .registered-channel-table td:nth-child(4) {
-  width: 25%;
+  width: 35%; /* 설명 */
 }
 
 .registered-channel-table th:nth-child(5),
 .registered-channel-table td:nth-child(5) {
-  width: 25%;
+  width: 10%; /* 관리 */
 }
 
-.registered-channel-table th:nth-child(6),
-.registered-channel-table td:nth-child(6) {
-  width: 10%;
+.search-result-table th:nth-child(1),
+.search-result-table td:nth-child(1) {
+  width: 20%; /* 채널 이름 */
 }
 
-.registered-channel-table th:nth-child(7),
-.registered-channel-table td:nth-child(7) {
-  width: 10%;
+.search-result-table th:nth-child(2),
+.search-result-table td:nth-child(2) {
+  width: 30%; /* URL */
+}
+
+.search-result-table th:nth-child(3),
+.search-result-table td:nth-child(3) {
+  width: 40%; /* 설명 */
+}
+
+.search-result-table th:nth-child(4),
+.search-result-table td:nth-child(4) {
+  width: 10%; /* 액션 */
+}
+
+/* 줄바꿈 제어 */
+table th,
+table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1024px) {
+  table {
+    table-layout: fixed;
+  }
+
+  table th,
+  table td {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+/* ==========================================================================
+    반응형 디자인
+    ========================================================================== */
+@media (max-width: 992px) {
+  .favorite-channels-page {
+    padding: 20px;
+  }
+
+  .search-and-add-section-wrapper,
+  .registered-channels-section {
+    padding: 20px;
+  }
+
+  .search-input-group-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .icon-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-section-title,
+  .registered-channels-section h3 {
+    font-size: 1.3rem;
+  }
+
+  .search-input-field,
+  .memo-field {
+    font-size: 0.95rem;
+  }
+
+  .icon-button {
+    font-size: 0.9rem;
+    padding: 10px 18px;
+  }
+
+  .edit-button,
+  .delete-button {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+  }
+
+  table th,
+  table td {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
 }

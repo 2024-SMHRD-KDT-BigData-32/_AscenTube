@@ -1,176 +1,387 @@
-/* src/components/TopBar.css */
+/* 기본 리셋 및 폰트 설정 */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif; /* Google Fonts 사용 시 */
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 탑바 스타일 */
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px; /* 좌우 패딩 */
-  height: 56px; /* 헤더 높이 (유튜브 스튜디오와 유사) */
-  background-color: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* 유튜브 스타일 구분선 */
-  position: fixed; /* 상단 고정 */
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1030; /* 다른 요소들보다 위에 오도록 */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px; /* 좌우 패딩 */
+    min-height: 56px; /* 최소 높이 설정, 유연성을 위해 max-height 제거 */
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: fixed; /* 상단 고정 */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+    width: 100%; /* 전체 너비 확보 */
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
 }
 
 .topbar-left {
-  display: flex;
-  align-items: center;
-  /* 로고와 햄버거 버튼을 포함하는 왼쪽 영역 */
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .sidebar-toggle-button {
-  background: none;
-  border: none;
-  padding: 8px; /* 클릭 영역 확보 */
-  margin-right: 16px; /* 로고와의 간격 */
-  cursor: pointer;
-  color: #606060; /* 아이콘 색상 */
-  display: inline-flex; /* SVG 아이콘 정렬 */
-  align-items: center;
-  justify-content: center;
+    background: none;
+    border: none;
+    padding: 8px;
+    margin-right: 16px;
+    cursor: pointer;
+    color: #606060;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .sidebar-toggle-button svg {
-  width: 24px;
-  height: 24px;
+    width: 24px;
+    height: 24px;
 }
 
 .sidebar-toggle-button:hover {
-  background-color: rgba(0,0,0,0.05);
-  border-radius: 50%; /* 원형 배경 효과 */
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 50%;
 }
 
 .topbar-logo-container {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* 로고 이미지와 텍스트 사이 간격 */
-  text-decoration: none; /* 로고에 링크를 걸 경우 밑줄 제거 */
-  color: inherit; /* 부모 요소의 색상 상속 */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+    flex-shrink: 0;
 }
 
 .topbar-logo-img {
-  height: 28px; /* 로고 이미지 높이 조정 */
-  width: auto; /* 이미지 비율 유지 */
-  display: block; /* 이미지 하단 불필요한 공백 제거 */
+    height: 28px;
+    width: auto;
+    display: block;
 }
 
 .topbar-logo-text {
-  font-size: 1.15rem; /* 로고 텍스트 크기 */
-  font-weight: 700; /* 굵기 */
-  color: #0f0f0f; /* 유튜브 로고 텍스트 색상과 유사하게 */
-  white-space: nowrap; /* 줄바꿈 방지 */
-  line-height: 1; /* 텍스트 세로 정렬 미세 조정 */
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f0f0f;
+    white-space: nowrap;
+    line-height: 1;
 }
 
 .topbar-center {
-  flex-grow: 1; /* 중앙 영역이 남은 공간 차지 */
-  display: flex;
-  justify-content: center; /* 검색창 중앙 정렬 */
-  margin: 0 40px; /* 검색창과 양옆 요소들 간의 최소 간격 */
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    margin: 0 20px; /* 간격 조정 */
+    min-width: 0;
 }
 
 .topbar-search-input {
-  flex-grow: 1; /* 컨테이너 안에서 유연하게 늘어나도록 설정 */
-  height: 100%;
-  padding: 0 16px;
-  font-size: 1rem;
-  /* 아래 스타일들은 부모 컨테이너로 옮겨졌으므로 제거합니다. */
-  border: none;
-  box-shadow: none;
-  outline: none;
-  background-color: transparent;
-}
-/* 검색 버튼을 추가한다면 여기에 스타일 정의 */
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-}
-
-.topbar-action-icon {
-  background: none;
-  border: none;
-  padding: 8px; /* 클릭 영역 */
-  margin-left: 8px; /* 아이콘 버튼 간 간격 */
-  cursor: pointer;
-  color: #606060; /* 아이콘 색상 */
-  display: inline-flex; /* SVG 아이콘 정렬 */
-  align-items: center;
-  justify-content: center;
-}
-
-.topbar-action-icon svg { /* SVG 아이콘 크기 */
-  width: 24px;
-  height: 24px;
-}
-
-.topbar-action-icon:hover {
-  background-color: rgba(0,0,0,0.05);
-  border-radius: 50%; /* 원형 배경 효과 */
-}
-
-/* ▼▼▼ 프로필 드롭다운 관련 스타일 ▼▼▼ */
-.profile-section {
-  position: relative; /* 드롭다운의 기준점 */
-  margin-left: 16px; /* 기존 .topbar-profile-avatar의 margin-left와 동일하게 */
-}
-
-.topbar-profile-avatar-button {
-  background: none;
-  border: none;
-  padding: 0; /* 내부 이미지 크기에 맞춤 */
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex; /* 내부 이미지 정렬 */
-  align-items: center;
-  justify-content: center;
-  width: 32px; /* 아바타 크기 (기존 .topbar-profile-avatar와 동일하게) */
-  height: 32px;
-  overflow: hidden; /* 이미지가 원 밖으로 나가지 않도록 */
-}
-
-.topbar-profile-avatar-button img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* 이미지가 비율을 유지하며 꽉 차도록 */
-  border-radius: 50%; /* 이미지가 원형을 벗어나지 않도록 */
-}
-/* ▲▲▲ 프로필 드롭다운 관련 스타일 ▲▲▲ */
-
-.topbar-search-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  max-width: 580px;
-  height: 40px;
-  border: 1px solid #cccccc;
-  border-radius: 20px; /* 부드러운 모서리 */
-  overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.topbar-search-container:focus-within {
-  border-color: #1c62b9;
-  box-shadow: 0 0 0 1px #1c62b9;
+    flex-grow: 1;
+    height: 100%;
+    padding: 0 16px;
+    font-size: 1rem;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+    min-width: 0;
 }
 
 .topbar-search-button {
-  flex-shrink: 0;
-  width: 50px;
-  height: 100%;
-  background-color: #f8f8f8;
-  border: none;
-  border-left: 1px solid #cccccc;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #606060;
-  transition: background-color 0.2s ease;
+    flex-shrink: 0;
+    width: 50px;
+    height: 100%;
+    background-color: #f8f8f8;
+    border: none;
+    border-left: 1px solid #cccccc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #606060;
+    transition: background-color 0.2s ease;
 }
 
 .topbar-search-button:hover {
-  background-color: #f0f0f0;
+    background-color: #f0f0f0;
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.topbar-action-icon {
+    background: none;
+    border: none;
+    padding: 8px;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #606060;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.topbar-action-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.topbar-action-icon:hover {
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 50%;
+}
+
+.profile-section {
+    position: relative;
+    margin-left: 16px;
+    flex-shrink: 0;
+}
+
+.topbar-profile-avatar-button {
+    background: none;
+    border: none;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.topbar-profile-avatar-button img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.topbar-search-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 580px; /* 작은 화면에서 유연하게 조정 */
+    height: 40px;
+    border: 1px solid #cccccc;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.topbar-search-container:focus-within {
+    border-color: #1c62b9;
+    box-shadow: 0 0 0 1px #1c62b9;
+}
+
+/* 메인 콘텐츠 영역 스타일 */
+.main-content {
+    padding-top: 76px; /* 탑바 높이 56px + 추가 여백 20px */
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-bottom: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-height: calc(100vh - 56px);
+    box-sizing: border-box;
+}
+
+.main-content h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    padding-top: 20px;
+}
+
+.content-section {
+    margin-bottom: 40px;
+}
+
+.content-section h2 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+/* 동영상 그리드 스타일 */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.video-item {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease-in-out;
+}
+
+.video-item:hover {
+    transform: translateY(-5px);
+}
+
+.video-item img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.video-item h3 {
+    font-size: 18px;
+    margin: 10px;
+    color: #333;
+}
+
+.video-item p {
+    font-size: 14px;
+    color: #666;
+    margin: 0 10px 10px;
+}
+
+/* 반응형 디자인 (Media Queries) */
+@media (max-width: 1024px) {
+    .topbar {
+        padding: 0 12px;
+    }
+
+    .topbar-center {
+        margin: 0 15px;
+    }
+
+    .topbar-search-container {
+        max-width: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .topbar {
+        padding: 0 8px;
+    }
+
+    .sidebar-toggle-button {
+        margin-right: 8px;
+    }
+
+    .topbar-logo-text {
+        font-size: 1rem;
+    }
+
+    .topbar-center {
+        margin: 0 8px;
+        flex-basis: 0;
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+
+    .topbar-search-container {
+        max-width: 100%;
+    }
+
+    .main-content {
+        padding-top: 76px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .video-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        padding: 0 4px;
+        min-height: 48px; /* 작은 화면에서 높이 줄임 */
+    }
+
+    .sidebar-toggle-button {
+        padding: 4px;
+        margin-right: 4px;
+    }
+
+    .topbar-logo-img {
+        height: 22px;
+    }
+
+    .topbar-logo-text {
+        font-size: 0.9rem;
+    }
+
+    .topbar-center {
+        margin: 0 4px;
+    }
+
+    .topbar-search-container {
+        height: 32px;
+        border-radius: 16px;
+    }
+
+    .topbar-search-input {
+        padding: 0 10px;
+        font-size: 0.85rem;
+    }
+
+    .topbar-search-button {
+        width: 36px;
+    }
+
+    .topbar-action-icon {
+        padding: 4px;
+        margin-left: 4px;
+    }
+
+    .topbar-action-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .topbar-profile-avatar-button {
+        width: 28px;
+        height: 28px;
+    }
+
+    .profile-section {
+        margin-left: 8px;
+    }
+
+    .main-content {
+        padding-top: 68px; /* 탑바 높이 48px + 여백 20px */
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .video-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .video-item h3 {
+        font-size: 16px;
+    }
+
+    .video-item p {
+        font-size: 12px;
+    }
 }
