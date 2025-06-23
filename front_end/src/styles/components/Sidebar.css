@@ -1,200 +1,132 @@
-/* src/components/Sidebar.css */
+/* Sidebar.css */
+
+/* 기본 사이드바 컨테이너 스타일 */
 .sidebar {
-    background-color: #ffffff; /* 유튜브 스튜디오 사이드바 배경색 */
-    border-right: 1px solid var(--yt-spec-10-percent-layer, rgba(0,0,0,0.1));
-    height: 100vh;
-    position: fixed;
-    left: 0;
+    position: fixed; /* 고정 위치 */
     top: 0;
-    padding-top: 56px; /* TopBar 높이 */
-    z-index: 1020; /* TopBar 보다는 낮게 (모바일 오버레이시 변경 예정) */
-    overflow-x: hidden;
-    overflow-y: auto; /* 내용이 길 경우 스크롤 */
-    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* 부드러운 전환 */
-    box-sizing: border-box;
+    left: 0;
+    height: 100vh; /* 뷰포트 전체 높이 */
+    width: 250px; /* 열렸을 때 기본 너비 */
+    background-color: #FFFFFF; /* 배경색 흰색 */
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1); /* 은은한 그림자 */
+    padding-top: 80px; /* ✅ 전체적으로 아래로 내리기 (TopBar 높이 고려) */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* 상단에서 시작하도록 변경 */
+    overflow-y: auto; /* 내용이 넘칠 경우 스크롤 */
+    transition: width 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* 너비 및 그림자 전환 효과 */
+    z-index: 1000; /* 다른 요소 위에 오도록 설정 */
 }
 
-/* 데스크톱 모드 */
-.sidebar.open {
-    width: 240px;
-}
-
+/* 사이드바가 닫혔을 때 */
 .sidebar.closed {
-    width: 72px; /* 유튜브 스튜디오 축소 너비 */
+    width: 80px; /* 닫혔을 때 너비 (아이콘만 보이게) */
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
+}
+
+/* 네비게이션 섹션 */
+.sidebar-nav {
+    flex-grow: 1; /* 남은 공간을 채우도록 */
+    display: flex;
+    flex-direction: column;
+    /* padding-top: 20px; 이전 padding-top은 sidebar 자체의 padding-top으로 이동 */
 }
 
 .sidebar-nav ul {
     list-style: none;
-    padding: 12px 0;
+    padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* ✅ 각 리스트 아이템 간 간격 살짝 줄임 */
 }
 
+/* 각 네비게이션 아이템 (Link) */
 .sidebar-nav .nav-item {
     display: flex;
     align-items: center;
-    height: 40px;
-    padding: 0 24px;
-    color: #0f0f0f;
     text-decoration: none;
-    white-space: nowrap;
+    color: #333333; /* ✅ 기본 글씨색 검은색 계열 */
+    font-weight: bold; /* 글씨 두껍게 유지 */
+    font-size: 1.05rem; /* ✅ 글씨 크기 살짝 조정 */
+    padding: 10px 20px; /* ✅ 내부 패딩 조정 */
+    position: relative;
     overflow: hidden;
-    text-overflow: ellipsis;
-    border-radius: 0;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
+    border-radius: 6px; /* ✅ 모서리 둥글기 살짝 줄임 */
+    margin: 0 15px; /* 좌우 마진 유지 */
 }
 
-.sidebar.closed .nav-item {
-    padding: 0; /* 축소 시 패딩 제거하고 아이콘 중앙 정렬 */
-    justify-content: center;
-}
-
+/* 호버 효과 */
 .sidebar-nav .nav-item:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: #F0F0F0; /* ✅ 호버 시 밝은 회색 배경 */
+    transform: translateX(3px); /* ✅ 우측으로 살짝 이동 효과 유지 */
+    color: #007bff; /* ✅ 호버 시 글씨색을 파란색으로 변경 (선택적) */
 }
 
+/* 활성화된 아이템 스타일 */
 .sidebar-nav .nav-item.active {
-    background-color: rgba(0, 0, 0, 0.1);
-    font-weight: 500;
+    background-color: #E0E0E0; /* ✅ 활성화 시 중간 회색 배경 */
+    box-shadow: inset 2px 0 0 #007bff; /* ✅ 좌측에 파란색 막대 강조 */
+    transform: translateX(0); /* 활성화 상태에서는 이동 효과 없음 */
+    color: #007bff; /* ✅ 활성화 시 글씨색 파란색 */
 }
 
+/* 아이콘 스타일 */
 .sidebar-nav .nav-icon {
-    font-size: 1.3rem;
-    min-width: 24px;
-    margin-right: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #606060;
-}
-
-.sidebar.closed .nav-icon {
-    margin-right: 0;
-}
-
-.sidebar-nav .nav-item.active .nav-icon {
-    color: #0f0f0f;
-}
-
-.sidebar-nav .nav-label {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    letter-spacing: 0.007em;
-    opacity: 1;
-    transition: opacity 0.1s ease-in-out;
-}
-
-.sidebar.closed .nav-label {
-    opacity: 0;
-    width: 0;
-    display: none;
-}
-
-/* ===== 프로필 영역 ===== */
-.sidebar-profile {
     display: flex;
     align-items: center;
-    flex-direction: column;
-    margin-top: auto;
-    padding: 1.5rem 0;
-    background: linear-gradient(to bottom, #FFFFFF, #FFFFFF); 
-    transition: all 0.3s ease;
+    font-size: 1.5rem; /* ✅ 아이콘 크기 살짝 조정 */
+    color: #666666; /* ✅ 기본 아이콘 색상 (어두운 회색) */
+    transition: margin-right 0.3s ease, color 0.2s ease;
 }
 
-.profile-image {
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 0.75rem;
-    border: 3px solid #e0e0e0;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    background-color: white;
-    transition: all 0.3s ease;
+/* 사이드바가 열렸을 때 아이콘과 텍스트 간 간격 */
+.sidebar.open .nav-icon {
+    margin-right: 12px; /* ✅ 간격 살짝 줄임 */
 }
 
-.sidebar.closed .profile-image {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 0;
-    border-width: 2px;
+/* 사이드바가 닫혔을 때 아이콘만 보이게 */
+.sidebar.closed .nav-icon {
+    margin-right: 0;
+    justify-content: center; /* 닫혔을 때 중앙 정렬 */
+    width: 100%; /* 아이콘이 전체 너비 차지 */
 }
 
-.profile-name {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
-    transition: opacity 0.3s ease, transform 0.3s ease;
+/* 활성화된 아이템의 아이콘 색상 */
+.sidebar-nav .nav-item.active .nav-icon {
+    color: #007bff; /* ✅ 활성화 시 아이콘도 파란색 */
 }
 
-.sidebar.closed .profile-name {
+/* 네비게이션 라벨 (텍스트) */
+.sidebar-nav .nav-label {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+}
+
+/* 사이드바가 닫혔을 때 라벨 숨김 */
+.sidebar.closed .nav-label {
     opacity: 0;
-    transform: scale(0.95);
-    display: none;
+    width: 0; /* 공간 차지하지 않도록 */
+    overflow: hidden; /* 넘치는 텍스트 숨김 */
 }
 
-.sidebar-profile:hover {
-    background-color: #FFFFFF;
-    cursor: pointer;
+/* 스크롤바 커스터마이징 (선택 사항 - 웹킷 브라우저) */
+.sidebar::-webkit-scrollbar {
+    width: 8px;
 }
 
-.sidebar-profile:hover .profile-image {
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    transform: scale(1.03);
+.sidebar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
 }
 
-/* ===============================
-    📱 반응형 디자인 (Sidebar Media Queries)
-=============================== */
+.sidebar::-webkit-scrollbar-thumb {
+    background: #cccccc;
+    border-radius: 10px;
+}
 
-/* 화면 너비가 768px 이하일 때 (태블릿 세로 / 모바일 가로) */
-@media (max-width: 768px) {
-    .sidebar {
-        /* ✅ 모바일에서는 사이드바가 화면 밖으로 완전히 숨겨져 있다가 열릴 때 나타남 */
-        width: 240px; /* 열렸을 때의 너비는 고정 */
-        transform: translateX(-100%); /* 기본적으로 화면 밖으로 숨김 */
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
-        z-index: 1040; /* TopBar (1030)보다 높게 설정하여 오버레이 */
-        box-shadow: none; /* 닫혔을 때는 그림자 없음 */
-    }
-
-    /* ✅ 사이드바가 열렸을 때 */
-    .sidebar.open {
-        transform: translateX(0); /* 화면 안으로 들어오도록 */
-        box-shadow: 0 0 15px rgba(0,0,0,0.2); /* 열렸을 때 그림자 추가 */
-    }
-
-    /* ✅ 사이드바가 닫혔을 때 (별도로 .closed 클래스를 부여할 필요 없이 기본 상태가 닫힘) */
-    .sidebar.closed {
-        width: 240px; /* 너비를 유지하고 transform으로 숨김 */
-        transform: translateX(-100%);
-    }
-
-    /* 모바일에서는 항상 전체 라벨을 보여주도록 (축소 모드 비활성화) */
-    .sidebar.closed .nav-item {
-        padding: 0 24px; /* 데스크톱 열림 모드와 동일하게 */
-        justify-content: flex-start;
-    }
-
-    .sidebar.closed .nav-icon {
-        margin-right: 24px;
-    }
-
-    .sidebar.closed .nav-label {
-        opacity: 1;
-        width: auto;
-        display: block;
-    }
-
-    /* 프로필 영역도 모바일에서는 항상 열린 상태 기준으로 표시 */
-    .sidebar.closed .profile-image {
-        width: 96px;
-        height: 96px;
-        margin-bottom: 0.75rem;
-        border-width: 3px;
-    }
-
-    .sidebar.closed .profile-name {
-        opacity: 1;
-        transform: scale(1);
-        display: block;
-    }
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #aaaaaa;
 }

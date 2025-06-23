@@ -1,233 +1,230 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { MdSearch } from 'react-icons/md';
+import React, { useState } from 'react';
+import { MdSearch, MdAddCircleOutline } from 'react-icons/md';
 import PageLayout from '../layouts/PageLayout';
-import {
-    fetchFavoriteChannels,
-    searchChannels,
-    addFavoriteChannel, 
-    updateFavoriteChannel,
-    deleteFavoriteChannel
-} from '../api/favoriteChannelApi';
 import '../styles/pages/FavoriteChannels.css';
 
 const FavoriteChannels = () => {
-    const [registeredChannels, setRegisteredChannels] = useState([]);
-    const [searchResults, setSearchResults] = useState([]);
-    const [loading, setLoading] = useState(true); 
-    const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [memoInputs, setMemoInputs] = useState({});
-    const [filterTerm, setFilterTerm] = useState(''); 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [memoInput, setMemoInput] = useState('');
+  const [filterTerm, setFilterTerm] = useState('');
 
-    const loadRegisteredChannels = useCallback(async () => {
-        try {
-            setLoading(true);
-            const googleId = localStorage.getItem('user_google_id');
-            if (!googleId) throw new Error("로그인 정보(user_google_id)를 찾을 수 없습니다.");
-            const channels = await fetchFavoriteChannels(googleId);
-            setRegisteredChannels(channels);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+  const [registeredChannels, setRegisteredChannels] = useState([
+    { id: 'ch_cm', name: '침착맨', url: 'https://www.youtube.com/@ChimChakMan_Official', description: '크롬 확장 기능 테스트용 관심 채널1' },
+    { id: 'ch_jt', name: '조튜브', url: 'https://www.youtube.com/@jhotube', description: '크롬 확장 기능 테스트용 관심 채널2' },
+  ]);
 
-    useEffect(() => {
-        loadRegisteredChannels();
-    }, [loadRegisteredChannels]);
+  // URL 디코딩 함수
+  const decodeUrlIfEncoded = (url) => {
+    try {
+      return decodeURIComponent(url);
+    } catch (e) {
+      return url;
+    }
+  };
 
+  // 채널 검색 (URL 및 이름 기반)
+  const handleSearch = () => {
+    if (searchTerm.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
 
-    const handleSearch = async () => {
-        if (!searchTerm.trim()) return;
-        try {
-            const googleId = localStorage.getItem('user_google_id');
-            if (!googleId) throw new Error("로그인 정보(user_google_id)를 찾을 수 없습니다.");
-            const results = await searchChannels(googleId, searchTerm);
-            setSearchResults(results);
-            // 검색 결과 객체의 실제 필드명을 확인하기 위한 콘솔 로그 추가
-            if (results.length > 0) {
-                console.log("=== 검색 결과 채널 객체 필드 확인 ===");
-                console.log("results[0]:", results[0]);
-                console.log("results[0].channelId (또는 cnlId?):", results[0].channelId || results[0].cnlId);
-                console.log("results[0].channelName (또는 cnlName?):", results[0].channelName || results[0].cnlName);
-                console.log("results[0].channelUrl (또는 cnlUrl?):", results[0].channelUrl || results[0].cnlUrl);
-                console.log("===================================");
-            }
-            if(results.length === 0) alert('검색 결과가 없습니다.');
-        } catch (err) {
-            alert(`채널 검색 중 오류 발생: ${err.message}`);
-        }
-    };
-    
-    const handleMemoChange = (channelId, value) => {
-        setMemoInputs(prev => ({ ...prev, [channelId]: value }));
-    };
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-    // [최종 수정] handleAddChannel 함수: 동적 데이터 사용 및 중복 확인 로직 복구
-    const handleAddChannel = async (channelToAdd) => {
-        // channelToAdd는 검색 결과 (searchResults)에서 넘어온 채널 객체입니다.
-        // 이 객체는 channelId, channelName, channelUrl 등을 포함합니다.
-        // 또는 검색 결과 API에 따라 cnlId, cnlName, cnlUrl을 가질 수도 있습니다.
+    const allSearchableChannels = [
+      { id: 'ch_cm_search', name: '침착맨', url: 'https://www.youtube.com/@ChimChakMan_Official', description: '침착맨의 공식 채널입니다.' },
+      { id: 'ch_jt_search', name: '조튜브', url: 'https://www.youtube.com/@jhotube', description: '다양한 주제를 다루는 조튜브 채널입니다.' },
+      { id: 'ch_boda_search', name: '보다 채널', url: 'https://www.youtube.com/@BODACORP', description: '과학과 지식을 탐구하는 채널입니다.' },
+      { id: 'ch_test1', name: '테스트 채널 1', url: 'https://www.youtube.com/@testchannel1', description: '임시 테스트용 채널입니다.' },
+      { id: 'ch_test2', name: '테스트 채널 2', url: 'https://www.youtube.com/@testchannel2', description: '또 다른 테스트 채널입니다.' },
+    ];
 
-        // 중복 확인 로직: channelToAdd의 ID를 기준으로 이미 등록되었는지 확인
-        // 검색 결과 객체의 ID 필드가 channelId일 수도 있고, cnlId일 수도 있으므로 둘 다 확인
-        const idToCheck = channelToAdd.channelId || channelToAdd.cnlId;
-        if (registeredChannels.some(c => c.cnlId === idToCheck)) { 
-            alert(`'${channelToAdd.channelName || channelToAdd.cnlName}' 채널은 이미 등록되어 있습니다.`);
-            return; // 중복이면 여기서 함수 종료
-        }
-
-        try {
-            const googleId = localStorage.getItem('user_google_id');
-            if (!googleId) throw new Error("로그인 정보(user_google_id)를 찾을 수 없습니다.");
-            
-            // --- ▼▼▼ 동적 데이터 구성 (FavoriteChannelRequestDto 필드명에 맞춰 정확히 매핑) ▼▼▼ ---
-            // 검색 결과 `channelToAdd` 객체의 필드명을 `FavoriteChannelRequestDto`에 맞춰 매핑합니다.
-            // 검색 결과가 `cnlId`, `cnlName`, `cnlUrl` 필드를 반환한다고 가정하고 매핑하겠습니다.
-            const channelDataToSend = {
-                channelId: channelToAdd.cnlId, // 검색 결과의 cnlId를 백엔드의 channelId로 매핑
-                channelName: channelToAdd.cnlName, // 검색 결과의 cnlName을 백엔드의 channelName으로 매핑
-                channelUrl: channelToAdd.cnlUrl, // 검색 결과의 cnlUrl을 백엔드의 channelUrl로 매핑
-                cnlMemo: memoInputs[channelToAdd.cnlId] || "", // 메모 입력 필드의 ID도 cnlId 기준으로 가져옵니다.
-            };
-            
-            console.log("서버로 보내는 googleId (쿼리 파람):", googleId); 
-            console.log("서버로 보내는 Body 데이터 (FavoriteChannelRequestDto에 맞춤 - 동적):", channelDataToSend);
-            // --- ▲▲▲ 동적 데이터 구성 ▲▲▲ ---
-            
-            const newChannel = await addFavoriteChannel(googleId, channelDataToSend); 
-            
-            alert(`'${newChannel.cnlName}' 채널이 성공적으로 추가되었습니다!`); 
-            await loadRegisteredChannels(); // 목록 갱신 
-            setSearchResults([]); // 검색 결과창 닫기
-            
-        } catch (err) {
-            // 백엔드에서 400 Bad Request로 '이미 등록됨'을 반환하는 경우를 처리
-            if (err.response && err.response.data && typeof err.response.data === 'string' && err.response.data.includes("이미 관심 채널로 등록되어 있습니다")) {
-                alert(err.response.data); // 백엔드로부터 받은 상세 에러 메시지를 표시
-            } else {
-                alert(`채널 추가 중 오류 발생: ${err.message}`); // 그 외의 일반적인 오류
-            }
-        }
-    };
-
-    const handleDeleteChannel = async (favId) => {
-        try {
-            const confirmDelete = window.confirm("정말로 이 채널을 삭제하시겠습니까?");
-            if (confirmDelete) {
-                await deleteFavoriteChannel(favId);
-                setRegisteredChannels(prev => prev.filter(channel => channel.favId !== favId));
-                alert("채널이 성공적으로 삭제되었습니다.");
-            }
-        } catch (err) {
-            alert(`채널 삭제 중 오류 발생: ${err.message}`);
-        }
-    };
-
-    const handleEditChannel = async (channelToEdit) => {
-        const newMemo = prompt("새로운 메모를 입력하세요:", channelToEdit.cnlMemo);
-        if (newMemo !== null) { 
-            try {
-                const memoData = { cnlMemo: newMemo };
-                const updatedChannel = await updateFavoriteChannel(channelToEdit.favId, memoData);
-                setRegisteredChannels(prev =>
-                    prev.map(channel =>
-                        channel.favId === updatedChannel.favId ? updatedChannel : channel
-                    )
-                );
-                alert("메모가 성공적으로 수정되었습니다.");
-            } catch (err) {
-                alert(`메모 수정 중 오류 발생: ${err.message}`);
-            }
-        }
-    };
-
-    const filteredRegisteredChannels = registeredChannels.filter(channel =>
-        channel.cnlName.toLowerCase().includes(filterTerm.toLowerCase()) ||
-        (channel.cnlUrl && channel.cnlUrl.toLowerCase().includes(filterTerm.toLowerCase()))
+    const foundByUrl = allSearchableChannels.find(channel =>
+      channel.url.toLowerCase() === lowerCaseSearchTerm ||
+      decodeUrlIfEncoded(channel.url).toLowerCase() === lowerCaseSearchTerm
     );
 
-    if (error) return <PageLayout title="관심 채널 관리"><div>오류: {error}</div></PageLayout>;
+    if (foundByUrl) {
+      setSearchResults([foundByUrl]);
+    } else {
+      const filteredResults = allSearchableChannels.filter(channel =>
+        channel.name.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+      setSearchResults(filteredResults);
+    }
+  };
 
-    return (
-        <PageLayout
-            title="관심 채널 관리"
-            searchPlaceholder="등록된 채널 검색..."
-            onSearchChange={(e) => setFilterTerm(e.target.value)}
-        >
-            <div className="favorite-channels-page">
-                {/* 검색 및 추가 섹션 */}
-                <div className="page-section search-and-add-section-wrapper card">
-                    <h3 className="search-section-title"><MdSearch /> 채널 검색 및 추가</h3>
-                    <div className="search-input-group-container">
-                        <input
-                            type="text"
-                            placeholder="채널 이름 또는 URL로 검색..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        />
-                        <button onClick={handleSearch}>검색</button>
-                    </div>
-                    {searchResults.length > 0 && (
-                        <div className="search-results-display">
-                            <table>
-                                <thead><tr><th>채널 이름</th><th>URL</th><th>구독자 수</th><th>메모</th><th>액션</th></tr></thead>
-                                <tbody>
-                                    {searchResults.map(channel => (
-                                        <tr key={channel.channelId}> {/* channel.channelId 사용 */}
-                                            <td>{channel.channelName}</td> {/* channel.channelName 사용 */}
-                                            <td><a href={`https://www.youtube.com/channel/${channel.channelId}`} target="_blank" rel="noopener noreferrer">채널 방문</a></td>
-                                            <td>{new Intl.NumberFormat().format(channel.subscriberCount)}</td>
-                                            <td>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="메모 입력 (선택)" 
-                                                    className="memo-input-small" 
-                                                    onChange={e => handleMemoChange(channel.channelId)} // channel.channelId 사용
-                                                    value={memoInputs[channel.channelId] || ''} // channel.channelId 사용
-                                                />
-                                            </td>
-                                            <td className="action-cell-add">
-                                                {/* 이제 동적 데이터로 채널이 추가됩니다. */}
-                                                <button onClick={() => handleAddChannel(channel)} className="add-button-small">추가</button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
+  // 채널 추가
+  const handleAddChannel = (channelToAdd) => {
+    if (registeredChannels.some(channel => decodeUrlIfEncoded(channel.url) === decodeUrlIfEncoded(channelToAdd.url))) {
+      // --- 에러 수정 부분: 템플릿 리터럴을 문자열 합치기로 변경 ---
+      alert(channelToAdd.name + ' 채널은 이미 등록되어 있습니다.');
+      return;
+    }
 
-                {/* 등록된 채널 목록 섹션 */}
-                <div className="page-section registered-channels-section card">
-                    <h3>등록된 채널 목록</h3>
-                    {loading ? <p>로딩 중...</p> : (
-                        <table>
-                            <thead><tr><th>#</th><th>채널 이름</th><th>URL</th><th>메모</th><th>관리</th></tr></thead>
-                            <tbody>
-                                {filteredRegisteredChannels.map((channel, index) => (
-                                    <tr key={channel.favId}>
-                                        <td>{index + 1}</td>
-                                        <td>{channel.cnlName}</td>
-                                        <td><a href={channel.cnlUrl} target="_blank" rel="noopener noreferrer">채널 방문</a></td>
-                                        <td>{channel.cnlMemo}</td>
-                                        <td className="action-cell-manage">
-                                            <button onClick={() => handleEditChannel(channel)} className="edit-button">수정</button>
-                                            <button onClick={() => handleDeleteChannel(channel.favId)} className="delete-button">삭제</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
-                     { !loading && filteredRegisteredChannels.length === 0 && <p>등록된 관심 채널이 없습니다.</p>}
-                </div>
+    // --- 코드 정리: 템플릿 리터럴 내 불필요한 공백 제거 ---
+    const newId = `reg_ch_${Date.now()}`;
+    setRegisteredChannels(prevChannels => [
+      ...prevChannels,
+      {
+        id: newId,
+        name: channelToAdd.name,
+        url: channelToAdd.url,
+        description: memoInput || channelToAdd.description || '새로 등록된 채널입니다.'
+      }
+    ]);
+    setSearchTerm('');
+    setSearchResults([]);
+    setMemoInput('');
+  };
+
+  // 채널 삭제
+  const handleDeleteChannel = (idToDelete) => {
+    if (window.confirm('정말로 이 채널을 삭제하시겠습니까?')) {
+      setRegisteredChannels(prevChannels => prevChannels.filter(channel => channel.id !== idToDelete));
+    }
+  };
+
+  // 채널 수정
+  const handleEditChannel = (idToEdit) => {
+    const channelToEdit = registeredChannels.find(channel => channel.id === idToEdit);
+    if (channelToEdit) {
+      const newDescription = prompt(`'${channelToEdit.name}' 채널의 설명을 수정하세요: `, channelToEdit.description);
+      if (newDescription !== null) {
+        setRegisteredChannels(prevChannels => prevChannels.map(channel =>
+          channel.id === idToEdit ? { ...channel, description: newDescription } : channel
+        ));
+      }
+    }
+  };
+
+  // 등록된 채널 필터링
+  const filteredChannels = registeredChannels.filter(channel =>
+    channel.name.toLowerCase().includes(filterTerm.toLowerCase()) ||
+    decodeUrlIfEncoded(channel.url).toLowerCase().includes(filterTerm.toLowerCase())
+  );
+
+  return (
+    <PageLayout
+      title="관심 채널 관리"
+      searchPlaceholder="채널 이름 검색..."
+      onSearchChange={(e) => setFilterTerm(e.target.value)}
+      onSearchSubmit={() => {
+        if (!filterTerm.trim()) {
+          alert('검색어를 입력하세요.');
+        } else if (filteredChannels.length === 0) {
+          alert('검색 결과가 없습니다.');
+        }
+      }}
+    >
+      <div className="favorite-channels-page">
+        <div className="page-section search-and-add-section-wrapper card">
+          <h3 className="search-section-title"><MdSearch /> 채널 검색 및 추가</h3>
+          <div className="search-controls-and-results">
+            <div className="search-input-group-container">
+              <input
+                type="text"
+                placeholder="https://www.youtube.com/@channelid 또는 채널 이름으로 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                className="search-input-field"
+              />
+              <button onClick={handleSearch} className="icon-button search-button">
+                검색
+              </button>
             </div>
-        </PageLayout>
-    );
+            <div className="memo-input-group">
+              <input
+                type="text"
+                placeholder="채널에 대한 설명/메모를 입력하세요 (선택 사항)"
+                value={memoInput}
+                onChange={(e) => setMemoInput(e.target.value)}
+                className="memo-field"
+              />
+            </div>
+            {searchResults.length > 0 && (
+              <div className="search-results-display">
+                <div className="table-container search-result-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th className="column-search-name">채널 이름</th>
+                        <th className="column-search-url">URL</th>
+                        <th className="column-search-description">설명</th>
+                        <th className="column-search-action">액션</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {searchResults.map(channel => (
+                        <tr key={channel.id}>
+                          <td className="cell-search-name">{channel.name}</td>
+                          <td className="cell-search-url">
+                            <a href={decodeUrlIfEncoded(channel.url)} target="_blank" rel="noopener noreferrer">
+                              {decodeUrlIfEncoded(channel.url)}
+                            </a>
+                          </td>
+                          <td className="cell-search-description">{channel.description}</td>
+                          <td className="cell-search-action">
+                            <button onClick={() => handleAddChannel(channel)} className="add-button icon-button">
+                              추가
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {searchResults.length === 0 && searchTerm.trim() !== '' && (
+              <p className="no-results-message">검색 결과가 없습니다.</p>
+            )}
+          </div>
+        </div>
+        <div className="page-section registered-channels-section card">
+          <h3>등록된 채널</h3>
+          {filteredChannels.length === 0 ? (
+            <p className="no-favorites-message">등록된 채널이 없습니다.</p>
+          ) : (
+            <div className="table-container registered-channel-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th className="column-number">#</th>
+                    <th className="column-channel-name">채널 이름</th>
+                    <th className="column-url">URL</th>
+                    <th className="column-description">설명</th>
+                    <th className="column-action">관리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredChannels.map((channel, index) => (
+                    <tr key={channel.id}>
+                      <td className="cell-number">{index + 1}</td>
+                      <td className="cell-channel-name">{channel.name}</td>
+                      <td className="cell-url">
+                        <a href={decodeUrlIfEncoded(channel.url)} target="_blank" rel="noopener noreferrer">
+                          {decodeUrlIfEncoded(channel.url)}
+                        </a>
+                      </td>
+                      <td className="cell-description">{channel.description}</td>
+                      <td className="cell-action">
+                        <button className="edit-button" onClick={() => handleEditChannel(channel.id)}>수정</button>
+                        <span className="action-divider">/</span>
+                        <button className="delete-button" onClick={() => handleDeleteChannel(channel.id)}>삭제</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </PageLayout>
+  );
 };
 
 export default FavoriteChannels;

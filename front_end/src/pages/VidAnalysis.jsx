@@ -208,6 +208,15 @@ const VidAnalysis = () => {
         localStorage.setItem('vidAnalysis_showFullDescription', JSON.stringify(showFullDescription));
     }, [videoUrl, analysisResults, aiAnalysisResults, fullTranscript, showFullTranscript, showFullDescription]);
 
+    // 🔽 location.search에서 videoUrl 쿼리 파라미터만 추출해서 input에 채워줌(서현수 수정)
+useEffect(() => {
+  const queryParams = new URLSearchParams(location.search);
+  const urlFromQuery = queryParams.get('videoUrl');
+  if (urlFromQuery) {
+    setVideoUrl(urlFromQuery);
+  }
+}, [location.search]);
+
 
     const renderAnalysisResults = () => {
         if (!analysisResults) return null;

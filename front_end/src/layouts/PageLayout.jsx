@@ -14,7 +14,6 @@ const PageLayout = ({ title, children }) => {
         <div className="page-layout-container">
             <header className="page-layout-header">
                 <h1>{title}</h1>
-                <input type="text" placeholder="페이지 내 검색..." />
             </header>
             <main className="page-layout-main">
                 {children}
