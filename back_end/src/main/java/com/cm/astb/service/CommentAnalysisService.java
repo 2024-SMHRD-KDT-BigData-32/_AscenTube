@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cm.astb.dto.CommentAnalysisDistributionDto;
 import com.cm.astb.dto.CommentAnalysisSummaryDto;
 import com.cm.astb.dto.CommentDetailDto;
+import com.cm.astb.dto.VideoCommentAnalysisSummaryDto;
 import com.cm.astb.entity.Comment; // Comment 엔티티 임포트
 import com.cm.astb.entity.SentimentType; // SentimentType 임포트
 import com.cm.astb.entity.SpeechActType; // SpeechActType 임포트
@@ -307,5 +308,118 @@ public class CommentAnalysisService {
                 .sentimentType(comment.getSentimentType() != null ? comment.getSentimentType().getDbValue() : null) // Enum to String
                 .speechAct(comment.getSpeechAct() != null ? comment.getSpeechAct().getDbValue() : null) // Enum to String
                 .build();
+    }
+    
+    /**
+     * 특정 영상에 대한 댓글 분석 요약 정보 (총 댓글 수, 감성/화행 분포, 최신/인기/대표 댓글 등)를 조회합니다.
+     * 이 메서드는 videoId를 기반으로 모든 댓글을 조회하고, 그 리스트를 재활용하여 분석합니다.
+     *
+     * @param videoId 조회할 영상의 DB 고유 ID (TB_VIDEO.VIDEO_ID)
+     * @return 영상 댓글 분석 요약 DTO
+     */
+    @Transactional(readOnly = true)
+    public VideoCommentAnalysisSummaryDto getVideoCommentAnalysisSummary(Long videoId) { // <--- 이 public 메서드를 추가합니다.
+        logger.info("Attempting to get comment analysis summary for videoId: {}", videoId);
+
+        // 1. 영상 기본 정보 조회 (videoKey, videoTitle)
+        Optional<YouTubeVideo> videoOpt = youTubeVideoRepository.findById(videoId);
+        if (videoOpt.isEmpty()) {
+            logger.warn("Video not found for ID: {}. Cannot perform comment analysis.", videoId);
+            return VideoCommentAnalysisSummaryDto.builder()
+                        .videoKey(null)
+                        .videoTitle("영상 없음")
+                        .totalComments(0L)
+                        .sentimentDistribution(Collections.emptyList())
+                        .speechActDistribution(Collections.emptyList())
+                        .topLikedComments(Collections.emptyList())
+                        .representativeCommentsBySentiment(Collections.emptyList())
+                        .representativeCommentsBySpeechAct(Collections.emptyList())
+                        .latestComments(Collections.emptyList())
+                        .build();
+        }
+        YouTubeVideo youTubeVideo = videoOpt.get();
+        String videoKey = youTubeVideo.getVideoKey();
+        String videoTitle = youTubeVideo.getVideoTitle();
+
+        // 2. 해당 영상의 모든 댓글 데이터를 가져옵니다 (삭제되지 않은 댓글만).
+        List<Comment> allCommentsForVideo = commentRepository.findByVideoIdAndIsDeleted(videoId, "N");
+        long totalComments = allCommentsForVideo.size();
+        
+        // 3. 각 분석 섹션에 대한 데이터 계산 및 상세 댓글 목록 조회
+        // allCommentsForVideo 리스트를 헬퍼 메서드에 전달하여 재활용
+        List<CommentAnalysisDistributionDto> sentimentDist = calculateSentimentDistribution(allCommentsForVideo);
+        List<CommentAnalysisDistributionDto> speechActDist = calculateSpeechActDistribution(allCommentsForVideo);
+
+        // 대표 댓글과 상세 댓글 목록 조회 (videoId 기반 헬퍼 메서드 사용)
+        int defaultCommentLimit = 5; // 화면에 보여줄 댓글 개수
+        List<CommentDetailDto> topLikedComments = getTopLikedCommentsForVideo(videoId, defaultCommentLimit);
+        List<CommentDetailDto> representativeCommentsBySentiment = getRepresentativeCommentsBySentimentForVideo(videoId);
+        List<CommentDetailDto> representativeCommentsBySpeechAct = getRepresentativeCommentsBySpeechActForVideo(videoId);
+        List<CommentDetailDto> latestComments = getLatestCommentsForVideo(videoId, defaultCommentLimit);
+
+
+        logger.info("Successfully retrieved comment analysis summary for videoId: {}. Total comments: {}", videoId, totalComments);
+
+        return VideoCommentAnalysisSummaryDto.builder()
+                .videoKey(videoKey)
+                .videoTitle(videoTitle)
+                .totalComments(totalComments)
+                .sentimentDistribution(sentimentDist)
+                .speechActDistribution(speechActDist)
+                .topLikedComments(topLikedComments)
+                .representativeCommentsBySentiment(representativeCommentsBySentiment)
+                .representativeCommentsBySpeechAct(representativeCommentsBySpeechAct)
+                .latestComments(latestComments)
+                .build();
+    }
+    
+    private List<CommentDetailDto> getLatestCommentsForVideo(Long videoId, int limit) {
+        List<Comment> comments = commentRepository.findByVideoIdAndIsDeletedOrderByCommentWriteAtDesc(videoId, "N");
+        return comments.stream()
+                .limit(limit)
+                .map(this::mapCommentToDetailDto)
+                .collect(Collectors.toList());
+    }
+    
+    private List<CommentDetailDto> getTopLikedCommentsForVideo(Long videoId, int limit) {
+        List<Comment> comments = commentRepository.findByVideoIdAndIsDeletedOrderByCommentLikeCountDesc(videoId, "N");
+        return comments.stream()
+                .filter(comment -> comment.getCommentLikeCount() != null)
+                .sorted(Comparator.comparing(comment -> comment.getCommentLikeCount(), Comparator.reverseOrder()))
+                .limit(limit)
+                .map(this::mapCommentToDetailDto)
+                .collect(Collectors.toList());
+    }
+
+    private List<CommentDetailDto> getRepresentativeCommentsBySpeechActForVideo(Long videoId) {
+        List<Comment> comments = commentRepository.findByVideoIdAndIsDeleted(videoId, "N");
+        if (comments.isEmpty()) return Collections.emptyList();
+        Map<SpeechActType, Optional<Comment>> topCommentBySpeechAct = comments.stream()
+                .filter(comment -> comment.getSpeechAct() != null)
+                .collect(Collectors.groupingBy(
+                    Comment::getSpeechAct,
+                    Collectors.maxBy(Comparator.comparing(comment -> comment.getCommentLikeCount(), Comparator.nullsLast(Integer::compare)))
+                ));
+        return topCommentBySpeechAct.entrySet().stream()
+                .filter(entry -> entry.getValue().isPresent())
+                .map(entry -> this.mapCommentToDetailDto(entry.getValue().get()))
+                .sorted(Comparator.comparing(dto -> dto.getSpeechAct(), Comparator.nullsLast(String::compareTo)))
+                .collect(Collectors.toList());
+    }
+
+    private List<CommentDetailDto> getRepresentativeCommentsBySentimentForVideo(Long videoId) {
+        List<Comment> comments = commentRepository.findByVideoIdAndIsDeleted(videoId, "N");
+        if (comments.isEmpty()) return Collections.emptyList();
+        Map<SentimentType, Optional<Comment>> topCommentBySentiment = comments.stream()
+                .filter(comment -> comment.getSentimentType() != null)
+                .collect(Collectors.groupingBy(
+                    Comment::getSentimentType,
+                    Collectors.maxBy(Comparator.comparing(Comment::getCommentLikeCount, Comparator.nullsLast(Integer::compare)))
+                ));
+        return topCommentBySentiment.entrySet().stream()
+                .filter(entry -> entry.getValue().isPresent())
+                .map(entry -> this.mapCommentToDetailDto(entry.getValue().get()))
+                .sorted(Comparator.comparing(dto -> dto.getSentimentType(), Comparator.nullsLast(String::compareTo)))
+                .collect(Collectors.toList());
     }
 }
