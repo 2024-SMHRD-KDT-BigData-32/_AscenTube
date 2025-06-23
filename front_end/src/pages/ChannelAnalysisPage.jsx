@@ -271,7 +271,7 @@ function ChannelAnalysisPage() {
               <div className="ai-analysis-part">
                 <h3>{channelInfo.name} 채널의 콘텐츠 전략 및 성공 요인</h3>
                 <ul>
-                  <li><strong>콘텐츠 전략:</strong> {aiAnalysis.channelAnalysis?.contentStrategy || '분석 중...'}</li>
+
                   <li><strong>성공 요인:</strong> {aiAnalysis.channelAnalysis?.successFactor || '분석 중...'}</li>
                 </ul>
               </div>
