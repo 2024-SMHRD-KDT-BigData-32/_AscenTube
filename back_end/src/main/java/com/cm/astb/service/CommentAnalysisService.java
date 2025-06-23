@@ -318,13 +318,13 @@ public class CommentAnalysisService {
      * @return 영상 댓글 분석 요약 DTO
      */
     @Transactional(readOnly = true)
-    public VideoCommentAnalysisSummaryDto getVideoCommentAnalysisSummary(Long videoId) { // <--- 이 public 메서드를 추가합니다.
-        logger.info("Attempting to get comment analysis summary for videoId: {}", videoId);
+    public VideoCommentAnalysisSummaryDto getVideoCommentAnalysisSummary(String videoKey) { // <--- 이 public 메서드를 추가합니다.
+        logger.info("Attempting to get comment analysis summary for videoId: {}", videoKey);
 
         // 1. 영상 기본 정보 조회 (videoKey, videoTitle)
-        Optional<YouTubeVideo> videoOpt = youTubeVideoRepository.findById(videoId);
+        Optional<YouTubeVideo> videoOpt = youTubeVideoRepository.findByVideoKey(videoKey);
         if (videoOpt.isEmpty()) {
-            logger.warn("Video not found for ID: {}. Cannot perform comment analysis.", videoId);
+            logger.warn("Video not found for ID: {}. Cannot perform comment analysis.", videoKey);
             return VideoCommentAnalysisSummaryDto.builder()
                         .videoKey(null)
                         .videoTitle("영상 없음")
@@ -338,7 +338,7 @@ public class CommentAnalysisService {
                         .build();
         }
         YouTubeVideo youTubeVideo = videoOpt.get();
-        String videoKey = youTubeVideo.getVideoKey();
+        Long videoId = youTubeVideo.getVideoId();
         String videoTitle = youTubeVideo.getVideoTitle();
 
         // 2. 해당 영상의 모든 댓글 데이터를 가져옵니다 (삭제되지 않은 댓글만).
