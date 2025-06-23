@@ -3,7 +3,9 @@ package com.cm.astb.service;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +33,8 @@ import com.google.api.services.youtube.model.ChannelSnippet;
 import com.google.api.services.youtube.model.ChannelStatistics;
 import com.google.api.services.youtube.model.PlaylistItemListResponse;
 import com.google.api.services.youtube.model.SearchListResponse;
+import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.SearchResultSnippet;
 import com.google.api.services.youtube.model.Thumbnail;
 import com.google.api.services.youtube.model.ThumbnailDetails;
 import com.google.api.services.youtube.model.Video;
@@ -56,30 +60,18 @@ public class ChannelService {
 		this.youTubeChannelRepository = youTubeChannelRepository;
 	}
 
-    // =                             [신규] 영상 정보 조회 메소드                        =
-    
     public Video getVideoInfo(String videoId) throws IOException {
         logger.info("Fetching public video info for ID: {} using API Key.", videoId);
-
-        YouTube youtubeService = new YouTube.Builder(new NetHttpTransport(), new GsonFactory(), request -> {})
-                .setApplicationName("ascen-tube-video-info")
-                .build();
+        YouTube youtubeService = new YouTube.Builder(new NetHttpTransport(), new GsonFactory(), request -> {}).setApplicationName("ascen-tube-video-info").build();
         
-        YouTube.Videos.List request = youtubeService.videos()
-                .list(Arrays.asList("snippet", "statistics", "contentDetails"));
-        
+        YouTube.Videos.List request = youtubeService.videos().list(Arrays.asList("snippet", "statistics", "contentDetails"));
         request.setKey(apiKey);
         request.setId(Arrays.asList(videoId));
         
         VideoListResponse response = request.execute();
         
-        if (response != null && !response.getItems().isEmpty()) {
-            return response.getItems().get(0);
-        } else {
-            return null;
-        }
+        return (response != null && !response.getItems().isEmpty()) ? response.getItems().get(0) : null;
     }
-
 
 	@Transactional
 	public ChannelListResponse getChannelInfoById(String userId, String channelId) throws IOException, GeneralSecurityException {
@@ -95,89 +87,48 @@ public class ChannelService {
 		
 		logger.info("Cache expired or not found for channel ID: {}. Calling YouTube API.", channelId);
 		Credential credential = oAuthService.getCredential(userId);
-		if (credential == null || credential.getAccessToken() == null) {
-            throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
-        }
 		YouTube youTube = oAuthService.getYouTubeService(credential);
 		YouTube.Channels.List request = youTube.channels().list(Arrays.asList("snippet", "statistics", "contentDetails"));
 		request.setId(Arrays.asList(channelId));
 		ChannelListResponse apiResponse = request.execute();
 		
-		if (apiResponse != null && apiResponse.getItems() != null && !apiResponse.getItems().isEmpty()) {
-			Channel apiChannel = apiResponse.getItems().get(0);
-			YouTubeChannel channelInfoToSave;
-			if (optionalCachedChannel.isPresent()) {
-				channelInfoToSave = optionalCachedChannel.get();
-			} else {
-				channelInfoToSave = new YouTubeChannel();
-				channelInfoToSave.setChannelId(apiChannel.getId());
-			}
-			channelInfoToSave.setTitle(apiChannel.getSnippet().getTitle());
-			channelInfoToSave.setDescription(apiChannel.getSnippet().getDescription());
-			if (apiChannel.getSnippet().getCustomUrl() != null) {
-				channelInfoToSave.setChannelCustomUrl(apiChannel.getSnippet().getCustomUrl());
-			} else {
-				channelInfoToSave.setChannelCustomUrl("https://www.youtube.com/channel/" + apiChannel.getId());
-			}
-			if (apiChannel.getSnippet().getThumbnails() != null) {
-				channelInfoToSave.setThumbnailUrl(apiChannel.getSnippet().getThumbnails().getDefault().getUrl());
-			}
-			if (apiChannel.getSnippet().getPublishedAt() != null) {
-				channelInfoToSave.setYoutubePublishedAt(
-						LocalDateTime.parse(apiChannel.getSnippet().getPublishedAt().toStringRfc3339().substring(0, 19))
-				);
-			}
-			if (apiChannel.getStatistics() != null) {
-				channelInfoToSave.setViewCount(apiChannel.getStatistics().getViewCount().longValue());
-				channelInfoToSave.setSubscriberCount(apiChannel.getStatistics().getSubscriberCount().longValue());
-				channelInfoToSave.setVideoCount(apiChannel.getStatistics().getVideoCount().longValue());
-			}
-			if (apiChannel.getContentDetails() != null && apiChannel.getContentDetails().getRelatedPlaylists() != null &&
-	                apiChannel.getContentDetails().getRelatedPlaylists().getUploads() != null) {
-	                channelInfoToSave.setUploadsPlaylistId(apiChannel.getContentDetails().getRelatedPlaylists().getUploads());
-	            }
-			youTubeChannelRepository.save(channelInfoToSave);
+		if (apiResponse != null && !apiResponse.getItems().isEmpty()) {
+			updateChannelCache(apiResponse.getItems().get(0), optionalCachedChannel);
 		}
 		return apiResponse;
 	}
 
 	public List<Video> getLatestVideosFromChannel(String userId, ChannelListResponse response) throws IOException, GeneralSecurityException {
 		Credential credential = oAuthService.getCredential(userId);
-		if (credential == null || credential.getAccessToken() == null) {
-            throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
-        }
 		YouTube youTube = oAuthService.getYouTubeService(credential);
-		String uploadsPlaylistId;
-		if(response != null && !response.isEmpty()) {
-			uploadsPlaylistId = response.getItems().get(0).getContentDetails().getRelatedPlaylists().getUploads();
-		} else {
-			logger.warn("Channel {} not found or has no contentDetails for uploads playlist ID.", response.getItems().get(0).getSnippet().getTitle());
+
+		String uploadsPlaylistId = Optional.ofNullable(response)
+				.map(r -> r.getItems())
+				.filter(items -> !items.isEmpty())
+				.map(items -> items.get(0))
+				.map(Channel::getContentDetails)
+				.map(ChannelContentDetails::getRelatedPlaylists)
+				.map(RelatedPlaylists::getUploads)
+				.orElse(null);
+
+		if (uploadsPlaylistId == null) {
+			String channelTitle = Optional.ofNullable(response).map(r -> r.getItems().get(0).getSnippet().getTitle()).orElse("Unknown Channel");
+			logger.warn("Channel '{}' has no uploads playlist ID. Cannot fetch latest videos.", channelTitle);
             return Collections.emptyList();
 		}
-		YouTube.PlaylistItems.List playListItems = youTube.playlistItems().list(Arrays.asList("snippet", "contentDetails"));
-		playListItems.setPlaylistId(uploadsPlaylistId);
-		playListItems.setMaxResults(5L);
-		PlaylistItemListResponse playlistItemListResponse = playListItems.execute();
+
+		YouTube.PlaylistItems.List playListItemsRequest = youTube.playlistItems().list(Arrays.asList("snippet", "contentDetails"));
+		playListItemsRequest.setPlaylistId(uploadsPlaylistId);
+		playListItemsRequest.setMaxResults(5L);
+		PlaylistItemListResponse playlistItemListResponse = playListItemsRequest.execute();
+		
 		List<String> videoIds = playlistItemListResponse.getItems().stream()
-                .map(item -> item.getContentDetails().getVideoId())
-                .collect(Collectors.toList());
-		Map<String, VideoStatistics> videoStatsMap = getVideosStatisticsByIds(userId, videoIds);
-		return playlistItemListResponse.getItems().stream()
-				.map(playlistItem -> {
-                    Video video = new Video();
-                    video.setId(playlistItem.getContentDetails().getVideoId());
-                    VideoSnippet videoSnippet = new VideoSnippet();
-                    videoSnippet.setChannelId(playlistItem.getSnippet().getChannelId());
-                    videoSnippet.setChannelTitle(playlistItem.getSnippet().getChannelTitle());
-                    videoSnippet.setDescription(playlistItem.getSnippet().getDescription());
-                    videoSnippet.setPublishedAt(playlistItem.getSnippet().getPublishedAt());
-                    videoSnippet.setTitle(playlistItem.getSnippet().getTitle());
-                    videoSnippet.setThumbnails(playlistItem.getSnippet().getThumbnails());
-                    video.setSnippet(videoSnippet);
-                    video.setStatistics(videoStatsMap.get(video.getId()));
-                    return video;
-                })
-                .collect(Collectors.toList());
+				.map(item -> item.getContentDetails().getVideoId())
+				.collect(Collectors.toList());
+		
+		return enrichVideosWithStats(userId, playlistItemListResponse.getItems().stream()
+				.map(this::convertPlaylistItemToVideo)
+				.collect(Collectors.toList()), videoIds);
 	}
 
 	public List<Video> getPopularVideosFromChannel(String userId, String channelId) throws IOException, GeneralSecurityException {
@@ -186,86 +137,148 @@ public class ChannelService {
 	        throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
 	    }
 	    YouTube youTube = oAuthService.getYouTubeService(credential);
+
+	    // Create a search request to fetch popular videos
+	    YouTube.Search.List searchRequest = youTube.search().list(Arrays.asList("snippet"));
+	    searchRequest.setChannelId(channelId);
+	    searchRequest.setType(Arrays.asList("video"));
+	    searchRequest.setOrder("viewCount");
+	    searchRequest.setMaxResults(5L);
+
+	    SearchListResponse searchResponse = searchRequest.execute();
 	    
-	    YouTube.Search.List search = youTube.search().list(Arrays.asList("snippet"));
-
-	    search.setType(Arrays.asList("video"));
-	    search.setOrder("viewCount");
-	    search.setMaxResults(5L);
-	    search.setChannelId(channelId);
-
-	    SearchListResponse searchResponse = search.execute();
 	    List<String> videoIds = searchResponse.getItems().stream()
-	                                .map(item -> item.getId().getVideoId())
-	                                .collect(Collectors.toList());
-	    Map<String, VideoStatistics> videoStatsMap = getVideosStatisticsByIds(userId, videoIds);
-
-	    return searchResponse.getItems().stream()
-	            .map(searchResult -> {
-	                Video video = new Video();
-	                video.setId(searchResult.getId().getVideoId());
-
-	                VideoSnippet videoSnippet = new VideoSnippet();
-	                videoSnippet.setChannelId(searchResult.getSnippet().getChannelId());
-	                videoSnippet.setChannelTitle(searchResult.getSnippet().getChannelTitle());
-	                videoSnippet.setDescription(searchResult.getSnippet().getDescription());
-	                videoSnippet.setPublishedAt(searchResult.getSnippet().getPublishedAt());
-	                videoSnippet.setTitle(searchResult.getSnippet().getTitle());
-	                videoSnippet.setThumbnails(searchResult.getSnippet().getThumbnails());
-
-	                video.setSnippet(videoSnippet);
-	                video.setStatistics(videoStatsMap.get(video.getId()));
-
-	                return video;
-	            })
+	            .map(item -> item.getId().getVideoId())
 	            .collect(Collectors.toList());
+
+	    // Convert SearchResult to Video objects
+	    List<Video> videos = searchResponse.getItems().stream()
+	            .map(this::convertSearchResultToVideo)
+	            .collect(Collectors.toList());
+
+	    // Enrich videos with statistics
+	    return enrichVideosWithStats(userId, videos, videoIds);
 	}
     
-	public Map<String, VideoStatistics> getVideosStatisticsByIds(String userId, List<String> videoIds) throws IOException, GeneralSecurityException {
+	private Map<String, VideoStatistics> getVideosStatisticsByIds(String userId, List<String> videoIds) throws IOException, GeneralSecurityException {
         if (videoIds == null || videoIds.isEmpty()) {
             return Collections.emptyMap();
         }
         Credential credential = oAuthService.getCredential(userId);
-        if (credential == null || credential.getAccessToken() == null) {
-            throw new GeneralSecurityException("OAuth 인증이 필요합니다. 사용자(" + userId + ")의 Credential이 유효하지 않습니다.");
-        }
         YouTube youTube = oAuthService.getYouTubeService(credential);
         YouTube.Videos.List request = youTube.videos().list(Arrays.asList("statistics"));
-        request.setId(Arrays.asList(String.join(",", videoIds)));
+        request.setId(videoIds);
         VideoListResponse response = request.execute();
         return response.getItems().stream()
                 .filter(video -> video.getStatistics() != null)
                 .collect(Collectors.toMap(Video::getId, Video::getStatistics));
     }
 	
+	private void updateChannelCache(Channel apiChannel, Optional<YouTubeChannel> optionalCachedChannel) {
+		YouTubeChannel channelToSave = optionalCachedChannel.orElseGet(() -> {
+			YouTubeChannel newChannel = new YouTubeChannel();
+			newChannel.setChannelId(apiChannel.getId());
+			return newChannel;
+		});
+
+		ChannelSnippet snippet = apiChannel.getSnippet();
+		if (snippet != null) {
+			channelToSave.setTitle(snippet.getTitle());
+			channelToSave.setDescription(snippet.getDescription());
+			channelToSave.setChannelCustomUrl(Optional.ofNullable(snippet.getCustomUrl()).orElse("https://www.youtube.com/watch?v=O_FJAhtpryY" + apiChannel.getId()));
+			Optional.ofNullable(snippet.getThumbnails()).map(ThumbnailDetails::getDefault).map(Thumbnail::getUrl).ifPresent(channelToSave::setThumbnailUrl);
+			Optional.ofNullable(snippet.getPublishedAt()).ifPresent(dt -> 
+				channelToSave.setYoutubePublishedAt(LocalDateTime.ofInstant(Instant.ofEpochMilli(dt.getValue()), ZoneOffset.UTC))
+			);
+		}
+
+		ChannelStatistics stats = apiChannel.getStatistics();
+		if (stats != null) {
+			Optional.ofNullable(stats.getViewCount()).ifPresent(v -> channelToSave.setViewCount(v.longValue()));
+			Optional.ofNullable(stats.getSubscriberCount()).ifPresent(s -> channelToSave.setSubscriberCount(s.longValue()));
+			Optional.ofNullable(stats.getVideoCount()).ifPresent(vc -> channelToSave.setVideoCount(vc.longValue()));
+		}
+
+		Optional.ofNullable(apiChannel.getContentDetails()).map(ChannelContentDetails::getRelatedPlaylists).map(RelatedPlaylists::getUploads).ifPresent(channelToSave::setUploadsPlaylistId);
+		
+		youTubeChannelRepository.save(channelToSave);
+	}
 	
 	private ChannelListResponse convertYouTubeChannelToChannelListResponse(YouTubeChannel ytChannel) {
 		Channel channel = new Channel();
 		channel.setId(ytChannel.getChannelId());
+		
 		ChannelSnippet snippet = new ChannelSnippet();
 		snippet.setTitle(ytChannel.getTitle());
 		snippet.setDescription(ytChannel.getDescription());
 		if (ytChannel.getYoutubePublishedAt() != null) {
-            snippet.setPublishedAt(com.google.api.client.util.DateTime.parseRfc3339(ytChannel.getYoutubePublishedAt().toString() + "Z"));
-        }
-		ThumbnailDetails thumbnails = new ThumbnailDetails();
-		Thumbnail defaultThumbnail = new Thumbnail();
-		defaultThumbnail.setUrl(ytChannel.getThumbnailUrl());
-		thumbnails.setDefault(defaultThumbnail);
-		snippet.setThumbnails(thumbnails);
+			long millis = ytChannel.getYoutubePublishedAt().toInstant(ZoneOffset.UTC).toEpochMilli();
+			snippet.setPublishedAt(new com.google.api.client.util.DateTime(millis));
+		}
+		if (ytChannel.getThumbnailUrl() != null) {
+			ThumbnailDetails thumbnails = new ThumbnailDetails();
+			thumbnails.setDefault(new Thumbnail().setUrl(ytChannel.getThumbnailUrl()));
+			snippet.setThumbnails(thumbnails);
+		}
 		channel.setSnippet(snippet);
+
 		ChannelStatistics statistics = new ChannelStatistics();
 		statistics.setViewCount(BigInteger.valueOf(ytChannel.getViewCount()));
 		statistics.setSubscriberCount(BigInteger.valueOf(ytChannel.getSubscriberCount()));
 		statistics.setVideoCount(BigInteger.valueOf(ytChannel.getVideoCount()));
 		channel.setStatistics(statistics);
-		ChannelContentDetails contentDetails = new ChannelContentDetails();
-		RelatedPlaylists relatedPlaylists = new RelatedPlaylists();
-		relatedPlaylists.setUploads(ytChannel.getUploadsPlaylistId());
-		contentDetails.setRelatedPlaylists(relatedPlaylists);
-		channel.setContentDetails(contentDetails);
+
+		if (ytChannel.getUploadsPlaylistId() != null) {
+			ChannelContentDetails contentDetails = new ChannelContentDetails();
+			RelatedPlaylists relatedPlaylists = new RelatedPlaylists();
+			relatedPlaylists.setUploads(ytChannel.getUploadsPlaylistId());
+			contentDetails.setRelatedPlaylists(relatedPlaylists);
+			channel.setContentDetails(contentDetails);
+		}
+
 		ChannelListResponse response = new ChannelListResponse();
-		response.setItems(List.of(channel));
+		response.setItems(Collections.singletonList(channel));
 		return response;
+	}
+
+	private List<Video> enrichVideosWithStats(String userId, List<Video> videos, List<String> videoIds) throws IOException, GeneralSecurityException {
+		Map<String, VideoStatistics> videoStatsMap = getVideosStatisticsByIds(userId, videoIds);
+		videos.forEach(video -> video.setStatistics(videoStatsMap.get(video.getId())));
+		return videos;
+	}
+	
+	private Video convertPlaylistItemToVideo(com.google.api.services.youtube.model.PlaylistItem playlistItem) {
+		Video video = new Video();
+		video.setId(playlistItem.getContentDetails().getVideoId());
+		VideoSnippet snippet = new VideoSnippet();
+		snippet.setChannelId(playlistItem.getSnippet().getChannelId());
+		snippet.setChannelTitle(playlistItem.getSnippet().getChannelTitle());
+		snippet.setDescription(playlistItem.getSnippet().getDescription());
+		snippet.setPublishedAt(playlistItem.getSnippet().getPublishedAt());
+		snippet.setTitle(playlistItem.getSnippet().getTitle());
+		snippet.setThumbnails(playlistItem.getSnippet().getThumbnails());
+		video.setSnippet(snippet);
+		return video;
+	}
+	
+	private Video convertSearchResultToVideo(SearchResult searchResult) {
+	    Video video = new Video();
+	    video.setId(searchResult.getId().getVideoId());
+
+	    SearchResultSnippet searchSnippet = searchResult.getSnippet();
+	    
+	    if (searchSnippet != null) {
+	        VideoSnippet videoSnippet = new VideoSnippet();
+	        videoSnippet.setPublishedAt(searchSnippet.getPublishedAt());
+	        videoSnippet.setChannelId(searchSnippet.getChannelId());
+	        videoSnippet.setTitle(searchSnippet.getTitle());
+	        videoSnippet.setDescription(searchSnippet.getDescription());
+	        videoSnippet.setThumbnails(searchSnippet.getThumbnails());
+	        videoSnippet.setChannelTitle(searchSnippet.getChannelTitle());
+	        
+	        video.setSnippet(videoSnippet);
+	    }
+	    
+	    return video;
 	}
 }
