@@ -1,7 +1,5 @@
 package com.cm.astb.controller;
 
-// [수정] GeminiAnalysisDto는 더 이상 사용하지 않으므로 import를 제거하거나 주석 처리합니다.
-// import com.cm.astb.dto.GeminiAnalysisDto; 
 import com.cm.astb.service.GeminiAnalysisService;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import org.springframework.http.HttpHeaders;
@@ -28,7 +26,7 @@ public class GeminiAnalysisController {
     }
 
     // =================================================================================
-    // =                             채널 분석 엔드포인트 (기존과 동일)                      =
+    // = 채널 분석 엔드포인트 =
     // =================================================================================
     
     @GetMapping("/youtube/channel-analysis")
@@ -48,23 +46,21 @@ public class GeminiAnalysisController {
 
 
     // =================================================================================
-    // =                      영상 분석 엔드포인트 (yt-dlp 방식으로 수정됨)                =
+    // = 영상 분석 엔드포인트 =
     // =================================================================================
     
     /**
-     * [수정] 지정된 유튜브 동영상의 ID를 받아 백엔드에서 직접 스크립트를 추출하고 AI 분석을 수행합니다.
+     * 지정된 유튜브 동영상의 ID를 받아 백엔드에서 직접 스크립트를 추출하고 AI 분석을 수행합니다.
      *
      * @param videoId 분석할 동영상 ID (URL 경로에서 가져옴)
      * @return Map<String, Object> 유튜브 동영상 정보와 AI 분석 결과를 포함하는 JSON
      */
-    @GetMapping("/youtube/video-analysis/{videoId}") // [수정] POST -> GET
+    @GetMapping("/youtube/video-analysis/{videoId}")
     public ResponseEntity<?> getAiVideoAnalysis(
-            @PathVariable String videoId) { // [수정] RequestBody와 userId 파라미터 제거
+            @PathVariable String videoId) {
 
         try {
-            // [수정] 서비스 호출 시 videoId만 전달
             Map<String, Object> aiVideoAnalysisResultMap = aiAnalysisService.analyzeVideoWithAi(videoId);
-
             return ResponseEntity.ok(aiVideoAnalysisResultMap);
 
         } catch (Exception e) {
@@ -72,13 +68,36 @@ public class GeminiAnalysisController {
         }
     }
 
+    // =================================================================================
+    // ✨✨✨ 채널 댓글 AI 분석 엔드포인트 추가 ✨✨✨
+    // =================================================================================
+
+    /**
+     * [신규] 특정 채널의 댓글을 AI로 분석하여 대표 댓글 및 종합 피드백을 제공합니다.
+     * @param channelId 분석할 채널 ID
+     * @param period 분석 기간 ('quarter', 'month' 등)
+     * @return AI가 분석한 댓글 결과 (대표 댓글 리스트, 종합 피드백 문자열)
+     */
+    @GetMapping("/youtube/comment-analysis-ai")
+    public ResponseEntity<?> getAiCommentAnalysisForChannel(
+            @RequestParam String channelId,
+            @RequestParam(required = false, defaultValue = "quarter") String period) { // 기간은 선택적으로
+        try {
+            Map<String, Object> aiCommentAnalysisResult = aiAnalysisService.analyzeChannelCommentsWithAi(channelId, period);
+            return ResponseEntity.ok(aiCommentAnalysisResult);
+        } catch (Exception e) {
+            return handleException(e);
+        }
+    }
+
     // 공용 예외 처리 헬퍼 메소드
     private ResponseEntity<?> handleException(Exception e) {
-        e.printStackTrace();
+        e.printStackTrace(); // 개발 중에는 스택 트레이스 출력
         if (e instanceof IllegalArgumentException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "클라이언트 요청 오류: " + e.getMessage()));
         } else if (e instanceof GoogleJsonResponseException gje) {
+            // YouTube API 할당량 초과 에러 처리
             if (gje.getStatusCode() == HttpStatus.FORBIDDEN.value() && gje.getDetails() != null &&
                 gje.getDetails().getErrors() != null && !gje.getDetails().getErrors().isEmpty() &&
                 "quotaExceeded".equals(gje.getDetails().getErrors().get(0).getReason())) {
@@ -90,7 +109,6 @@ public class GeminiAnalysisController {
         } else if (e instanceof IOException || e instanceof GeneralSecurityException) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "AI 분석 중 백엔드 오류 발생: " + e.getMessage()));
-        // [신규] yt-dlp 프로세스 대기 중 발생할 수 있는 InterruptedException 처리 추가
         } else if (e instanceof InterruptedException) {
              Thread.currentThread().interrupt(); // 스레드 인터럽트 상태를 다시 설정
              return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

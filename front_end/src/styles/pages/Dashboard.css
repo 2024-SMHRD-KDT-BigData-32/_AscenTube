@@ -1,7 +1,51 @@
 /* src/styles/pages/Dashboard.css */
 
 /* ===============================
-    📦 KPI 카드 그리드
+    페이지 공통 스타일
+=============================== */
+.page-section {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.page-section h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 0.75rem;
+}
+
+/* 로딩, 에러, 데이터 없음 공통 메시지 */
+.loading-message, .error-message, .no-data-message {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #4A5568;
+    padding: 3rem 1rem;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-top: 2rem;
+}
+.error-message {
+    color: #e53e3e;
+    font-weight: 600;
+}
+.no-data-message {
+    color: #718096;
+    font-size: 0.95rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+
+/* ===============================
+    📦 KPI 카드 그리드
 =============================== */
 .kpi-grid {
     display: grid;
@@ -40,7 +84,7 @@
 
 
 /* ===============================
-    📝 콘텐츠 성과 분석 섹션
+    📝 콘텐츠 성과 분석 섹션
 =============================== */
 .content-grid {
     display: flex;
@@ -138,24 +182,15 @@
 }
 
 /* ===============================
-    📊 시청자 및 트래픽 분석 섹션
+    📊 시청자 및 트래픽 분석 섹션
 =============================== */
 .audience-analysis-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
 }
-.comment-analysis-full-width {
-    grid-column: span 2; /* 댓글 분석은 가로로 길게 */
-}
-@media (max-width: 1024px) {
-    .audience-analysis-grid,
-    .comment-analysis-full-width {
-        grid-template-columns: 1fr;
-        grid-column: span 1;
-    }
-}
 
+/* stat-box는 공통 */
 .stat-box {
     background: #ffffff;
     padding: 1.25rem;
@@ -175,20 +210,309 @@
 .stat-value { font-weight: 600; color: #1f2937; font-size: 0.875rem; }
 .stat-bar-track { background-color: #e5e7eb; border-radius: 0.375rem; height: 0.5rem; overflow: hidden; }
 .stat-bar-fill { height: 100%; border-radius: 0.375rem; transition: width 1.5s ease-out; }
-.doughnut-chart-container { position: relative; height: 350px; width: 100%; margin: 0 auto; }
 
-/* 댓글 분석 UI 프리뷰 (복원된 스타일) */
-.comment-analysis-container { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 2rem; }
-.comment-chart-container { flex: 1; min-width: 200px; }
-.comment-details-container { flex: 2; min-width: 250px; }
-.representative-comment { background-color: #f9fafb; border-left: 3px solid #6366f1; padding: 0.75rem; margin-bottom: 0.75rem; border-radius: 0 4px 4px 0; }
-.representative-comment p { margin: 0 0 0.25rem 0; font-size: 0.9rem; color: #374151; }
-.representative-comment span { font-size: 0.8rem; font-weight: bold; color: #4f46e5; }
-.section-subtitle { font-size: 0.75rem; color: #6b7280; font-weight: normal; }
+
+/* ✨✨✨ 주요 트래픽 소스 (세로 막대 그래프) 디자인 변경 ✨✨✨ */
+.traffic-sources-bar-chart-container { /* 새로운 클래스명 */
+    grid-column: span 2; /* 전체 너비를 차지하도록 변경 */
+    min-height: 350px; /* 차트를 위한 적절한 높이 설정 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.traffic-sources-bar-chart-container .bar-chart-full-width {
+    width: 100%;
+    height: 100%;
+    max-height: 350px; /* 차트의 최대 높이 */
+}
 
 
 /* ===============================
-    🩺 채널 건강 진단 섹션
+    💬 댓글 유형 분석 섹션 디자인 개선
+=============================== */
+.comment-analysis-section { /* 클래스명 변경 */
+    grid-column: span 2; /* 항상 2컬럼을 차지하도록 */
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    border: 1px solid #f3f4f6;
+}
+
+.comment-analysis-section h4 {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    color: #2d3748;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.comment-analysis-section h4 .section-subtitle {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: normal;
+}
+
+.comment-content-wrapper {
+    display: flex;
+    gap: 1.5rem; /* 컬럼 간 간격 줄임 */
+    align-items: stretch; /* ✨ 중요: 자식 요소들의 높이를 일치시킴 */
+    flex-wrap: wrap; /* 반응형을 위해 wrap 허용 */
+}
+
+.comment-charts-column {
+    flex: 1; /* 가용 공간의 1만큼 차지 */
+    min-width: 250px; /* 최소 너비 */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* 차트 박스 간 간격 */
+}
+
+.comment-chart-box {
+    background-color: #f8fafc; /* 차트 박스 배경색 */
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e0e7eb;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* 약간의 내부 그림자 */
+    height: 50%; /* ✨ 중요: 두 차트가 각각 50% 높이를 차지하도록 */
+    display: flex;
+    flex-direction: column;
+}
+.comment-chart-box h5 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+/* AnalysisChart 자체는 flex-grow를 가질 수 있도록 */
+.comment-chart-box .bar-chart-list {
+    flex-grow: 1; /* 차트 내용이 남은 공간을 채우도록 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+/* AnalysisChart (가로 막대 리스트) 공통 스타일 */
+.bar-chart-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.bar-chart-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.6rem;
+    font-size: 0.85rem;
+}
+.bar-chart-list li:last-child {
+    margin-bottom: 0;
+}
+.bar-chart-list .label {
+    flex-basis: 70px; /* 라벨 너비 고정 */
+    flex-shrink: 0;
+    color: #4a5568;
+    font-weight: 500;
+    text-align: right;
+    padding-right: 10px;
+}
+.bar-chart-list .bar-wrapper {
+    flex-grow: 1;
+    background-color: #e2e8f0;
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+    margin-right: 10px;
+}
+.bar-chart-list .bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1.5s ease-out;
+}
+.bar-chart-list .value {
+    flex-basis: 40px; /* 값 너비 고정 */
+    flex-shrink: 0;
+    font-weight: 600;
+    color: #2d3748;
+    text-align: left;
+}
+
+/* Sentiment specific bar colors */
+.bar-chart-list .sentiment-positive { background-color: #48bb78; } /* Tailwind green-500 */
+.bar-chart-list .sentiment-neutral { background-color: #ecc94b; } /* Tailwind yellow-500 */
+.bar-chart-list .sentiment-negative { background-color: #f56565; } /* Tailwind red-500 */
+
+/* Speech act specific bar colors (예시) */
+.bar-chart-list .cat-praise { background-color: #5a67d8; } /* Indigo */
+.bar-chart-list .cat-criticism { background-color: #e53e3e; } /* Red */
+.bar-chart-list .cat-info { background-color: #38b2ac; } /* Teal */
+.bar-chart-list .cat-question { background-color: #ed8936; } /* Orange */
+.bar-chart-list .cat-emotion { background-color: #9f7aea; } /* Purple */
+.bar-chart-list .cat-request { background-color: #ed64a6; } /* Pink */
+.bar-chart-list .cat-etc { background-color: #a0aec0; } /* Gray */
+
+
+.comment-details-column {
+    flex: 2; /* 가용 공간의 2만큼 차지 */
+    min-width: 320px; /* 최소 너비 */
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    gap: 1rem; /* 요소 간 간격 */
+}
+.comment-details-column .details-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-top: 0.5rem;
+    margin-bottom: 0.8rem;
+    padding-bottom: 5px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+
+.representative-comments-list {
+    flex-grow: 1; /* ✨ 중요: 대표 댓글 리스트가 가능한 많은 공간을 차지하도록 */
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem; /* 댓글 카드 간 간격 */
+    justify-content: flex-start; /* ✨ 중요: 아이템들을 상단에 배치 (높이 맞춤에 기여) */
+}
+
+.representative-comment-card { /* 새로운 대표 댓글 카드 디자인 */
+    background-color: #eff6ff; /* 약간 하늘색 배경 */
+    border-left: 4px solid #4299e1; /* 파란색 좌측 테두리 */
+    padding: 1rem;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    flex-shrink: 0; /* ✨ 중요: 카드가 내용에 따라 줄어들지 않도록 */
+}
+.representative-comment-card .comment-text {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: #2d3748;
+    line-height: 1.5;
+    font-style: italic; /* 인용문 느낌 */
+}
+.representative-comment-card .comment-labels {
+    display: flex;
+    flex-wrap: wrap; /* 라벨이 많을 경우 줄 바꿈 */
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.representative-comment-card .comment-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px; /* Pill 형태 */
+    color: white;
+    text-shadow: 0 0 2px rgba(0,0,0,0.3);
+}
+
+/* 대표 댓글 라벨 색상 */
+.comment-label.sentiment-positive { background-color: #48bb78; } /* Green */
+.comment-label.sentiment-neutral { background-color: #ecc94b; } /* Yellow */
+.comment-label.sentiment-negative { background-color: #f56565; } /* Red */
+.comment-label.type-praise { background-color: #5a67d8; } /* Indigo */
+.comment-label.type-criticism { background-color: #e53e3e; } /* Red */
+.comment-label.type-info { background-color: #38b2ac; } /* Teal */
+.comment-label.type-question { background-color: #ed8936; } /* Orange */
+.comment-label.type-emotion { background-color: #9f7aea; } /* Purple */
+.comment-label.type-request { background-color: #ed64a6; } /* Pink */
+.comment-label.type-etc { background-color: #a0aec0; } /* Gray */
+
+
+.ai-overall-feedback-box { /* AI 종합 피드백 박스 디자인 */
+    background-color: #f0f4ff; /* 좀 더 강조되는 배경색 */
+    border: 1px solid #a7c5ff; /* 부드러운 테두리 */
+    padding: 1.25rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    font-size: 0.95rem;
+    color: #2d3748;
+    line-height: 1.6;
+    flex-grow: 1.5; /* ✨ 중요: 남은 세로 공간을 대표 댓글보다 더 많이 차지하도록 (조정 가능) */
+    display: flex; /* 내부 텍스트도 세로 정렬 가능 */
+    align-items: center; /* 텍스트를 세로 중앙에 배치 (선택 사항) */
+    justify-content: center; /* 텍스트를 가로 중앙에 배치 (선택 사항) */
+    text-align: center; /* 텍스트 정렬 */
+    margin-top: 1rem; /* 대표 댓글 리스트와 간격 */
+}
+.ai-overall-feedback-box p {
+    margin: 0;
+}
+
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) { /* 더 넓은 화면에서 댓글 분석 레이아웃 조정 */
+    .comment-content-wrapper {
+        flex-direction: column; /* 컬럼 형태로 변경 */
+    }
+    .comment-charts-column,
+    .comment-details-column {
+        min-width: unset; /* 최소 너비 제한 해제 */
+        width: 100%; /* 너비를 100%로 설정 */
+    }
+    .comment-charts-column {
+        flex-direction: row; /* 차트 박스들을 가로로 나열 */
+        flex-wrap: wrap; /* 필요시 줄 바꿈 */
+        justify-content: center; /* 차트 중앙 정렬 */
+    }
+    .comment-chart-box {
+        flex: 1; /* 차트 박스들이 유연하게 공간 차지 */
+        min-width: 250px; /* 각 차트 박스의 최소 너비 */
+        height: auto; /* 높이 고정 해제 */
+    }
+    .representative-comments-list {
+        flex-grow: unset; /* 더 이상 세로 공간 채우지 않음 */
+    }
+    .ai-overall-feedback-box {
+        flex-grow: unset; /* 더 이상 세로 공간 채우지 않음 */
+        height: auto; /* 높이 고정 해제 */
+        margin-top: 1.5rem; /* 모바일에서 간격 재조정 */
+    }
+}
+
+@media (max-width: 1024px) { /* 태블릿 세로 및 일부 데스크탑 */
+    .audience-analysis-grid {
+        grid-template-columns: 1fr; /* 모든 컬럼 1개로 변경 */
+    }
+    .comment-analysis-section,
+    .traffic-sources-bar-chart-container { /* 트래픽 차트도 한 컬럼으로 */
+        grid-column: span 1; /* 1컬럼으로 변경 */
+    }
+    .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 768px) { /* 모바일 */
+    .page-section {
+        padding: 1.25rem;
+    }
+    .page-section h2 {
+        font-size: 1.5rem;
+    }
+    .kpi-card h3 {
+        font-size: 0.9rem;
+    }
+    .kpi-card p {
+        font-size: 1.75rem;
+    }
+    .content-box h4, .stat-box h4, .comment-analysis-section h4 {
+        font-size: 1rem;
+    }
+    .comment-charts-column {
+        flex-direction: column; /* 모바일에서 다시 차트 컬럼 세로 정렬 */
+    }
+    .comment-chart-box {
+        min-width: unset;
+        width: 100%;
+        height: auto;
+    }
+}
+
+/* ===============================
+    🩺 채널 건강 진단 섹션
 =============================== */
 .channel-health-container { display: flex; flex-wrap: wrap; gap: 2rem; align-items: center; }
 .radar-chart-panel { flex: 1; min-width: 320px; height: 400px; }
@@ -205,9 +529,3 @@
 .analysis-insight-list { display: flex; flex-direction: column; gap: 1rem; }
 .analysis-insight-item { font-size: 0.95rem; line-height: 1.6; color: #334155; padding-left: 1rem; border-left: 3px solid #cbd5e0; }
 .analysis-insight-item strong { font-weight: 700; color: #4338ca; }
-
-/* 로딩, 에러, 데이터 없음 공통 메시지 */
-.loading-message, .error-message, .no-data-message {
-    text-align: center; font-size: 1rem; color: #4A5568; padding: 3rem 1rem;
-}
-.error-message { color: #c53030; }
