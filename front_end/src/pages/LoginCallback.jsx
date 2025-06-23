@@ -1,16 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const LoginCallback = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    const [message, setMessage] = useState('로그인 처리 중입니다...');
+    const [isError, setIsError] = useState(false);
+
     useEffect(() => {
         console.log('LoginCallback location.search:', location.search);
 
         const params = new URLSearchParams(location.search);
 
-        // ✨✨✨ 모든 파라미터 선언을 한 번에 깔끔하게 정리합니다. ✨✨✨
         const jwtToken = params.get('jwtToken');
         const googleId = params.get('googleId'); // 백엔드에서 'googleId'로 보내는 값
         const userGoogleId = params.get('userGoogleId'); // 백엔드에서 'userGoogleId'로 보내는 값
@@ -19,7 +21,6 @@ const LoginCallback = () => {
         const userThumbnailUrl = params.get('userThumbnailUrl');
         const userChannelName = params.get('userChannelName');
 
-        // ✨✨✨ 핵심 수정: 백엔드가 보내는 'userChannelId' 파라미터를 정확히 파싱합니다. ✨✨✨
         const youtubeChannelIdFromBackend = params.get('userChannelId'); 
         
         const error = params.get('error');
@@ -36,10 +37,26 @@ const LoginCallback = () => {
         console.log('Parsed error:', error);
 
         if (error) {
-            console.error('Login Callback Error from backend: ', error);
-            alert('로그인 처리 중 오류가 발생했습니다. 다시 시도해주세요. (오류: ' + error + ')');
-            navigate('/login');
-            return;
+            setIsError(true);
+            let errorMessage = '로그인 중 알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+
+            if (error === 'login_canceled_or_failed') {
+                errorMessage = 'Google 로그인 과정이 취소되었거나 실패했습니다.';
+            } else if (error === 'malformed_callback_request') {
+                errorMessage = '잘못된 로그인 요청입니다.';
+            } else if (error === 'login_failed') {
+                errorMessage = '로그인 처리 중 서버 오류가 발생했습니다.'; // 백엔드에서 'login_failed'로 보낼 수 있는 일반적인 오류
+            }
+            // 백엔드에서 보낼 수 있는 다른 'error' 코드들도 여기에 추가하여 메시지 커스터마이징 가능
+
+            setMessage(errorMessage + ' 서비스 메인 화면으로 돌아갑니다.');
+
+            // 오류 발생 시 서비스 맨 처음 화면으로 바로 리다이렉트
+            setTimeout(() => {
+                navigate('/login'); // 서비스의 맨 처음 화면 또는 로그인 페이지 경로
+            }, 0); // 2초 후 리다이렉트 (사용자가 메시지를 읽을 시간 제공)
+
+            return; // 이후 로직 실행 방지
         }
 
         const finalGoogleId = googleId || userGoogleId; // 둘 중 하나라도 있으면 사용
@@ -56,7 +73,6 @@ const LoginCallback = () => {
             if (userChannelName) {
                 localStorage.setItem('user_channel_name', userChannelName);
             }
-            // ✨✨✨ 핵심 수정: 파싱한 youtubeChannelIdFromBackend 값을 localStorage에 저장 ✨✨✨
             if (youtubeChannelIdFromBackend) {
                 localStorage.setItem('user_youtube_channel_id', youtubeChannelIdFromBackend);
             } else {
@@ -77,7 +93,7 @@ const LoginCallback = () => {
                 userEmail,
                 userThumbnailUrl,
                 userChannelName,
-                youtubeChannelIdFromBackend // ✨ 로깅 메시지 변경
+                youtubeChannelIdFromBackend
             });
             alert('로그인 정보가 완전하지 않습니다. 다시 시도해주세요.');
             navigate('/login');
