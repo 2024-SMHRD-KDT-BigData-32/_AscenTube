@@ -73,7 +73,6 @@ const TopBar = ({ onToggleSidebar }) => {
   }, []);
 
   const handleLogout = () => {
-    // (로그아웃 로직 - 기존과 동일)
     Object.keys(localStorage).forEach(key => {
         if (key.startsWith('google_') || key.startsWith('user_') || key.startsWith('vidAnalysis_') || key === 'access_token' || key === 'token') {
             localStorage.removeItem(key);
@@ -129,8 +128,8 @@ const TopBar = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* --- 4. 검색창 UI 및 로직 연결 --- */}
-      <div className="topbar-center" ref={searchContainerRef}>
+      {/* ▼▼▼ [수정됨] 검색창 섹션 ▼▼▼ */}
+      <div className="topbar-center">
         <div className="topbar-search-container">
           <input 
             type="search" 
