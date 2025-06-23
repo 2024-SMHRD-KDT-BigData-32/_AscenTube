@@ -9,7 +9,14 @@ import { fetchDashboardData } from '../api/dashboardApi';
 
 const NoDataMessage = () => <div className="no-data-message">데이터가 없습니다.</div>;
 
-// 'getTagStyle' 헬퍼 함수는 WordCloudBox를 사용하므로 더 이상 필요하지 않습니다.
+// 제목이 길 경우 자르고 '...'을 붙이는 헬퍼 함수
+// 이곳에 추가하거나, Contents.jsx에 있는 to2line 함수를 재사용할 수 있습니다.
+// 여기서는 Keyword 페이지에 맞게 새롭게 정의합니다.
+const truncateTitle = (title, maxLength = 30) => { // 기본 30자로 설정, 필요에 따라 조절
+    if (!title) return '';
+    return title.length > maxLength ? `${title.slice(0, maxLength)}...` : title;
+};
+
 
 const Keyword = () => {
     const [channelKeywords, setChannelKeywords] = useState([]);
@@ -61,7 +68,6 @@ const Keyword = () => {
         loadPageData();
     }, []);
 
-    // min/max 계산 로직은 WordCloudBox 내부에서 처리하므로 여기서는 필요 없습니다.
 
     if (loading) {
         return <PageLayout title="키워드 분석"><h2>데이터 로딩 중...</h2></PageLayout>;
@@ -83,15 +89,26 @@ const Keyword = () => {
             {/* 섹션 2: 연관 인기 동영상 */}
             <section className="page-section">
                 <h2>연관 인기 동영상</h2>
-                <div className="list-box video-list-box">
+                {/* 썸네일 크기 조절을 위해 list-box에 새로운 클래스를 추가하거나,
+                    관련 CSS를 직접 수정해야 합니다. 여기서는 새로운 클래스 추가를 가정합니다.
+                    예: "video-list-box video-list-box--compact"
+                    실제 CSS 파일 (Keyword.css)에 이 클래스에 대한 정의가 필요합니다.
+                */}
+                <div className="list-box video-list-box video-list-box--compact"> {/* ✨새로운 클래스 추가: video-list-box--compact✨ */}
                     {relatedVideos.length > 0 ? (
                         relatedVideos.map(video => (
                             <a key={video.id} className="list-card video-card" href={video.hreflink} target="_blank" rel="noopener noreferrer">
-                                <div className="video-thumbnail-container">
+                                {/* ✨썸네일 컨테이너 크기 조절을 위한 인라인 스타일 또는 클래스 변경을 고려✨ */}
+                                {/* 썸네일 이미지 자체의 해상도 문제는 백엔드에서 더 고화질의 썸네일을 제공하거나,
+                                    CSS의 object-fit: cover; 등으로 최대한 커버해야 합니다.
+                                    여기서는 단순히 컨테이너와 이미지의 표시 크기를 줄입니다.
+                                */}
+                                <div className="video-thumbnail-container video-thumbnail-container--compact"> {/* ✨새로운 클래스 추가: video-thumbnail-container--compact✨ */}
                                     <img src={video.thumbnailUrl} alt={video.title} className="video-thumbnail-image" />
                                 </div>
                                 <div className="list-card-content">
-                                    <h4 className="list-card-title">{video.title}</h4>
+                                    {/* ✨truncateTitle 함수를 적용하여 긴 제목을 자릅니다.✨ */}
+                                    <h4 className="list-card-title">{truncateTitle(video.title)}</h4>
                                     <p className="list-card-meta">{video.channel}</p>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem' }}>
                                         <p className="list-card-meta secondary">
@@ -121,7 +138,8 @@ const Keyword = () => {
                             <li key={item.video.id} className="representative-video-item">
                                 <span className="rep-keyword-tag">#{item.keyword}</span>
                                 <div className="rep-video-info">
-                                    <span className="title" title={item.video.title}>{item.video.title}</span>
+                                    {/* ✨truncateTitle 함수를 적용하여 긴 제목을 자릅니다.✨ */}
+                                    <span className="title" title={item.video.title}>{truncateTitle(item.video.title)}</span>
                                     <span className="performance">
                                         성과: <span className="metric-value">{item.performance}</span>
                                     </span>

@@ -10,6 +10,8 @@ const translateSourceType = (sourceType) => {
     const types = { 'SUBSCRIBER': '구독', 'YT_CHANNEL': 'YouTube 채널', 'YT_SEARCH': 'YouTube 검색', 'SHORTS': 'Shorts 피드', 'EXT_URL': '외부 소스', 'YT_OTHER_PAGE': '기타 YouTube 기능', 'PLAYLIST': '재생목록', 'NOTIFICATION': '알림', 'NO_LINK_OTHER': '직접/알수없음' };
     return types[sourceType] || sourceType;
 };
+
+// fetchApiData 함수는 그대로 유지됩니다.
 const fetchApiData = async (url, options, emptyState) => {
     try {
         const response = await fetch(url, options);
@@ -38,6 +40,8 @@ export const fetchDashboardData = async () => {
     const emptyStates = {
         summary: { totalSubscribers: 0, totalViews: 0, averageWatchTime: "0:00", totalVideos: 0, averageUploadInterval: "N/A" },
         audienceSummary: { genderRatio: [], ageGroupDistribution: [], countryViewers: [], trafficSources: [] },
+        // ✨✨✨ AI 댓글 분석을 위한 기본 emptyState 추가 ✨✨✨
+        aiCommentAnalysis: { aiRepresentativeComments: [], aiOverallFeedback: "AI 분석 결과가 없습니다." }
     };
 
     const [
@@ -46,13 +50,16 @@ export const fetchDashboardData = async () => {
         topAvgWatchTimeRes,
         summaryRes,
         audienceSummaryRes,
+        // ✨✨✨ AI 댓글 분석 API 호출 추가 ✨✨✨
+        aiCommentAnalysisRes, 
     ] = await Promise.allSettled([
         fetchApiData(`${baseApiUrl}/channel/my-channel/latest-video-performance?${queryParams({ limit: 3 })}`, { headers: commonHeaders }, []),
         fetchApiData(`${baseApiUrl}/channel/my-channel/top-sub-contribution?${queryParams({ limit: 3 })}`, { headers: commonHeaders }, []),
-        // ✨✨✨ 핵심 수정: limit=3 을 limit=5 로 변경하여 5개의 데이터를 가져옵니다. ✨✨✨
         fetchApiData(`${baseApiUrl}/channel/my-channel/top-avg-watch-time?${queryParams({ limit: 5 })}`, { headers: commonHeaders }, []),
         fetchApiData(`${baseApiUrl}/channel/my-channel/key-metrics?${queryParams()}`, { headers: commonHeaders }, emptyStates.summary),
         fetchApiData(`${baseApiUrl}/channel/my-channel/dashboard-summary?${queryParams()}`, { headers: commonHeaders }, emptyStates.audienceSummary),
+        // ✨✨✨ 새로 추가된 백엔드 AI 댓글 분석 엔드포인트 호출 (기간은 'quarter'로 고정) ✨✨✨
+        fetchApiData(`${baseApiUrl}/api/ai/youtube/comment-analysis-ai?${queryParams({ period: 'quarter' })}`, { headers: commonHeaders }, emptyStates.aiCommentAnalysis),
     ]);
 
     const getValue = (response, defaultState) => response.status === 'fulfilled' ? response.value : defaultState;
@@ -62,6 +69,8 @@ export const fetchDashboardData = async () => {
     const topViewDurationVideosData = getValue(topAvgWatchTimeRes, []);
     const summaryData = getValue(summaryRes, emptyStates.summary);
     const audienceSummaryData = getValue(audienceSummaryRes, emptyStates.audienceSummary);
+    // ✨✨✨ AI 댓글 분석 결과 데이터 가져오기 ✨✨✨
+    const aiCommentAnalysisData = getValue(aiCommentAnalysisRes, emptyStates.aiCommentAnalysis);
     
     const recentVideos = recentVideosData.map(v => ({ id: v.videoKey, title: v.videoTitle || '제목 없음', views: v.viewCount || 0, avgDuration: formatAverageWatchTime(v.avgWatchTime), likes: v.likeCount || 0, comments: v.commentCount || 0, newSubs: v.subscriberGained || 0, }));
     const topSubscriberVideos = topSubscriberVideosData.map(v => ({ id: v.videoKey, title: v.videoTitle || '제목 없음', views: v.viewCount || 0, newSubs: v.subscriberGained || 0, }));
@@ -72,10 +81,13 @@ export const fetchDashboardData = async () => {
         age: audienceSummaryData.ageGroupDistribution?.reduce((acc, curr) => { acc[curr.ageGroup] = curr.percentage; return acc; }, {}) || null,
         country: audienceSummaryData.countryViewers?.reduce((acc, curr) => { acc[curr.country] = curr.percentage; return acc; }, {}) || null,
         trafficSources: { labels: audienceSummaryData.trafficSources?.map(item => translateSourceType(item.sourceType)) || [], data: audienceSummaryData.trafficSources?.map(item => item.percentage) || [] },
-        commentSentiment: {},
+        commentSentiment: {}, // 이 필드는 대시보드에서 직접 사용되지 않지만, 기존 구조 유지를 위해 남겨둡니다.
+        // ✨✨✨ AI 댓글 분석 결과를 audience 객체에 추가 ✨✨✨
+        aiRepresentativeComments: aiCommentAnalysisData.aiRepresentativeComments || [],
+        aiOverallFeedback: aiCommentAnalysisData.aiOverallFeedback || "AI 분석 결과를 불러오지 못했습니다.",
     };
 
-    // 레이더 차트 데이터 계산 로직 (생략)
+    // 레이더 차트 데이터 계산 로직 (생략 - 기존과 동일)
     const calculateRadarScores = () => { /* ... 기존 로직과 동일 ... */ 
         const topSubGain = topSubscriberVideosData[0]?.subscriberGained || 0;
         const growthTarget = Math.max(stats.subscriberCount * 0.001, 10);
@@ -107,5 +119,7 @@ export const fetchDashboardData = async () => {
         stats,
         audience,
         radarData,
+        // ✨✨✨ AI 댓글 분석 결과를 최상위 레벨에도 포함하여 Dashboard 컴포넌트에서 쉽게 접근하도록 합니다. ✨✨✨
+        aiCommentAnalysis: aiCommentAnalysisData
     };
 };

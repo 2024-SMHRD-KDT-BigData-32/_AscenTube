@@ -48,7 +48,7 @@
 
 /* 🎨 긍부정 분석 색상 정의 */
 .bar.sentiment-positive { background-color: #22c55e; }
-.bar.sentiment-neutral  { background-color: #f59e0b; }
+.bar.sentiment-neutral  { background-color: #f59e0b; }
 .bar.sentiment-negative { background-color: #ef4444; }
 
 /* [추가] 긍부정 태그 색상 */
@@ -168,36 +168,69 @@
 /* ===============================
     📝 댓글 리스트 (수정)
 =============================== */
-.comment-list { display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; list-style: none; padding: 0; margin: 0; }
-.comment-list li { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding: 1rem; border: 1px solid #f3f4f6; border-radius: 8px; }
-.comment-list li:last-child { border-bottom: 1px solid #f3f4f6; }
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.comment-list li {
+    display: flex;
+    flex-direction: column; /* ✨ 변경: 자식 요소들을 세로로 정렬 (태그 -> 본문 -> 좋아요 수) ✨ */
+    gap: 0.5rem; /* ✨ 변경: 태그와 본문, 본문과 좋아요 수 사이 간격 조절 ✨ */
+    align-items: flex-start; /* ✨ 변경: 내용을 왼쪽으로 정렬 ✨ */
+    padding: 1rem;
+    border: 1px solid #f3f4f6;
+    border-radius: 8px;
+    background-color: #fff; /* 배경색 추가 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 약간의 그림자 추가 */
+}
 
 /* [추가] 태그들을 담는 컨테이너 */
 .comment-tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    /* margin-bottom은 li의 gap으로 대체되므로 필요 시 조절 */
 }
-.tag { font-weight: 600; flex-shrink: 0; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.75rem; }
+.tag {
+    font-weight: 600;
+    flex-shrink: 0;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
 
 /* [추가] 댓글 본문 컨테이너 (좋아요 많은 댓글용) */
 .comment-body {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    width: 100%; /* ✨ 추가: 부모 너비를 차지하도록 설정 ✨ */
 }
 
 /* 최신 댓글 리스트 li 내부 p태그 재정의 */
-.comment-list .comment-body p,
-.grid-2-col > .page-section:first-child .comment-list li > p {
+/* .comment-list .comment-body p는 이제 .comment-body가 flex-direction: column이므로 p 자체에 직접적인 width 설정보다,
+   .comment-body가 100%를 차지하게 하는 것이 좋습니다. */
+.comment-list .comment-body p {
     margin: 0;
     line-height: 1.5;
     color: #374151;
-    width: 100%;
+    /* width: 100%; 이 속성은 이제 .comment-body에 의해 관리됩니다. */
 }
 
-.like-count { font-weight: 600; color: #4f46e5; flex-shrink: 0; white-space: nowrap; }
+.like-count {
+    font-weight: 600;
+    color: #4f46e5;
+    flex-shrink: 0;
+    white-space: nowrap;
+    align-self: flex-end; /* ✨ 추가: 좋아요 수를 오른쪽으로 정렬 ✨ */
+    margin-top: 0.5rem; /* ✨ 추가: 본문과 좋아요 수 사이 간격 ✨ */
+}
 
 
 /* ===============================
