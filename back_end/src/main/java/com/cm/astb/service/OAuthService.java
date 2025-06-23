@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.cm.astb.config.GoogleApiConfig;
+import com.cm.astb.dto.UserLoginResultDto;
 import com.cm.astb.entity.User;
 import com.cm.astb.security.GoogleCredentialDataStoreFactory;
 import com.google.api.client.auth.oauth2.Credential;
@@ -79,7 +80,6 @@ public class OAuthService {
 		GoogleTokenResponse response = flowWithAllScopes.newTokenRequest(code)
 				.setRedirectUri(googleApiConfig.getRedirectUri())
 				.execute();
-		System.out.println("Full GoogleTokenResponse: " + response.toPrettyString());
 
 		String idTokenStr = response.getIdToken();
 		GoogleIdToken idToken = null;
@@ -108,8 +108,10 @@ public class OAuthService {
 			System.err.println("ID Token string is null in OAuthService for code: " + code + ". Cannot extract user ID from ID Token.");
 		}
 
-		User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken());
-
+		UserLoginResultDto userLoginResult = userService.findOrCreateUser(googleId, email, nickname, profileImg, response.getRefreshToken()); // <--- 호출 변경
+        User user = userLoginResult.getUser();
+        boolean isNewUser = userLoginResult.isNewUser();
+		
 		Credential credential = flowWithAllScopes.createAndStoreCredential(response, user.getGoogleId());
 
         Map<String, Object> result = new HashMap<>();
@@ -117,6 +119,7 @@ public class OAuthService {
         result.put("idToken", idToken);
         result.put("googleUserId", googleId);
         result.put("user", user);
+        result.put("isNewUser", isNewUser);
 
         return result;
 	}

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.cm.astb.dto.UserLoginResultDto;
 import com.cm.astb.entity.User;
 import com.cm.astb.service.UserService;
 
@@ -52,8 +53,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             getRedirectStrategy().sendRedirect(request, response, errorTargetUrl);
             return;
         }
-
-        User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, null);
+        
+        UserLoginResultDto userLoginResult = userService.findOrCreateUser(googleId, email, nickname, profileImg, null);
+        User user = userLoginResult.getUser();
         log.info("DB에서 사용자 정보 처리 완료: {}", user.getGoogleId());
 
         String jwtToken = jwtTokenProvider.generateToken(user);

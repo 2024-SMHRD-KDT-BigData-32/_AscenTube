@@ -422,4 +422,38 @@ public class YoutubeAnalyticsService {
 	    logger.debug("YouTube Analytics Response (Channel Device Analytics for {}): {}", channelId, response.toPrettyString());
 	    return response;
 	}
+	
+	/**
+     * 채널의 누적 총 시청 시간(분)을 가져오는 메서드.
+     * @param googleId API 호출에 사용할 사용자 Google ID
+     * @param startDate 시작 날짜 (YYYY-MM-DD)
+     * @param endDate   종료 날짜 (YYYY-MM-DD)
+     * @param channelId 채널 ID
+     * @return QueryResponse 객체 (rows[0][0]에 누적 분이 포함)
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    public QueryResponse getChannelCumulativeWatchTime(String googleId, String startDate, String endDate, String channelId) throws IOException, GeneralSecurityException {
+        logger.info("Fetching cumulative estimated minutes watched for channel: {}, from {} to {}", channelId, startDate, endDate);
+
+        Credential credential = oAuthService.getCredential(googleId);
+        if (credential == null) {
+            logger.error("Credential is null for user {}", googleId);
+            throw new GeneralSecurityException("Credential not found or invalid for user: " + googleId);
+        }
+
+        YouTubeAnalytics youtubeAnalytics = oAuthService.getYouTubeAnalyticsService(credential);
+        
+        YouTubeAnalytics.Reports.Query query = youtubeAnalytics.reports()
+            .query()
+            .setIds("channel==" + channelId) // 특정 채널 ID 사용
+            .setStartDate(startDate)
+            .setEndDate(endDate)
+            .setMetrics("estimatedMinutesWatched"); // 누적 시청 시간 (분)
+            // dimensions는 사용하지 않아 전체 기간 합산 값을 가져옵니다.
+
+        QueryResponse response = query.execute();
+        logger.debug("YouTube Analytics Response (Cumulative Watch Time for {}): {}", channelId, response.toPrettyString());
+        return response;
+    }
 }
