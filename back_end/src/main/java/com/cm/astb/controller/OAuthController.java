@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import com.cm.astb.config.GoogleApiConfig;
 import com.cm.astb.entity.User;
 import com.cm.astb.security.JwtTokenProvider;
+import com.cm.astb.service.DataCollectorService;
 import com.cm.astb.service.OAuthService;
 import com.cm.astb.service.UserService;
 import com.google.api.client.auth.oauth2.Credential;
@@ -34,21 +37,26 @@ import com.google.api.services.youtube.model.ChannelListResponse;
 @RestController
 @RequestMapping("/oauth")
 public class OAuthController {
+	private static final Logger logger = LoggerFactory.getLogger(OAuthController.class);
+	
 	private final OAuthService oAuthService;
 	private final GoogleApiConfig googleApiConfig;
 	private final NetHttpTransport httpTransport;
 	private final GsonFactory jsonFactory;
 	private final UserService userService;
+	private final DataCollectorService dataCollectorService;
 	private final JwtTokenProvider jwtTokenProvider;
 
-	public OAuthController(OAuthService oAuthService, GoogleApiConfig googleApiConfig,
-			NetHttpTransport httpTransport, GsonFactory jsonFactory,
-			UserService userService, JwtTokenProvider jwtTokenProvider) {
+	public OAuthController(OAuthService oAuthService, GoogleApiConfig googleApiConfig, NetHttpTransport httpTransport,
+			GsonFactory jsonFactory, UserService userService, DataCollectorService dataCollectorService,
+			JwtTokenProvider jwtTokenProvider) {
+		super();
 		this.oAuthService = oAuthService;
 		this.googleApiConfig = googleApiConfig;
 		this.httpTransport = httpTransport;
 		this.jsonFactory = jsonFactory;
 		this.userService = userService;
+		this.dataCollectorService = dataCollectorService;
 		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
@@ -76,6 +84,8 @@ public class OAuthController {
 			Credential credential = (Credential) googleTokenResponse.get("credential");
 			GoogleIdToken idToken = (GoogleIdToken) googleTokenResponse.get("idToken");
 			User user = (User) googleTokenResponse.get("user");
+            boolean isNewUser = (boolean) googleTokenResponse.get("isNewUser");
+			
 			if (idToken != null) {
 				GoogleIdToken.Payload payload = idToken.getPayload();	// payload(사용자 정보)
 
@@ -89,24 +99,33 @@ public class OAuthController {
 				throw new IllegalArgumentException("Invalid ID Token received from Google callback.");
 			}
 
-
 			if (googleId == null || email == null) {
 				throw new IllegalStateException("Critical user information (Google ID or Email) is missing after ID Token parsing");
 			}
+			
 			YouTube youTube = new YouTube.Builder(httpTransport, jsonFactory, credential)
 					.build();
 			ChannelListResponse channelListResponse = youTube.channels().list(Arrays.asList("snippet"))
 					.setMine(true)
 					.execute();
+			
 			List<Channel> channels = channelListResponse.getItems();
 			if (channels != null && !channels.isEmpty()) {
 				channelName = channels.get(0).getSnippet().getTitle();
 				channelId = channels.get(0).getId();
+				userService.updateUserChannelId(googleId, channelId);
 			} else {
 				System.out.println("No YouTube Channel found for this user");
 			}
-
-//			User user = userService.findOrCreateUser(googleId, email, nickname, profileImg, credential.getRefreshToken());
+			
+			if (isNewUser && channelId != null && !channelId.isEmpty()) {
+                logger.info("User {} is a new user with channel {}. Triggering immediate data collection.", googleId, channelId);
+                dataCollectorService.collectDataForSingleUser(googleId);
+            } else if (!isNewUser) {
+                logger.info("User {} is an existing user. Skipping immediate data collection (handled by daily scheduler).", googleId);
+            } else {
+                logger.warn("New user {} found but no channel ID available. Skipping immediate data collection.", googleId);
+            }
 
 			String jwtToken = jwtTokenProvider.generateToken(user);
 
